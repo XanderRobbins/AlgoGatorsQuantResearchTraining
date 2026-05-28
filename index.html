@@ -277,6 +277,9 @@
 </footer>
 
 
+<canvas id="spiral-bg" style="position:absolute;top:50%;right:-140px;transform:translateY(-50%);pointer-events:none;z-index:-1;opacity:0.18;"></canvas>
+<canvas id="spiral-bg-2" style="position:absolute;pointer-events:none;z-index:-1;opacity:0.18;clip-path:inset(50% 0 0 50%);"></canvas>
+
 <script src="cursor.js"></script>
 <script src="scroll.js"></script>
 
@@ -405,6 +408,100 @@
 
   buildGrid();
   requestAnimationFrame(frame);
+})();
+</script>
+
+<script>
+(function () {
+  const canvas = document.getElementById('spiral-bg');
+  const ctx    = canvas.getContext('2d');
+  const SIZE   = 640;
+  canvas.width = canvas.height = SIZE;
+
+  const fx = SIZE * 0.52;   // focal point x
+  const fy = SIZE * 0.46;   // focal point y
+  const RINGS    = 62;
+  const MAX_R    = SIZE * 0.47;
+
+  ctx.clearRect(0, 0, SIZE, SIZE);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth   = 1.1;
+
+  for (let i = 1; i <= RINGS; i++) {
+    const t = i / RINGS;                       // 0→center, 1→outer
+    const r = MAX_R * Math.pow(t, 0.75);       // slightly compressed spacing
+
+    // spiral angle over 2 full rotations
+    const spiralAngle = t * Math.PI * 4;
+
+    // offset the ellipse center slightly around the focal point
+    const offMag = r * 0.13 * (1 - t * 0.4);
+    const ox = fx + Math.cos(spiralAngle) * offMag;
+    const oy = fy + Math.sin(spiralAngle) * offMag;
+
+    // aspect ratio: more elongated near outer rings
+    const aspect = 0.55 + 0.45 * (1 - t);
+
+    // rotation tracks the spiral tangent
+    const rotation = spiralAngle + Math.PI * 0.5;
+
+    ctx.beginPath();
+    ctx.ellipse(ox, oy, r, r * aspect, rotation, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // solid center dot
+  ctx.beginPath();
+  ctx.arc(fx, fy, 8, 0, Math.PI * 2);
+  ctx.fillStyle = '#000';
+  ctx.fill();
+})();
+</script>
+
+<script>
+(function () {
+  const canvas = document.getElementById('spiral-bg-2');
+  const ctx    = canvas.getContext('2d');
+  const SIZE   = 1120;
+  canvas.width = canvas.height = SIZE;
+
+  // Position: center of canvas at (x=0, y=hero_bottom)
+  function positionCanvas() {
+    const hero = document.querySelector('.hero');
+    const heroBottom = hero.offsetTop + hero.offsetHeight;
+    canvas.style.left = (-SIZE / 2) + 'px';
+    canvas.style.top  = (heroBottom - SIZE / 2) + 'px';
+  }
+  positionCanvas();
+  window.addEventListener('resize', positionCanvas);
+
+  const cx = SIZE * 0.50;
+  const cy = SIZE * 0.50;
+  const RINGS  = 52;
+  const MAX_R  = SIZE * 0.45;
+  const FREQ   = 7;
+
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth   = 1.5;
+
+  for (let i = 1; i <= RINGS; i++) {
+    const t        = i / RINGS;
+    const baseR    = MAX_R * Math.pow(t, 0.72);
+    const amp      = baseR * 0.11 * (1 - t * 0.45);
+    const phaseOff = t * Math.PI * 3;
+
+    ctx.beginPath();
+    const STEPS = 360;
+    for (let s = 0; s <= STEPS; s++) {
+      const a = (s / STEPS) * Math.PI * 2;
+      const r = baseR + Math.sin(a * FREQ + phaseOff) * amp;
+      const x = cx + Math.cos(a) * r;
+      const y = cy + Math.sin(a) * r;
+      s === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.stroke();
+  }
 })();
 </script>
 </body>
