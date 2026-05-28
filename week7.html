@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 7: Signal Construction (IP §3a) — QR Training</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">QR Training</span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html">Hub</a>
+    <a href="week1.html">W1</a>
+    <a href="week2.html">W2</a>
+    <a href="week3.html">W3</a>
+    <a href="week4.html">W4</a>
+    <a href="week5.html">W5</a>
+    <a href="week6.html">W6</a>
+    <a href="week7.html" class="active">W7</a>
+    <a href="week8.html">W8</a>
+    <a href="week9.html">W9</a>
+    <a href="week10.html">W10</a>
+    <a href="week11.html">W11</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <div class="page-header">
+    <div class="page-week">Week 7</div>
+    <h1>Signal Construction (IP §3a)</h1>
+    <div class="page-phase">Phase 3: Research Execution</div>
+    <p class="page-objective">Write unambiguous trading rules: entry, exit, and position sizing. This IS Section 3a of your IP.</p>
+  </div>
+
+  <div class="ip-anchor">
+    <span class="ip-anchor-label">IP Anchor</span>
+    <span class="ip-anchor-section">Section 3a — Signal rules</span>
+    <span class="ip-anchor-desc">Every parameter, threshold, and rule must be explicitly documented. No ambiguity. This is Section 3a.</span>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">What this week covers</h2>
+    <p>A signal is not a hypothesis — it's the operational rule that generates buy/sell decisions. This week teaches three major signal types (z-score, momentum, regression), how to specify entry and exit rules without whipsawing, and how to size positions based on volatility and edge strength.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">What Section 3a must contain</h2>
+
+    <div class="card">
+      <ul style="font-size: 0.95rem;">
+        <li><strong>Signal formula:</strong> Exact mathematical expression with all parameters defined. No vagueness like "use a momentum signal." Write: "5-day momentum = (close_t - close_t-5) / close_t-5"</li>
+        <li><strong>Entry rule:</strong> The condition under which you enter (signal threshold, crossover, etc.). Example: "Long when momentum &gt; 0.02 and volatility regime is positive."</li>
+        <li><strong>Exit rule:</strong> The condition under which you exit (signal reversal, stop loss, take profit, time-based). Example: "Exit long when momentum &lt; -0.01 OR position is held for 30 days, whichever comes first."</li>
+        <li><strong>Position sizing:</strong> How large a position as a function of signal strength and risk. Example: "Size = target_vol / realized_vol * capital"</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Three signal construction patterns</h2>
+
+    <h3 style="margin-top: 1.5rem;">Pattern 1: Z-score signals (mean reversion)</h3>
+    <p>Z-score measures deviation from the rolling mean in standard deviations.</p>
+    \[ z_t = \frac{x_t - \mu_{t,w}}{\sigma_{t,w}} \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where x_t is price or returns, w is lookback window, μ and σ are rolling mean and std.</p>
+
+    <div class="card">
+      <p><strong>Entry rule:</strong> Long when z &lt; -2.0 (price is 2 std below average). Short when z &gt; +2.0.</p>
+      <p><strong>Exit rule:</strong> Exit when z crosses zero (price returns to mean). Or time-based: exit after 20 trading days if signal hasn't closed.</p>
+      <p><strong>Typical use:</strong> Pairs trading, commodity mean reversion, currency mean reversion.</p>
+      <p><strong>Advantage:</strong> Simple, easy to interpret. Disadvantage: whipsaws in trending markets.</p>
+    </div>
+
+    <h3 style="margin-top: 1.5rem;">Pattern 2: Momentum signals (trend-following)</h3>
+    <p>Momentum measures the rate of change in price. EWMAC (Exponentially Weighted Moving Average Convergence Divergence) is the most robust version.</p>
+    \[ \text{EWMAC}_{f,s} = \text{EWM}_{t,f} - \text{EWM}_{t,s} \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where EWM_f is fast (short lookback), EWM_s is slow (long lookback).</p>
+
+    <div class="card">
+      <p><strong>Entry rule:</strong> Long when EWMAC &gt; 0 and positive regime filter. Short when EWMAC &lt; 0.</p>
+      <p><strong>Exit rule:</strong> Exit when EWMAC crosses zero. Or time-based: exit after 60 days.</p>
+      <p><strong>Parameters:</strong> Fast window (e.g., 8 days), slow window (e.g., 32 days). Use powers of 2 for efficiency.</p>
+      <p><strong>Typical use:</strong> Trend-following in commodities, equities, FX.</p>
+      <p><strong>Advantage:</strong> Captures trends, avoids mean-reversion whipsaws. Disadvantage: lags trend reversals.</p>
+    </div>
+
+    <h3 style="margin-top: 1.5rem;">Pattern 3: Regression-based signals</h3>
+    <p>Fit a regression model to predict forward returns. Use the fitted value as the signal.</p>
+    \[ \hat{r}_{t+h} = \alpha + \beta_1 x_{1,t} + \beta_2 x_{2,t} + \varepsilon \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where x_i are predictors (fundamental data, alternative data, technical factors).</p>
+
+    <div class="card">
+      <p><strong>Signal:</strong> Predicted return \(\hat{r}_{t+h}\). Positive = long, negative = short.</p>
+      <p><strong>Entry rule:</strong> Long when \(\hat{r} &gt; \text{threshold}\) (e.g., 0.5% expected return).</p>
+      <p><strong>Exit rule:</strong> Exit when \(\hat{r} &lt; 0\) (expected return turns negative) or after 20 days.</p>
+      <p><strong>Advantage:</strong> Can use multiple factors. Captures fundamental information.</p>
+      <p><strong>Disadvantage:</strong> More parameters, higher overfitting risk. Must test assumptions carefully (Section 3b).</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Position sizing</h2>
+
+    <h3 style="margin-top: 1.5rem;">Volatility-targeted sizing (preferred at AlgoGators)</h3>
+    <p>Scale position size inversely to volatility. High volatility → smaller position. Low volatility → larger position. Maintains constant risk contribution.</p>
+    \[ \text{position size} = \frac{\text{target vol}}{\sigma_t} \cdot \text{capital} \]
+
+    <div class="card">
+      <p><strong>Example:</strong></p>
+      <pre><code>target_vol = 0.10  # 10% annualized target volatility
+annual_factor = np.sqrt(252)
+
+realized_vol = returns.rolling(20).std() * annual_factor
+position_size = (target_vol / realized_vol) * capital
+
+# When realized_vol is high (20%), size down
+# When realized_vol is low (5%), size up
+</code></pre>
+      <p style="margin-top: 1rem;"><strong>Advantage:</strong> Risk contribution is stable across time. Avoids overlevering in calm periods.</p>
+    </div>
+
+    <h3 style="margin-top: 1.5rem;">Kelly Criterion (rarely used in practice)</h3>
+    <p>Optimal fraction of capital to bet given win probability and payoff ratio.</p>
+    \[ f^* = \frac{p \cdot b - q}{b} \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where p = win probability, q = 1-p, b = win/loss ratio.</p>
+
+    <p style="margin-top: 1rem;">Full Kelly is too aggressive. Most funds use half-Kelly or quarter-Kelly.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Regime filters</h2>
+    <p>A regime filter conditions signal execution on market state. Example: only trade momentum when in an uptrend.</p>
+
+    <div class="card">
+      <p><strong>Example:</strong> Trend filter</p>
+      \[ \text{regime}_t = \mathbb{1}\left[P_t &gt; \text{EMA}_{t,200}\right] \]
+      <p style="margin-top: 1rem;">Only execute momentum signals when price is above the 200-day exponential moving average. In downtrends, stay in cash.</p>
+      <p style="margin-top: 1rem;"><strong>Advantage:</strong> Reduces drawdowns by avoiding trades in bad regimes. <strong>Disadvantage:</strong> Misses opportunities at regime transitions.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Chart: Signal timeline example</h2>
+    <div class="chart-container">
+      <canvas id="signalChart"></canvas>
+    </div>
+    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">Price (blue), z-score signal (orange), entry points (green dots = buy, red = sell). Notice the whipsaws: several short-lived entries and exits. This is mean reversion, not ideal in trends.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Section 3a template</h2>
+
+    <div class="card" style="background: var(--bg-elevated); font-size: 0.9rem;">
+      <p style="color: var(--accent); font-weight: 600;">SECTION 3A: SIGNAL CONSTRUCTION</p>
+
+      <p style="margin-top: 1rem;"><strong>3a.1 Signal formula</strong></p>
+      <p style="font-style: italic;">z_t = (close_t - mean(close_t-20:t)) / std(close_t-20:t)</p>
+
+      <p style="margin-top: 1rem;"><strong>3a.2 Entry rule</strong></p>
+      <p style="font-style: italic;">Long: z_t &lt; -1.5 AND regime_t = 1 (positive trend)</p>
+      <p style="font-style: italic;">regime_t = 1 if close_t &gt; EMA(close, 50), else 0</p>
+
+      <p style="margin-top: 1rem;"><strong>3a.3 Exit rule</strong></p>
+      <p style="font-style: italic;">Exit long if: z_t &gt; 0 OR position held for 30 days, whichever first</p>
+
+      <p style="margin-top: 1rem;"><strong>3a.4 Position sizing</strong></p>
+      <p style="font-style: italic;">units = (target_vol / realized_vol) * capital / price</p>
+      <p style="font-style: italic;">target_vol = 0.10 (10% annual target)</p>
+      <p style="font-style: italic;">realized_vol = 20-day rolling volatility, annualized</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Common mistakes</h2>
+    <div class="mistakes-list">
+      <h4 style="margin-top: 0;">Five signal construction failures</h4>
+      <ul>
+        <li><strong>Entry and exit rules that create whipsawing.</strong> Entering and exiting every few days on noise. Use regime filters or time-holding requirements to stabilize.</li>
+        <li><strong>Not defining parameter values in Section 3a.</strong> "Use momentum" is vague. "5-day momentum = (close_t - close_t-5) / close_t-5 with entry at +2% threshold" is precise.</li>
+        <li><strong>Position sizing that doesn't account for volatility.</strong> 1 contract in calm markets vs. volatile markets = very different risk. Use vol-targeting.</li>
+        <li><strong>Stop losses at arbitrary round numbers.</strong> Stop at 10% loss instead of 2 std-dev move. Round numbers are often support/resistance where slippage is terrible.</li>
+        <li><strong>No exit rule.</strong> Every position must have an explicit exit condition. "Hold until I decide" creates uncontrolled risk and decision fatigue.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <a href="week6.html" class="week-nav-button">← Week 6: Data Sourcing</a>
+    <a href="week8.html" class="week-nav-button">Week 8: Model Assumptions →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — QR Training Program // Internal Use Only
+</footer>
+
+<script>
+  const ctx = document.getElementById('signalChart').getContext('2d');
+
+  const days = Array.from({length: 100}, (_, i) => i);
+
+  // Generate prices with mean-reversion pattern
+  const prices = days.map((_, i) => {
+    const trend = 100 + i * 0.1;
+    const mean_rev = Math.sin(i / 10) * 5;
+    return trend + mean_rev + (Math.random() - 0.5) * 2;
+  });
+
+  // Compute z-score
+  const window = 20;
+  const zscores = days.map((_, i) => {
+    if (i < window) return 0;
+    const window_prices = prices.slice(i - window, i);
+    const mean = window_prices.reduce((a, b) => a + b) / window;
+    const variance = window_prices.reduce((a, b) => a + (b - mean)**2) / window;
+    const std = Math.sqrt(variance);
+    return (prices[i] - mean) / std;
+  });
+
+  // Entry signals: z < -1.5
+  const entries = zscores.map((z, i) => z < -1.5 && i > window ? prices[i] : null);
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: days,
+      datasets: [
+        {
+          label: 'Price',
+          data: prices,
+          borderColor: '#4a86e8',
+          borderWidth: 2,
+          pointRadius: 0,
+          yAxisID: 'y'
+        },
+        {
+          label: 'Z-Score Signal',
+          data: zscores,
+          borderColor: '#FF9500',
+          borderWidth: 2,
+          pointRadius: 0,
+          yAxisID: 'y1'
+        },
+        {
+          label: 'Entry Signals',
+          data: entries,
+          type: 'scatter',
+          pointBackgroundColor: '#2a9d5c',
+          pointRadius: 6,
+          yAxisID: 'y'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: { color: '#888888', font: { family: "'IBM Plex Mono'" } }
+        }
+      },
+      scales: {
+        x: { grid: { color: '#1f1f1f' }, ticks: { color: '#888888' } },
+        y: {
+          type: 'linear',
+          position: 'left',
+          grid: { color: '#1f1f1f' },
+          ticks: { color: '#888888' },
+          title: { display: true, text: 'Price', color: '#888' }
+        },
+        y1: {
+          type: 'linear',
+          position: 'right',
+          grid: { drawOnChartArea: false },
+          ticks: { color: '#888888' },
+          title: { display: true, text: 'Z-Score', color: '#888' }
+        }
+      }
+    }
+  });
+</script>
+
+</body>
+</html>

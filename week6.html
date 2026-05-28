@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 6: Data Sourcing & Cleaning (IP §2) — QR Training</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">QR Training</span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html">Hub</a>
+    <a href="week1.html">W1</a>
+    <a href="week2.html">W2</a>
+    <a href="week3.html">W3</a>
+    <a href="week4.html">W4</a>
+    <a href="week5.html">W5</a>
+    <a href="week6.html" class="active">W6</a>
+    <a href="week7.html">W7</a>
+    <a href="week8.html">W8</a>
+    <a href="week9.html">W9</a>
+    <a href="week10.html">W10</a>
+    <a href="week11.html">W11</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <div class="page-header">
+    <div class="page-week">Week 6</div>
+    <h1>Data Sourcing & Cleaning (IP §2)</h1>
+    <div class="page-phase">Phase 3: Research Execution</div>
+    <p class="page-objective">Write Section 2 of your IP: precise data description and the QD approval gate. Understand the three major data biases and how to avoid them.</p>
+  </div>
+
+  <div class="ip-anchor">
+    <span class="ip-anchor-label">IP Anchor</span>
+    <span class="ip-anchor-section">Section 2 — Data sourcing & QD approval</span>
+    <span class="ip-anchor-desc">Section 2a is your data description. Section 2b is the QD gate: without it, your IP is incomplete. You can't proceed without both.</span>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">What this week covers</h2>
+    <p>Data quality determines backtest quality. This week teaches what belongs in Section 2a (detailed data sourcing and cleaning), the three major data biases (survivorship, look-ahead, and point-in-time), and why Section 2b (the QD approval gate) must be completed before you run any backtest.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Section 2a: What to include</h2>
+
+    <div class="card">
+      <p style="font-weight: 600; margin-bottom: 1rem;">Your data section should contain:</p>
+      <ul style="font-size: 0.95rem;">
+        <li><strong>Data series:</strong> Asset name, exchange/source, frequency (daily/hourly/tick), date range, units</li>
+        <li><strong>Cleaning steps:</strong> Outlier treatment, missing value handling, corporate action adjustments with specific methods</li>
+        <li><strong>Feature construction:</strong> Derived variables, with exact formulas. Example: "5-day rolling z-score: (close_t - mean(close_t-5:t)) / std(close_t-5:t)"</li>
+        <li><strong>Descriptive statistics:</strong> Mean, std, skewness, kurtosis, lag-1 autocorrelation of primary series</li>
+      </ul>
+    </div>
+
+    <h3 style="margin-top: 1.5rem;">Worked example Section 2a: Corn futures</h3>
+    <div class="card" style="background: var(--bg-elevated); font-size: 0.9rem;">
+      <p style="color: var(--accent); font-weight: 600;">DATA SOURCING & CLEANING — Corn Futures Strategy</p>
+
+      <p style="margin-top: 1rem;"><strong>2a.1 Data series</strong></p>
+      <p>Continuous corn futures (CBOT ZC), front-month contract rolled 5 trading days before first notice date. Daily close prices from 2010-01-01 to 2024-01-31. Units: cents per bushel. Source: Databento (live) / CME historical archive (backtest).</p>
+
+      <p style="margin-top: 1rem;"><strong>2a.2 Cleaning steps</strong></p>
+      <ul style="margin-left: 1.5rem; font-size: 0.9rem;">
+        <li>Raw prices: unadjusted. Split/delivery adjustments N/A (futures).</li>
+        <li>Outlier detection: daily moves &gt; 10% of 30-day rolling volatility flagged for inspection. None removed (verified legitimate). Liquidity gap handling: contracts within 5 trading days of first notice are excluded (low liquidity, high bid-ask).</li>
+        <li>Missing days: none (futures trade daily).</li>
+        <li>Roll handling: front month rolled 5 days before expiry. New contract takes over seamlessly in TimescaleDB continuous aggregate.</li>
+      </ul>
+
+      <p style="margin-top: 1rem;"><strong>2a.3 Features</strong></p>
+      <ul style="margin-left: 1.5rem; font-size: 0.9rem;">
+        <li>Price momentum (5-day): (close_t / close_t-5) - 1</li>
+        <li>Volatility (30-day): std(log-returns_t-30:t) × sqrt(252) [annualized]</li>
+        <li>Seasonal factor: deviation from 10-year average price for calendar day-of-year</li>
+      </ul>
+
+      <p style="margin-top: 1rem;"><strong>2a.4 Descriptive statistics (2020–2024 sample)</strong></p>
+      <ul style="margin-left: 1.5rem; font-size: 0.9rem;">
+        <li>Mean daily return: 0.08%</li>
+        <li>Std dev: 1.42%</li>
+        <li>Skewness: -0.31 (left tail)</li>
+        <li>Kurtosis: 4.2 (fat tails, excess kurtosis = 1.2)</li>
+        <li>AC(1): 0.04 (minimal autocorrelation)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">The three major data biases</h2>
+
+    <h3 style="margin-top: 1.5rem;">1. Survivorship bias</h3>
+    <div class="card">
+      <p><strong>What it is:</strong> Your backtest universe only includes assets that survived to today. You've excluded all the bankruptcies, delistings, and failures.</p>
+      <p><strong>Example:</strong> You backtest a long-only equity strategy on the current S&P 500 constituents going back to 2010. But the current 500 are not the same 500 as 2010. Companies that were in the index in 2010 and have since been delisted are missing from your analysis. Your backtest systematically excludes the losers.</p>
+      <p><strong>Impact:</strong> Your backtest Sharpe overstates live Sharpe. You're comparing 14 years of current winners against 14 years of actual 2010 universe (which included some failures). The survivor set looks better.</p>
+      <p><strong>How to fix:</strong> Use point-in-time constituent lists. If you want to backtest on S&P 500 from 2010–2024, get the actual S&P 500 constituents as they were on each date, not today's constituents.</p>
+    </div>
+
+    <h3 style="margin-top: 1.5rem;">2. Look-ahead bias</h3>
+    <div class="card">
+      <p><strong>What it is:</strong> Using data in your signal that wasn't available at the time the signal fired.</p>
+      <p><strong>Example:</strong> You build a signal using dividend-adjusted prices. But dividend adjustments are applied backward — the adjusted price on day T reflects information (the dividend) that was announced on day T+500. Your signal is using future information.</p>
+      <p><strong>More examples:</strong></p>
+      <ul style="font-size: 0.95rem;">
+        <li>Using the month's final close on day 1 of the month</li>
+        <li>Using year-end financial data to predict January returns</li>
+        <li>Using revised/final numbers instead of as-reported earnings</li>
+        <li>Using forward prices to trade spot on the same day (latency)</li>
+      </ul>
+      <p><strong>How to fix:</strong> Use as-reported data, not revised. Use prices available at the time. Build features on raw (not backward-adjusted) prices, apply adjustments only to returns.</p>
+    </div>
+
+    <h3 style="margin-top: 1.5rem;">3. Point-in-time data</h3>
+    <div class="card">
+      <p><strong>What it is:</strong> Fundamental data (earnings, balance sheets, analyst estimates) is released with a lag and revised afterward. If you backtest using the final revised figure, you're using data the market didn't have yet.</p>
+      <p><strong>Example:</strong> A company reports Q1 earnings of $1.50 EPS on April 15. But the reported figure is later revised to $1.45 on July 1 due to restatement. If you use $1.45 in your backtest for April 15, you're using information that wasn't available on April 15.</p>
+      <p><strong>How to fix:</strong> Use as-reported data on the as-reported date. Avoid pre-revised figures. Many data providers (Bloomberg, FactSet) provide point-in-time data specifically for this reason.</p>
+    </div>
+
+    <h3 style="margin-top: 1.5rem;">Chart: Survivorship bias impact</h3>
+    <div class="chart-container" style="margin-top: 1.5rem;">
+      <canvas id="survivalChart"></canvas>
+    </div>
+    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">The blue curve (including delisted companies) shows lower cumulative return than the orange curve (survivors only). The difference compounds — by 2024, the bias has inflated returns by roughly 15%.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Section 2b: The QD approval gate</h2>
+    <p><strong>This is non-negotiable.</strong> You cannot submit an IP with incomplete Section 2b. This is not bureaucracy — it's a forcing function to catch infeasible research early.</p>
+
+    <div class="card">
+      <p style="font-weight: 600; margin-bottom: 1rem;">Section 2b must contain:</p>
+      <ul style="font-size: 0.95rem;">
+        <li>Data availability: exact asset/frequency/date range, confirmed available from Databento or other source</li>
+        <li>Ingestibility: confirmation that data can be ingested into TimescaleDB at the required frequency</li>
+        <li>Alternative data licensing: if using satellite, social, proprietary data — confirmed licensed and available</li>
+        <li><strong>Written sign-off from the Head of Data Engineering</strong> confirming all above</li>
+      </ul>
+    </div>
+
+    <h3 style="margin-top: 1.5rem;">Example Section 2b</h3>
+    <div class="card" style="background: var(--bg-elevated); font-size: 0.9rem;">
+      <p style="color: var(--accent); font-weight: 600;">SECTION 2B: QD APPROVAL — Corn Futures Strategy</p>
+
+      <p style="margin-top: 1rem;">Data sourcing: Continuous corn futures (CBOT ZC) daily close from 2010-01-01 to 2024-01-31 is available via Databento at no additional cost (existing subscription covers). Historical archive verified via CME website.</p>
+
+      <p style="margin-top: 0.5rem;">Ingestibility: Daily OHLCV can be ingested into TimescaleDB continuous aggregate within 1 hour of daily close. Data-ngin pipeline has existing handling for commodity futures roll management.</p>
+
+      <p style="margin-top: 0.5rem;">Alternative data: None required.</p>
+
+      <p style="margin-top: 0.5rem;"><strong>Head of Data Engineering approval (Jane Smith, jane.smith@algogators.com):</strong></p>
+      <p style="margin-top: 0.5rem; font-style: italic;">"Confirmed: ZC daily data available, ingestible, covers requested date range. Rollover logic already in place. No additional pipeline work required. Approved for development. — JS"</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Data cleaning Python patterns</h2>
+
+    <h3 style="margin-top: 1.5rem;">Winsorizing outliers</h3>
+    <pre><code>import numpy as np
+
+# Cap extreme returns at ±3 standard deviations
+mean_ret = df['returns'].mean()
+std_ret = df['returns'].std()
+df['returns_clean'] = df['returns'].clip(
+    lower=mean_ret - 3*std_ret,
+    upper=mean_ret + 3*std_ret
+)</code></pre>
+
+    <h3 style="margin-top: 1.5rem;">Missing value handling</h3>
+    <pre><code># Forward-fill prices (last known price)
+df['close'] = df['close'].ffill()
+
+# Do NOT forward-fill volume — use NaN-aware methods
+df['volume_avg'] = df['volume'].rolling(20).mean()
+# rolling() handles NaN gracefully</code></pre>
+
+    <h3 style="margin-top: 1.5rem;">Rolling z-score normalization</h3>
+    <pre><code>def rolling_zscore(series, window=60):
+    return (series - series.rolling(window).mean()) / \
+           series.rolling(window).std()
+
+df['signal'] = rolling_zscore(df['close'], window=60)</code></pre>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Common mistakes</h2>
+    <div class="mistakes-list">
+      <h4 style="margin-top: 0;">Five data sins</h4>
+      <ul>
+        <li><strong>Using adjusted-close prices for signal construction.</strong> This is look-ahead bias. Use raw close, adjust only the final returns for splits and dividends.</li>
+        <li><strong>Not documenting the exact date range.</strong> "2010–2024 S&P 500 data" is vague. "ZC CBOT front-contract, 2010-01-01 through 2024-01-31, rolled 5 days before first notice" is precise. Be precise.</li>
+        <li><strong>Cleaning data by removing bad periods.</strong> "I removed 2008 because it was too volatile." Wrong. Document what happened (gap, halt, unusual volume) and handle it (forward-fill, interpolate). Don't just delete outliers.</li>
+        <li><strong>Not checking historical depth of alternative data.</strong> Satellite data goes back 10 years. That's 2.5 full market cycles — okay. But if it only goes back 3 years, you have only one bull/bear cycle — too short.</li>
+        <li><strong>Incomplete Section 2b.</strong> If you don't have written QD approval, your IP is rejected. No exceptions.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <a href="week5.html" class="week-nav-button">← Week 5: The Hypothesis</a>
+    <a href="week7.html" class="week-nav-button">Week 7: Signal Construction →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — QR Training Program // Internal Use Only
+</footer>
+
+<script>
+  const ctx = document.getElementById('survivalChart').getContext('2d');
+
+  const years = Array.from({length: 15}, (_, i) => 2010 + i);
+
+  // Biased path (survivors only)
+  const survivors = years.map((_, i) => {
+    return 100 * Math.exp(0.12 * (i + 1) / 15);
+  });
+
+  // Unbiased path (including failed companies)
+  const unbiased = years.map((_, i) => {
+    return 100 * Math.exp(0.09 * (i + 1) / 15);
+  });
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: years,
+      datasets: [
+        {
+          label: 'Survivors Only (Biased)',
+          data: survivors,
+          borderColor: '#FF9500',
+          borderWidth: 3,
+          pointRadius: 4,
+          fill: false,
+          tension: 0.3
+        },
+        {
+          label: 'Including Delisted (Unbiased)',
+          data: unbiased,
+          borderColor: '#4a86e8',
+          borderWidth: 3,
+          pointRadius: 4,
+          fill: false,
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: { color: '#888888', font: { family: "'IBM Plex Mono'" } }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#888888' },
+          grid: { color: '#1f1f1f' }
+        },
+        y: {
+          grid: { color: '#1f1f1f' },
+          ticks: { color: '#888888' },
+          title: { display: true, text: 'Cumulative Return ($)', color: '#888' }
+        }
+      }
+    }
+  });
+</script>
+
+</body>
+</html>

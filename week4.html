@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 4: Fund Toolstack & Data Pipeline — QR Training</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">QR Training</span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html">Hub</a>
+    <a href="week1.html">W1</a>
+    <a href="week2.html">W2</a>
+    <a href="week3.html">W3</a>
+    <a href="week4.html" class="active">W4</a>
+    <a href="week5.html">W5</a>
+    <a href="week6.html">W6</a>
+    <a href="week7.html">W7</a>
+    <a href="week8.html">W8</a>
+    <a href="week9.html">W9</a>
+    <a href="week10.html">W10</a>
+    <a href="week11.html">W11</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <div class="page-header">
+    <div class="page-week">Week 4</div>
+    <h1>Fund Toolstack & Data Pipeline</h1>
+    <div class="page-phase">Phase 2: Tooling & Hypothesis</div>
+    <p class="page-objective">Understand the infrastructure that powers research at AlgoGators. Know what data exists before you write Section 2 of your IP.</p>
+  </div>
+
+  <div class="ip-anchor">
+    <span class="ip-anchor-label">IP Anchor</span>
+    <span class="ip-anchor-section">Section 2 — Data sourcing & QD approval</span>
+    <span class="ip-anchor-desc">The QD approval gate (Section 2b) exists because data is not free and pipelines have limits. Understand the infrastructure before writing your data section.</span>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">What this week covers</h2>
+    <p>Every strategy runs on data. The data must exist, be accessible, be affordable, and be ingestible into our systems. This week walks through the AlgoGators data pipeline: what tools ingest data, where it lives, how it flows to strategies, and what the QD approval gate (Section 2b) is checking for.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">The data flow at AlgoGators</h2>
+
+    <div class="card" style="background: var(--bg-elevated); padding: 2rem; font-family: 'IBM Plex Mono'; font-size: 0.85rem; overflow-x: auto; white-space: pre;">Raw market data
+    ↓
+Databento (ingest)
+    ↓
+TimescaleDB (storage)
+    ↓
+data-ngin (transform)
+    ↓
+AlgoSystem (backtest/live)
+    ↓
+Strategy execution
+
+← QR writes signal spec here
+← QD implements from IP</div>
+
+    <p style="margin-top: 2rem;">Understanding this flow is critical. You will describe your data requirements in Section 2a. The QD team will use those requirements to build the pipeline. But you need to understand the constraints at each step.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Databento</h2>
+    <p><strong>What it is:</strong> A market data provider. Tick data, OHLCV (open, high, low, close, volume), order book snapshots across equities, futures, options, FX.</p>
+    <p><strong>Coverage:</strong> US equities, US futures (CME, CBOT, COMEX), cryptocurrencies, FX futures. International coverage limited.</p>
+    <p><strong>Cost:</strong> Databento charges per data series per month. Novel data sources require approval before you spend time on them.</p>
+    <p><strong>Frequency:</strong> Tick-level to daily OHLCV. You request the granularity you need.</p>
+    <p style="color: var(--text-secondary); margin-top: 1rem;"><strong>For QR:</strong> Know what you're asking for before Section 2b. If you want daily closing prices for the last 10 years, that's cheap and trivial. If you want 1-minute bars for 500 stocks for 5 years, that's expensive and requires approval.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">TimescaleDB</h2>
+    <p><strong>What it is:</strong> PostgreSQL extension optimized for time-series data. Time-indexed tables, automatic partitioning, continuous aggregates (pre-computed rolling statistics).</p>
+    <p><strong>How it works:</strong> Raw tick data from Databento is ingested into TimescaleDB. Millions of rows a day. Partitioned by time so queries on recent data are fast.</p>
+    <p><strong>Continuous aggregates:</strong> You can define a continuous aggregate that automatically computes, say, daily OHLCV from tick data. No extra code required — TimescaleDB handles it.</p>
+    <p style="color: var(--text-secondary); margin-top: 1rem;"><strong>For QR:</strong> You don't write SQL. You define your data requirements in Section 2a ("daily OHLCV for corn futures"), and QD writes the queries. But knowing the data lives in TimescaleDB helps you understand data availability and freshness.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">data-ngin (data engineering pipeline)</h2>
+    <p><strong>What it is:</strong> Internal cleaning and feature engineering layer. Handles corporate actions (stock splits, dividends), outlier detection, missing value handling, and feature construction.</p>
+    <p><strong>Corporate actions:</strong> When a stock splits 2-for-1, raw prices from two days don't compare. data-ngin adjusts for this. Uses point-in-time adjustments (historical prices adjusted forward, not backward, to avoid look-ahead bias).</p>
+    <p><strong>Outliers:</strong> Exchange halts, data errors, gaps. data-ngin flags and handles these.</p>
+    <p><strong>Features:</strong> When you describe your signal as "5-day rolling z-score," data-ngin is what computes it. You specify the formula in your IP; QD implements it in data-ngin.</p>
+    <p style="color: var(--text-secondary); margin-top: 1rem;"><strong>For QR:</strong> In Section 2a, you describe the features you need with formulas. In Section 3a, you use those features in your signal. data-ngin makes them available.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">The QD Approval Gate (Section 2b)</h2>
+    <p>This is a critical checkpoint. <strong>You cannot move forward without QD sign-off.</strong></p>
+    <p><strong>Why it exists:</strong> Too many QR analysts have written strategies on data that doesn't exist. They spent weeks developing on a dataset that was never subscribed to, or that costs $500k/month, or that isn't available at the frequency needed, or that has only 3 years of history (too short for backtesting).</p>
+    <p><strong>What Section 2b must contain:</strong></p>
+    <ul>
+      <li>The exact data series needed (asset name, exchange, frequency, date range)</li>
+      <li>The cleaning steps and transformations (split adjustments, outlier treatment)</li>
+      <li>Any external or alternative data (satellite, social, etc.) with licensing status</li>
+      <li><strong>Written confirmation from the Head of Data Engineering</strong> that the data is acquirable, ingestible at the required frequency, and fits within budget/subscriptions</li>
+    </ul>
+    <p style="margin-top: 1.5rem;"><strong>What happens:</strong> You submit your IP with Section 2 (both 2a and 2b). QT reviews strategy fit. QD reviews data feasibility and signs off in 2b. If 2b is not signed, the IP is rejected, full stop. This is not punitive — it's a forcing function to catch infeasible research early.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Python data access patterns</h2>
+
+    <h3 style="margin-top: 1.5rem;">Pulling OHLCV from TimescaleDB</h3>
+    <pre><code>import pandas as pd
+import psycopg2
+
+conn = psycopg2.connect(
+    host="timescaledb.internal",
+    dbname="algogators",
+    user="qr_user",
+    password="***"
+)
+
+query = """
+    SELECT timestamp, open, high, low, close, volume
+    FROM corn_futures
+    WHERE timestamp BETWEEN '2020-01-01' AND '2024-01-01'
+    ORDER BY timestamp
+"""
+
+df = pd.read_sql(query, conn, parse_dates=['timestamp'], index_col='timestamp')
+</code></pre>
+
+    <h3 style="margin-top: 1.5rem;">Feature construction: rolling z-score</h3>
+    <pre><code>def rolling_zscore(series, window=20):
+    """Z-score normalization using rolling window."""
+    mean = series.rolling(window).mean()
+    std = series.rolling(window).std()
+    return (series - mean) / std
+
+# Normalized signal for entry/exit
+df['signal'] = rolling_zscore(df['close'], window=60)
+entry_threshold = 2.0  # Entry when signal &lt; -2
+df['signal_entry'] = df['signal'] &lt; -entry_threshold
+</code></pre>
+
+    <h3 style="margin-top: 1.5rem;">Handling corporate actions (splits/dividends)</h3>
+    <pre><code># data-ngin handles this automatically
+# You specify the adjustment method in Section 2a:
+# "Prices adjusted for splits/dividends using backward-adjusted method.
+#  Adjustment factors applied at ex-date."
+# QD implements it; you use the adjusted prices in your signal.</code></pre>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">NasaPowerCouncil data pipeline (example)</h2>
+    <div class="card">
+      <p><strong>Raw data:</strong> NASA POWER API. Daily solar radiation (ALLSKY_SFC_SW_DWN), temperature (T2M), precipitation (PRECTOTCORR) at lat/lon grid.</p>
+      <p><strong>Geographic mapping:</strong> Corn Belt counties (IL, IA, MN, MO, etc.). Map each county to grid point lat/lon centroids.</p>
+      <p><strong>Transformation:</strong> Compute growing-degree-day (GDD) deviation from 20-year seasonal average. Daily rolling sums, seasonal adjustment.</p>
+      <p><strong>Feature:</strong> GDD_deviation_30d = 30-day rolling sum of (daily GDD - 20-year seasonal average for that calendar window).</p>
+      <p><strong>Section 2b sign-off:</strong> "Data sourced from NASA POWER REST API (public, no licensing cost). Daily resolution, available back to 1981. Ingestible via Python requests → CSV → TimescaleDB. QD: Confirmed."</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Common mistakes</h2>
+    <div class="mistakes-list">
+      <h4 style="margin-top: 0;">Five data pipeline failures</h4>
+      <ul>
+        <li><strong>Skipping Section 2b and assuming data availability.</strong> You need written confirmation from QD. Email counts; attachment or reply-all to your IP draft counts. Verbal is not enough.</li>
+        <li><strong>Requesting data at the wrong frequency.</strong> You want daily but need intraday? Requesting daily won't work. Be precise: "daily close at 4:00 PM ET" not "daily data."</li>
+        <li><strong>Not accounting for data latency.</strong> Some releases lag: COT data (Friday for Tuesday), USDA forecasts (monthly, mid-month), earnings (announced after close). If your signal fires before data arrives, you have look-ahead bias.</li>
+        <li><strong>Writing Section 2a so vaguely that QD can't parse what you need.</strong> "Corn price data" is not enough. Need: "Continuous corn futures (ZC, nearest-to-expiry rolled 5 days before contract expiry), daily close, 2015–2024."</li>
+        <li><strong>Assuming alternative data is cheap.</strong> Satellite data, web scraping, proprietary sources cost money. Get pricing in Section 2b before committing 10 weeks to research that costs $50k/month to run.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <a href="week3.html" class="week-nav-button">← Week 3: Statistics</a>
+    <a href="week5.html" class="week-nav-button">Week 5: The Hypothesis →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — QR Training Program // Internal Use Only
+</footer>
+
+</body>
+</html>

@@ -1,0 +1,270 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 2: Fund Markets & Asset Classes — QR Training</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">QR Training</span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html">Hub</a>
+    <a href="week1.html">W1</a>
+    <a href="week2.html" class="active">W2</a>
+    <a href="week3.html">W3</a>
+    <a href="week4.html">W4</a>
+    <a href="week5.html">W5</a>
+    <a href="week6.html">W6</a>
+    <a href="week7.html">W7</a>
+    <a href="week8.html">W8</a>
+    <a href="week9.html">W9</a>
+    <a href="week10.html">W10</a>
+    <a href="week11.html">W11</a>
+  </div>
+</nav>
+
+<div class="container">
+
+  <div class="page-header">
+    <div class="page-week">Week 2</div>
+    <h1>Fund Markets & Asset Classes</h1>
+    <div class="page-phase">Phase 1: Foundations</div>
+    <p class="page-objective">Understand what drives prices in the markets where AlgoGators trades. Know the structural and behavioral forces that create edges.</p>
+  </div>
+
+  <div class="ip-anchor">
+    <span class="ip-anchor-label">IP Anchor</span>
+    <span class="ip-anchor-section">Section 1 — Hypothesis</span>
+    <span class="ip-anchor-desc">You can only write a hypothesis about markets you understand. This week builds that foundation.</span>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">What this week covers</h2>
+    <p>Markets are not interchangeable. FX is driven by interest rate differentials and central bank policy. Commodities have storage costs and seasonality. Fixed income is shaped by yield curve expectations. Each market has its own dynamics, constraints, and edges. This week walks through the major asset classes where quantitative research happens, the core mechanics of each, and where AlgoGators finds edges.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">FX markets</h2>
+
+    <h3 style="margin-top: 1.5rem;">Core mechanics</h3>
+    <p>FX spot rates are determined by supply and demand for each currency. The forward rate (price locked in today for delivery in the future) incorporates the spot rate plus the cost of carry — primarily the interest rate differential between the two currencies.</p>
+
+    <p><strong>Covered Interest Parity:</strong> The relationship between spot, forward, and interest rates.</p>
+    \[ F = S \cdot \frac{1 + r_d}{1 + r_f} \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where F = forward rate, S = spot rate, r_d = domestic interest rate, r_f = foreign interest rate.</p>
+
+    <p style="margin-top: 1.5rem;">If you borrow low-yield currency and lend high-yield currency, you're paid the interest differential. This is the <strong>carry trade</strong> — and it's structurally persistent because the interest differential reflects real economic differences.</p>
+
+    <h3 style="margin-top: 1.5rem;">What drives FX rates</h3>
+    <ul>
+      <li><strong>Interest rate differentials:</strong> Higher rates attract capital. A currency with higher rates should trade at a forward discount (future depreciation) to equalize returns. (This is interest parity.)</li>
+      <li><strong>Inflation:</strong> Purchasing power parity: currencies with higher inflation should depreciate. Long-term anchor on spot rates.</li>
+      <li><strong>Current account flows:</strong> A country with a trade surplus (exports > imports) accumulates foreign currency. Currencies strengthen on current account surpluses.</li>
+      <li><strong>Central bank intervention:</strong> Dramatic moves come from policy shifts. ECB rate hikes in 2022–2023 drove EUR appreciation.</li>
+    </ul>
+
+    <h3 style="margin-top: 1.5rem;">The edge: Uncovered Interest Parity failure</h3>
+    <p>Theory says: if interest rates in Country A are 3% and in Country B are 1%, the currency of B should depreciate by roughly 2% per year to equalize returns. This is <em>covered</em> interest parity.</p>
+    <p>But <em>uncovered</em> interest parity (the weaker version: speculators fully arbitrage the forward market) fails empirically. The high-yield currency often appreciates, not depreciates. Carry trades (borrow low, lend high) have been profitable for decades. This is a structural edge — hedgers need to pay speculators a risk premium to take on currency risk.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Commodity futures</h2>
+
+    <h3 style="margin-top: 1.5rem;">Core mechanics</h3>
+    <p>Commodity futures have a term structure (different prices for different delivery months). The shape of this term structure — whether it slopes upward (contango) or downward (backwardation) — tells you something important about supply and demand.</p>
+
+    <div class="card">
+      <p><strong>Contango:</strong> Forward prices are higher than spot. Incentive to store the commodity now and sell later (at the higher future price). Storage costs are worth it.</p>
+      <p><strong>Backwardation:</strong> Forward prices are lower than spot. Incentive to sell now (spot) rather than store. Usually signals supply tightness or high convenience value.</p>
+    </div>
+
+    <h3 style="margin-top: 1.5rem;">Cost of carry</h3>
+    <p>The fair value of a commodity forward is determined by storage costs and convenience yield:</p>
+    \[ F = S \cdot e^{(r + u - c)T} \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where u = cost of storage, c = convenience yield (benefits of holding physical commodity), r = interest rate, T = time to maturity.</p>
+
+    <p style="margin-top: 1.5rem;"><strong>Roll yield:</strong> A strategy that is long front-month futures and rolls into the next contract before expiry. In backwardation (front > back), rolling captures positive yield. In contango (front &lt; back), rolling costs money.</p>
+
+    <h3 style="margin-top: 1.5rem;">What drives commodity prices</h3>
+    <ul>
+      <li><strong>Supply and demand:</strong> Weather, production, geopolitical shocks. Real, physical constraint.</li>
+      <li><strong>Inventory levels:</strong> High inventory signals low convenience yield (storage is easy). Low inventory signals high convenience yield (supply is tight).</li>
+      <li><strong>Seasonality:</strong> Crop cycles are predictable. Planting, growing, harvest seasons drive seasonal price swings.</li>
+      <li><strong>Speculation vs. hedging:</strong> Hedgers (producers, consumers) are net long or short based on their physical needs. Speculators take the other side. When speculators become crowded long, prices often reverse.</li>
+    </ul>
+
+    <h3 style="margin-top: 1.5rem;">The edge: Roll yield and seasonality</h3>
+    <p>Both are structural. Roll yield is determined by physical costs (storage, convenience). Seasonality is driven by harvest cycles. These don't change just because traders learn about them.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Fixed income</h2>
+
+    <h3 style="margin-top: 1.5rem;">Core mechanics</h3>
+    <p>Bond prices move inversely to yields. A bond's yield reflects the market's expected return given maturity, credit risk, and inflation expectations. The yield curve (how yields vary by maturity) encodes the market's view of the future.</p>
+
+    <h3 style="margin-top: 1.5rem;">The yield curve</h3>
+    <ul>
+      <li><strong>Normal (upward sloping):</strong> Long-term rates higher than short-term. Investors demand a premium for giving up liquidity. Most common in normal times.</li>
+      <li><strong>Flat:</strong> Short and long rates nearly equal. Transition zone. Market uncertainty about the future.</li>
+      <li><strong>Inverted (downward sloping):</strong> Short-term rates higher than long-term. Signals recession expectations. The "2s10s" spread (2-year minus 10-year yield) has historically inverted before recessions.</li>
+    </ul>
+
+    <h3 style="margin-top: 1.5rem;">Duration</h3>
+    <p>Duration measures how sensitive a bond is to interest rate changes. A bond with 5-year duration loses 5% in value for every 1% rise in yield. Higher duration = more sensitivity.</p>
+
+    <h3 style="margin-top: 1.5rem;">What drives the yield curve</h3>
+    <ul>
+      <li><strong>Fed policy:</strong> The Fed controls short-term rates directly. Market expectations about future rate changes drive the curve.</li>
+      <li><strong>Inflation expectations:</strong> If inflation is rising, bond investors demand higher yields to compensate.</li>
+      <li><strong>Term premium:</strong> Investors demand extra return for the uncertainty of long-term bonds. The term premium varies over time.</li>
+      <li><strong>Credit spreads:</strong> Corporate bonds trade at a spread over Treasuries. Spreads widen in risk-off environments, tighten in risk-on.</li>
+    </ul>
+
+    <h3 style="margin-top: 1.5rem;">The edge: Carry and curve positioning</h3>
+    <p>Fixed income edges typically come from: (1) carry (buying yield from bonds above the repo rate), (2) curve positioning (being long or short specific parts of the curve), (3) credit selection (finding bonds that will outperform). These are harder to systematize than commodity or FX edges, which is why systematic fixed income is more challenging.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Equity factors</h2>
+
+    <p>Systematic research in equities often targets known "factors" — sources of return variation that persist across time and markets.</p>
+
+    <h3 style="margin-top: 1.5rem;">Fama-French three-factor model</h3>
+    \[ R_i - R_f = \alpha + \beta_m (R_m - R_f) + \beta_{SMB} \cdot SMB + \beta_{HML} \cdot HML + \varepsilon \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where R_i = stock return, R_f = risk-free rate, R_m = market return, SMB = Small Minus Big (return spread between small and large caps), HML = High Minus Low (return spread between high book-to-market and low book-to-market stocks).</p>
+
+    <h3 style="margin-top: 1.5rem;">Major factors</h3>
+    <ul>
+      <li><strong>Market beta:</strong> Higher correlation to the market means higher expected return (compensated for systematic risk).</li>
+      <li><strong>Size:</strong> Small-cap stocks have higher expected returns than large-cap (historically). But this relationship is time-varying and sometimes disappears.</li>
+      <li><strong>Value (HML):</strong> High book-to-market stocks (value stocks) outperform low book-to-market (growth) over long periods. But value underperformed massively 2010–2020.</li>
+      <li><strong>Momentum (UMD):</strong> Stocks with strong recent returns continue to outperform. One of the most robust factors.</li>
+      <li><strong>Quality:</strong> High-quality stocks (profitability, low leverage, stable earnings) tend to outperform. Behavioral: investors overpay for quality.</li>
+      <li><strong>Low volatility (min-vol):</strong> Low-volatility stocks outperform high-volatility. Counterintuitive but empirical fact. Probably due to behavioral over-leverage (investors overweight high-vol, pushing down their returns).</li>
+    </ul>
+
+    <h3 style="margin-top: 1.5rem;">Important caveat</h3>
+    <p>Factors are documented empirical phenomena, not guaranteed. Each has multi-year drawdown periods. Momentum crashed hard in 2009 (mean reversion), value underperformed 2010–2020, low-vol underperformed 2021–2022. The persistence of factors is an active research question. Some are behavioral (will compress as more people learn), others may be risk compensations (will persist).</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">AlgoGators production strategies (brief overview)</h2>
+
+    <div class="card">
+      <p><strong>NasaPowerCouncil:</strong> Satellite weather data → corn futures. Structural edge: information latency (NASA data before USDA reports).</p>
+      <p><strong>Universal Pairs Trading System:</strong> Mean-reversion in equity pairs. Behavioral edge: temporary mispricings between correlated stocks.</p>
+      <p><strong>Arbitrage-Free Implied Volatility Surface:</strong> Derivatives. Structural edge: market microstructure and hedging flows.</p>
+      <p><strong>Fixed Income Market Update:</strong> Curve positioning and carry. Structural edge: term premium and carry.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Chart: Term structure shapes</h2>
+    <div class="chart-container">
+      <canvas id="termStructureChart"></canvas>
+    </div>
+    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">Commodity futures term structures. Corn (orange) in backwardation: front-month contracts at a premium. This signals supply tightness and produces positive roll yield. Wheat (blue) in contango: forward prices are higher. Rolling these contracts will lose money.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Common mistakes</h2>
+    <div class="mistakes-list">
+      <h4 style="margin-top: 0;">Five false assumptions about markets</h4>
+      <ul>
+        <li><strong>Assuming all markets are the same.</strong> FX edges differ from commodity edges which differ from equity factor edges. Know the market mechanics before writing a hypothesis.</li>
+        <li><strong>Commodity strategy without accounting for roll yield drag.</strong> Roll costs compound. A strategy with 12% gross Sharpe can have 8% net Sharpe after roll costs. Always model this.</li>
+        <li><strong>Ignoring that FX forwards already price in interest rates.</strong> If the forward market is efficient, you can't profit from interest rate differentials alone. The edge must come from mispricing of the forward, not the differential itself.</li>
+        <li><strong>Treating equity factors as guaranteed.</strong> Value had a 10+ year drawdown. Momentum crashed in 2009. Document the worst drawdown you can find in history, and ask whether live performance will be worse.</li>
+        <li><strong>Confusing futures prices with spot prices.</strong> A futures contract expiring in 6 months is NOT the same as the spot asset. The futures price is pinned to spot + carry at expiry, but before expiry they can diverge significantly.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <a href="week1.html" class="week-nav-button">← Week 1: What Is an Edge?</a>
+    <a href="week3.html" class="week-nav-button">Week 3: Statistics →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — QR Training Program // Internal Use Only
+</footer>
+
+<script>
+  const ctx = document.getElementById('termStructureChart').getContext('2d');
+
+  const maturities = ['Front', '2nd', '3rd', '4th', 'Far'];
+
+  // Corn in backwardation
+  const cornPrices = [420, 415, 410, 408, 406];
+
+  // Wheat in contango
+  const wheatPrices = [620, 625, 628, 630, 632];
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: maturities,
+      datasets: [
+        {
+          label: 'Corn (Backwardation — positive roll)',
+          data: cornPrices,
+          borderColor: '#FF9500',
+          borderWidth: 3,
+          pointRadius: 5,
+          pointBackgroundColor: '#FF9500',
+          tension: 0.3,
+          fill: false
+        },
+        {
+          label: 'Wheat (Contango — negative roll)',
+          data: wheatPrices,
+          borderColor: '#4a86e8',
+          borderWidth: 3,
+          pointRadius: 5,
+          pointBackgroundColor: '#4a86e8',
+          tension: 0.3,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: { color: '#888888', font: { family: "'IBM Plex Mono'" } }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#888888' },
+          grid: { color: '#1f1f1f' }
+        },
+        y: {
+          min: 390,
+          max: 645,
+          grid: { color: '#1f1f1f' },
+          ticks: { color: '#888888' },
+          title: { display: true, text: 'Contract Price ($/unit)', color: '#888' }
+        }
+      }
+    }
+  });
+</script>
+
+</body>
+</html>
