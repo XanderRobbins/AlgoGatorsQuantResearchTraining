@@ -38,7 +38,7 @@
   <canvas class="week-hero-canvas" id="w3-canvas"></canvas>
   <div class="week-hero-inner">
     <div class="week-hero-badge">Week 03 &mdash; Phase 2: Tooling &amp; Hypothesis</div>
-    <h1>Statistics for<br>Quant Research</h1>
+    <h1>Statistical<br>Inference</h1>
     <div class="week-hero-pill">Section 3b — Model Assumptions</div>
     <p class="week-hero-objective">Understand the statistical assumptions behind the models you'll use. Know how to test them and what to do when they fail.</p>
   </div>
@@ -272,84 +272,105 @@ print(vif)</code></pre>
 </script>
 
 <script>
-/* Week 3 — particles falling into a bell curve */
+/* Week 3 — animated normal distribution curves */
 (function () {
   const hero   = document.querySelector('.week-hero');
   const canvas = document.getElementById('w3-canvas');
   const ctx    = canvas.getContext('2d');
   let W, H;
 
-  function randn() {
-    let u = 0, v = 0;
-    while (!u) u = Math.random();
-    while (!v) v = Math.random();
-    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  function makeCurve(isPrimary, delayMs) {
+    const mu    = 0.12 + Math.random() * 0.76;
+    const sigma = 0.13 + Math.random() * 0.10;
+    const amp   = 0.55 + Math.random() * 0.30;
+    return {
+      isPrimary, mu, sigma, amp,
+      alpha: 0,
+      progress: 0,
+      phase: 'waiting',
+      delay: delayMs,
+      lingerMs: 900 + Math.random() * 700,
+      lingerRemain: 0,
+      speed: 0.00040 + Math.random() * 0.00020,
+      maxAlpha: isPrimary ? 0.52 : (0.09 + Math.random() * 0.09),
+    };
   }
 
-  const N    = 380;
-  const BINS = 55;
-  let particles = [], elapsed = 0;
+  const curves = [];
 
-  function init() {
-    particles = [];
-    const binCounts = new Array(BINS).fill(0);
-
-    for (let i = 0; i < N; i++) {
-      const nx    = randn() * 0.115 + 0.5;
-      const bIdx  = Math.max(0, Math.min(BINS - 1, Math.floor(nx * BINS)));
-      const stack = binCounts[bIdx]++;
-      const tx    = (bIdx + 0.5) / BINS;
-      const ty    = 0.88 - stack * 0.022;
-
-      particles.push({
-        x: 0.04 + Math.random() * 0.92,
-        y: -(0.02 + Math.random() * 0.70),
-        tx, ty,
-        alpha: 0,
-        delay: i * 10,
-      });
-    }
-    elapsed = 0;
+  function initCurves() {
+    curves.length = 0;
+    curves.push(makeCurve(true,  400));
+    curves.push(makeCurve(false, 0));
+    curves.push(makeCurve(false, 600));
+    curves.push(makeCurve(false, 1400));
+    curves.push(makeCurve(false, 2200));
+    curves.push(makeCurve(false, 800));
+    curves.push(makeCurve(false, 1800));
   }
 
   let lastTs = null;
 
   function frame(ts) {
-    if (!lastTs) lastTs = ts;
+    if (lastTs === null) lastTs = ts;
     const dt = Math.min(ts - lastTs, 40);
     lastTs = ts;
-    elapsed += dt;
 
     ctx.clearRect(0, 0, W, H);
 
-    for (const p of particles) {
-      if (elapsed < p.delay) continue;
+    for (const c of curves) {
+      if (c.phase === 'waiting') {
+        c.delay -= dt;
+        if (c.delay <= 0) c.phase = 'drawing';
+      }
+      if (c.phase === 'drawing') {
+        c.alpha    = Math.min(c.maxAlpha, c.alpha + dt * 0.003);
+        c.progress = Math.min(1, c.progress + c.speed * dt);
+        if (c.progress >= 1) { c.phase = 'lingering'; c.lingerRemain = c.lingerMs; }
+      }
+      if (c.phase === 'lingering') {
+        c.lingerRemain -= dt;
+        if (c.lingerRemain <= 0) c.phase = 'fading';
+      }
+      if (c.phase === 'fading') {
+        c.alpha -= dt * 0.002;
+        if (c.alpha <= 0) Object.assign(c, makeCurve(c.isPrimary, 200 + Math.random() * 2500));
+      }
 
-      p.alpha = Math.min(0.72, p.alpha + dt * 0.005);
-      const dy = p.ty - p.y;
-      p.y += (dy > 0.25 ? 0.007 : 0.0025) * dt;
-      p.x += (p.tx - p.x) * (dy > 0.25 ? 0.03 : 0.06);
+      if (c.alpha <= 0 || c.progress < 0.01) continue;
+
+      const visCount = Math.max(2, Math.floor(c.progress * W));
+      const peak     = 1 / (c.sigma * Math.sqrt(2 * Math.PI));
 
       ctx.beginPath();
-      ctx.arc(p.x * W, p.y * H, 2.2, 0, 6.283);
-      ctx.fillStyle = `rgba(255,125,42,${p.alpha.toFixed(3)})`;
-      ctx.fill();
-    }
+      ctx.lineWidth   = c.isPrimary ? 1.6 : 0.8;
+      ctx.strokeStyle = c.isPrimary
+        ? `rgba(255,125,42,${c.alpha.toFixed(3)})`
+        : `rgba(255,238,215,${c.alpha.toFixed(3)})`;
 
-    if (elapsed > N * 10 + 3500) init();
+      for (let i = 0; i < visCount; i++) {
+        const xn = i / (W - 1);
+        const g  = Math.exp(-0.5 * ((xn - c.mu) / c.sigma) ** 2) / peak;
+        const y  = H * (0.72 - g * c.amp * 0.82);
+        i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
+      }
+      ctx.stroke();
+    }
 
     requestAnimationFrame(frame);
   }
 
-  function resize() {
+  new ResizeObserver(() => {
     const r = hero.getBoundingClientRect();
     W = canvas.width  = Math.round(r.width);
     H = canvas.height = Math.round(r.height);
-    init();
-  }
+    initCurves();
+  }).observe(hero);
 
-  new ResizeObserver(resize).observe(hero);
-  resize();
+  const r0 = hero.getBoundingClientRect();
+  W = canvas.width  = Math.round(r0.width);
+  H = canvas.height = Math.round(r0.height);
+  initCurves();
   requestAnimationFrame(frame);
 })();
 </script>

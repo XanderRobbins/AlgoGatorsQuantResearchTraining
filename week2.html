@@ -268,7 +268,7 @@
   const ctx    = canvas.getContext('2d');
   let W, H;
 
-  const BAR_W = 16, STEP = 22;
+  const BAR_W = 26, STEP = 36;
 
   function resize() {
     const r = hero.getBoundingClientRect();
@@ -280,13 +280,13 @@
   let momentum = 0;
 
   function rndBar(prevClose) {
-    momentum = momentum * 0.6 + (Math.random() - 0.48) * 0.012;
-    momentum = Math.max(-0.018, Math.min(0.018, momentum));
-    const close = Math.max(0.18, Math.min(0.82, prevClose + momentum));
+    momentum = momentum * 0.6 + (Math.random() - 0.48) * 0.045;
+    momentum = Math.max(-0.065, Math.min(0.065, momentum));
+    const close = Math.max(0.12, Math.min(0.88, prevClose + momentum));
     const open  = prevClose;
-    const wick  = Math.random() * 0.014;
-    const high  = Math.min(0.90, Math.max(open, close) + wick);
-    const low   = Math.max(0.10, Math.min(open, close) - wick);
+    const wick  = Math.random() * 0.040;
+    const high  = Math.min(0.95, Math.max(open, close) + wick);
+    const low   = Math.max(0.05, Math.min(open, close) - wick);
     return { open, close, high, low };
   }
 
