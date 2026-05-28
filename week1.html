@@ -84,7 +84,7 @@
       <p><strong>Why it persists:</strong> Structural inefficiencies are more durable because they don't disappear when the pattern becomes known. The underlying constraint doesn't go away.</p>
     </div>
 
-    <div class="comparison-table">
+    <table class="comparison-table">
       <thead>
         <tr>
           <th>Dimension</th>
@@ -120,6 +120,7 @@
         </tr>
       </tbody>
     </table>
+
   </div>
 
   <div class="section">
@@ -235,11 +236,11 @@
     return 100 + (i * 0.25) - (i * i * 0.0001);
   });
 
-  // Noise: random walk
-  const noise = days.map((_, i) => {
-    if (i === 0) return 100;
-    return noise[i - 1] + (Math.random() - 0.5) * 2;
-  });
+  // Noise: random walk (must use a loop — can't self-reference inside map())
+  const noise = [100];
+  for (let i = 1; i < days.length; i++) {
+    noise.push(noise[i - 1] + (Math.random() - 0.5) * 2);
+  }
 
   new Chart(ctx, {
     type: 'line',
@@ -267,7 +268,7 @@
         {
           label: 'Pure Noise (Sharpe ~0.1)',
           data: noise,
-          borderColor: '#d97757',
+          borderColor: '#2a9d5c',
           borderWidth: 2,
           pointRadius: 0,
           fill: false,

@@ -135,7 +135,7 @@
     <div class="chart-container" style="margin-top: 1.5rem;">
       <canvas id="survivalChart"></canvas>
     </div>
-    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">The blue curve (including delisted companies) shows lower cumulative return than the orange curve (survivors only). The difference compounds — by 2024, the bias has inflated returns by roughly 15%.</p>
+    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">The orange curve (survivors only) compounds faster than the blue curve (including delisted companies). The difference grows over time — by year 15, survivorship bias has inflated apparent returns by roughly 16%.</p>
   </div>
 
   <div class="section">
@@ -227,14 +227,14 @@ df['signal'] = rolling_zscore(df['close'], window=60)</code></pre>
 
   const years = Array.from({length: 15}, (_, i) => 2010 + i);
 
-  // Biased path (survivors only)
+  // Biased path (survivors only) — ~11% per year
   const survivors = years.map((_, i) => {
-    return 100 * Math.exp(0.12 * (i + 1) / 15);
+    return Math.round(100 * Math.exp(0.11 * (i + 1)));
   });
 
-  // Unbiased path (including failed companies)
+  // Unbiased path (including failed companies) — ~10% per year
   const unbiased = years.map((_, i) => {
-    return 100 * Math.exp(0.09 * (i + 1) / 15);
+    return Math.round(100 * Math.exp(0.10 * (i + 1)));
   });
 
   new Chart(ctx, {

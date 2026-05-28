@@ -24,7 +24,7 @@
 body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
-  font-family: 'IBM Plex Mono', monospace;
+  font-family: 'IBM Plex Sans', sans-serif;
   font-size: 15px;
   line-height: 1.6;
 }
@@ -52,12 +52,12 @@ h2 {
 
 h3 {
   font-size: 1.3rem;
-  color: var(--text-secondary);
+  color: var(--text-primary);
 }
 
 h4, h5, h6 {
   font-size: 1rem;
-  color: var(--text-secondary);
+  color: var(--text-primary);
 }
 
 p {
@@ -183,6 +183,7 @@ nav {
 /* IP Anchor */
 .ip-anchor {
   background: linear-gradient(135deg, #fff5ed 0%, #fffaf7 100%);
+  border: 1px solid #ffd9c0;
   border-left: 4px solid var(--accent);
   padding: 1.5rem;
   margin: 2rem 0;
@@ -190,8 +191,6 @@ nav {
   display: flex;
   flex-direction: column;
   gap: 0.5rem;
-  border: 1px solid #ffd9c0;
-  border-left: 4px solid var(--accent);
 }
 
 .ip-anchor-label {
@@ -269,11 +268,20 @@ pre {
   margin: 1.5rem 0;
   font-size: 0.9rem;
   color: #e0e0e0;
+  font-family: 'IBM Plex Mono', monospace;
 }
 
 code {
-  color: #e0e0e0;
   font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.9em;
+}
+
+pre code {
+  color: #e0e0e0;
+  font-size: inherit;
+  background: none;
+  padding: 0;
+  border-radius: 0;
 }
 
 /* Tables */
