@@ -6,6 +6,94 @@
   <title>QR Training Hub — AlgoGators</title>
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── Hero dark island ───────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      background: #0e0d0c;
+      border-bottom: none;
+      margin-bottom: 3rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 2rem;
+    }
+    #hero-canvas {
+      position: absolute;
+      inset: 0;
+      display: block;
+      z-index: 0;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: #FF7D2A;
+      z-index: 2;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 10px;
+      background: linear-gradient(
+        to bottom,
+        #FF7D2A 0px, #FF7D2A 1px,
+        #ffffff 1px, #ffffff 9px,
+        #000000 9px, #000000 10px
+      );
+      z-index: 2;
+    }
+    /* lift all hero children above canvas */
+    .hero > *:not(#hero-canvas) {
+      position: relative;
+      z-index: 1;
+    }
+    .hero-logo {
+      border-radius: 16px;
+      outline: 2px solid #ffffff;
+      outline-offset: 16px;
+      display: block;
+    }
+    .hero-logo-wrap {
+      position: relative;
+      display: inline-flex;
+      margin: 2rem 0 1.5rem;
+    }
+    /* top-right corner */
+    .hero-logo-wrap::before {
+      content: '';
+      position: absolute;
+      top: -44px; right: -80px;
+      width: 48px; height: 48px;
+      border-top: 2px solid #FF7D2A;
+      border-right: 2px solid #FF7D2A;
+      border-radius: 0 10px 0 0;
+    }
+    /* bottom-left corner */
+    .hero-logo-wrap::after {
+      content: '';
+      position: absolute;
+      bottom: -44px; left: -80px;
+      width: 48px; height: 48px;
+      border-bottom: 2px solid #FF7D2A;
+      border-left: 2px solid #FF7D2A;
+      border-radius: 0 0 0 10px;
+    }
+    /* re-color text for dark bg */
+    .hero h1 {
+      color: rgba(255, 238, 215, 0.95);
+      border-bottom-color: #FF7D2A;
+    }
+    .hero .hero-subtitle {
+      color: rgba(255, 238, 215, 0.35);
+    }
+    .hero .hero-meta {
+      color: rgba(255, 238, 215, 0.50);
+    }
+  </style>
 </head>
 <body>
 
@@ -31,14 +119,17 @@
   </div>
 </nav>
 
-<div class="container">
-
-  <div class="hero">
+<div class="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-logo-wrap">
     <img src="Stacked.png" alt="AlgoGators Stacked Logo" class="hero-logo">
-    <h1>QR Analyst Training Program</h1>
-    <p class="hero-subtitle">A structured path through quantitative research methodology</p>
-    <p class="hero-meta">AlgoGators Investment Fund — Internal Resource</p>
   </div>
+  <h1>QR Analyst Training Program</h1>
+  <p class="hero-subtitle">2026 Fall AlgoGators New Analyst Training Program</p>
+  <p class="hero-meta">AlgoGators Investment Fund — Internal Resource</p>
+</div>
+
+<div class="container">
 
   <div class="section">
     <h2>Investment Proposal Framework</h2>
@@ -199,5 +290,127 @@
   AlgoGators Investment Fund — QR Training Program // Internal Use Only
 </footer>
 
+
+<script src="cursor.js"></script>
+<script src="scroll.js"></script>
+
+<script>
+(function () {
+  // ── Config ────────────────────────────────────────────────────────
+  const SPACING       = 24;    // grid pitch px
+  const DOT_R         = 1.6;   // dot radius px
+  const PUSH_RADIUS   = 135;   // mouse influence radius px
+  const PUSH_STRENGTH = 72;    // max displacement px
+  const STIFFNESS     = 0.055;
+  const DAMPING       = 0.72;
+
+  // Base: dim orange  |  Accent: bright orange #FF7D2A = 255,125,42
+  const B_R=255, B_G=125, B_B=42, B_A=0.60;
+  const A_R=255, A_G=165, A_B=80, A_A=1.00;
+
+  // ── State ─────────────────────────────────────────────────────────
+  const hero   = document.querySelector('.hero');
+  const canvas = document.getElementById('hero-canvas');
+  const ctx    = canvas.getContext('2d');
+
+  let W, H, dots, dotCount;
+  let mx = -9999, my = -9999, mActive = false;
+
+  // ── Grid build ────────────────────────────────────────────────────
+  function buildGrid() {
+    const rect = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(rect.width);
+    H = canvas.height = Math.round(rect.height);
+
+    const cols = Math.ceil(W / SPACING) + 1;
+    const rows = Math.ceil(H / SPACING) + 1;
+    const offX = (W - (cols - 1) * SPACING) / 2;
+    const offY = (H - (rows - 1) * SPACING) / 2;
+
+    dotCount = cols * rows;
+    dots = new Float32Array(dotCount * 6);
+
+    let n = 0;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const ox = offX + c * SPACING;
+        const oy = offY + r * SPACING;
+        dots[n]   = ox; dots[n+1] = oy; // origin
+        dots[n+2] = ox; dots[n+3] = oy; // current
+        dots[n+4] = 0;  dots[n+5] = 0;  // velocity
+        n += 6;
+      }
+    }
+  }
+
+  // ── Render loop ───────────────────────────────────────────────────
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+    const PUSH_R2 = PUSH_RADIUS * PUSH_RADIUS;
+    const len = dotCount * 6;
+
+    for (let i = 0; i < len; i += 6) {
+      const ox = dots[i],   oy = dots[i+1];
+      let   x  = dots[i+2], y  = dots[i+3];
+      let   vx = dots[i+4], vy = dots[i+5];
+
+      // repulsion target
+      let tx = ox, ty = oy;
+      if (mActive) {
+        const dx = x - mx, dy = y - my;
+        const d2 = dx*dx + dy*dy;
+        if (d2 < PUSH_R2 && d2 > 0.01) {
+          const d  = Math.sqrt(d2);
+          const t  = 1.0 - d / PUSH_RADIUS;
+          const f  = t * t * PUSH_STRENGTH;
+          tx = ox + (dx / d) * f;
+          ty = oy + (dy / d) * f;
+        }
+      }
+
+      // spring physics
+      vx += (tx - x) * STIFFNESS;
+      vy += (ty - y) * STIFFNESS;
+      vx *= DAMPING;
+      vy *= DAMPING;
+      x  += vx; y += vy;
+
+      dots[i+2]=x; dots[i+3]=y; dots[i+4]=vx; dots[i+5]=vy;
+
+      // color by displacement
+      const dispX = x - ox, dispY = y - oy;
+      const disp  = Math.sqrt(dispX*dispX + dispY*dispY);
+      const t     = disp / PUSH_STRENGTH > 1 ? 1 : disp / PUSH_STRENGTH;
+
+      const cr = (B_R + (A_R - B_R) * t + 0.5) | 0;
+      const cg = (B_G + (A_G - B_G) * t + 0.5) | 0;
+      const cb = (B_B + (A_B - B_B) * t + 0.5) | 0;
+      const ca =  B_A + (A_A - B_A) * t;
+
+      ctx.beginPath();
+      ctx.arc(x, y, DOT_R, 0, 6.283185307);
+      ctx.fillStyle = `rgba(${cr},${cg},${cb},${(ca*100+0.5|0)/100})`;
+      ctx.fill();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  // ── Events ────────────────────────────────────────────────────────
+  hero.addEventListener('mousemove', e => {
+    const r = canvas.getBoundingClientRect();
+    mx = e.clientX - r.left;
+    my = e.clientY - r.top;
+    mActive = true;
+  });
+  hero.addEventListener('mouseleave', () => { mActive = false; });
+
+  // resize: rebuild when hero changes size (e.g. window resize)
+  new ResizeObserver(buildGrid).observe(hero);
+
+  buildGrid();
+  requestAnimationFrame(frame);
+})();
+</script>
 </body>
 </html>

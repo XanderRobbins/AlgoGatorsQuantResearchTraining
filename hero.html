@@ -1,0 +1,296 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Field Theory</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,300;0,400;1,300&family=JetBrains+Mono:wght@300;400&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+    :root {
+      --bg:      #0d0c0b;
+      --accent:  #f59e0b;
+      --text:    rgba(255, 238, 212, 0.92);
+      --muted:   rgba(255, 238, 212, 0.32);
+    }
+
+    html, body {
+      width: 100%; height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      cursor: none;
+    }
+
+    canvas {
+      position: fixed;
+      inset: 0;
+      display: block;
+    }
+
+    /* soft center vignette keeps text readable */
+    .vignette {
+      position: fixed;
+      inset: 0;
+      background: radial-gradient(ellipse 55% 55% at 50% 50%,
+        rgba(13,12,11,0.55) 0%,
+        transparent 75%);
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    .hero {
+      position: fixed;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      pointer-events: none;
+      user-select: none;
+      z-index: 2;
+    }
+
+    .eyebrow {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 10px;
+      font-weight: 300;
+      letter-spacing: 0.45em;
+      color: var(--accent);
+      text-transform: uppercase;
+      margin-bottom: 2.2rem;
+      opacity: 0.75;
+    }
+
+    h1 {
+      font-family: 'Cormorant Garamond', serif;
+      font-weight: 300;
+      font-size: clamp(4.5rem, 13vw, 13rem);
+      line-height: 0.88;
+      letter-spacing: -0.01em;
+      color: var(--text);
+      text-align: center;
+      /* push a faint glow behind the letterforms */
+      text-shadow:
+        0 0 120px rgba(245, 158, 11, 0.08),
+        0 2px 60px rgba(13, 12, 11, 0.8);
+    }
+
+    h1 em {
+      font-style: italic;
+      font-weight: 300;
+    }
+
+    .rule {
+      display: flex;
+      align-items: center;
+      gap: 1.2rem;
+      margin: 2.6rem 0 2.4rem;
+    }
+    .rule-line {
+      width: 48px;
+      height: 1px;
+      background: linear-gradient(to right, transparent, var(--accent));
+      opacity: 0.4;
+    }
+    .rule-line:last-child {
+      transform: scaleX(-1);
+    }
+    .rule-dot {
+      width: 4px; height: 4px;
+      border-radius: 50%;
+      background: var(--accent);
+      opacity: 0.55;
+    }
+
+    .sub {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 11px;
+      font-weight: 300;
+      letter-spacing: 0.12em;
+      color: var(--muted);
+      text-align: center;
+      line-height: 2;
+    }
+
+    /* custom cursor */
+    .cursor {
+      position: fixed;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--accent);
+      pointer-events: none;
+      z-index: 10;
+      transform: translate(-50%, -50%);
+      mix-blend-mode: screen;
+      transition: opacity 0.2s;
+    }
+  </style>
+</head>
+<body>
+
+  <canvas id="c"></canvas>
+  <div class="vignette"></div>
+
+  <div class="hero">
+    <div class="eyebrow">— interactive field —</div>
+    <h1>FIELD<br><em>THEORY</em></h1>
+    <div class="rule">
+      <div class="rule-line"></div>
+      <div class="rule-dot"></div>
+      <div class="rule-line"></div>
+    </div>
+    <p class="sub">
+      Every point in space responds to disturbance.<br>
+      Proximity defines influence. Distance, freedom.
+    </p>
+  </div>
+
+  <div class="cursor" id="cursor"></div>
+
+  <script>
+    // ─── Config ──────────────────────────────────────────────────────────────
+    const SPACING        = 26;    // grid pitch (px)
+    const DOT_R          = 1.7;   // dot radius (px)
+    const PUSH_RADIUS    = 145;   // mouse influence radius (px)
+    const PUSH_STRENGTH  = 76;    // max displacement (px)
+    const STIFFNESS      = 0.052; // spring stiffness
+    const DAMPING        = 0.71;  // velocity damping (< 1)
+
+    // Base color: dim warm white
+    const B_R = 255, B_G = 235, B_B = 205, B_A = 0.11;
+    // Accent color: amber
+    const A_R = 245, A_G = 158, A_B = 11,  A_A = 0.90;
+
+    // ─── State ───────────────────────────────────────────────────────────────
+    const canvas = document.getElementById('c');
+    const ctx    = canvas.getContext('2d');
+    const cursor = document.getElementById('cursor');
+
+    let W, H;
+    let dots;       // Float32Array: [ox, oy, x, y, vx, vy, ...]
+    let dotCount;
+
+    let mx = -9999, my = -9999, mActive = false;
+    const PUSH_R2 = PUSH_RADIUS * PUSH_RADIUS;
+
+    // ─── Init ────────────────────────────────────────────────────────────────
+    function buildGrid() {
+      W = canvas.width  = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+
+      const cols  = Math.ceil(W / SPACING) + 1;
+      const rows  = Math.ceil(H / SPACING) + 1;
+      const offX  = ((W - (cols - 1) * SPACING)) / 2;
+      const offY  = ((H - (rows - 1) * SPACING)) / 2;
+
+      dotCount = cols * rows;
+      dots = new Float32Array(dotCount * 6);
+
+      let n = 0;
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          const ox = offX + c * SPACING;
+          const oy = offY + r * SPACING;
+          dots[n]   = ox; // origin x
+          dots[n+1] = oy; // origin y
+          dots[n+2] = ox; // current x
+          dots[n+3] = oy; // current y
+          dots[n+4] = 0;  // vx
+          dots[n+5] = 0;  // vy
+          n += 6;
+        }
+      }
+    }
+
+    // ─── Frame ───────────────────────────────────────────────────────────────
+    function frame() {
+      ctx.clearRect(0, 0, W, H);
+
+      const stride = 6;
+      const len    = dotCount * stride;
+
+      for (let i = 0; i < len; i += stride) {
+        const ox =  dots[i];
+        const oy =  dots[i+1];
+        let   x  =  dots[i+2];
+        let   y  =  dots[i+3];
+        let   vx =  dots[i+4];
+        let   vy =  dots[i+5];
+
+        // — repulsion target —
+        let tx = ox, ty = oy;
+        if (mActive) {
+          const dx = x - mx;
+          const dy = y - my;
+          const d2 = dx * dx + dy * dy;
+          if (d2 < PUSH_R2 && d2 > 0.01) {
+            const d  = Math.sqrt(d2);
+            const t  = 1.0 - d / PUSH_RADIUS;
+            const f  = t * t * PUSH_STRENGTH; // quadratic falloff
+            const id = f / d;
+            tx = ox + dx * id;
+            ty = oy + dy * id;
+          }
+        }
+
+        // — spring physics —
+        vx += (tx - x) * STIFFNESS;
+        vy += (ty - y) * STIFFNESS;
+        vx *= DAMPING;
+        vy *= DAMPING;
+        x  += vx;
+        y  += vy;
+
+        dots[i+2] = x;
+        dots[i+3] = y;
+        dots[i+4] = vx;
+        dots[i+5] = vy;
+
+        // — color from displacement —
+        const dispX = x - ox;
+        const dispY = y - oy;
+        const disp  = Math.sqrt(dispX * dispX + dispY * dispY);
+        const t     = disp / PUSH_STRENGTH > 1 ? 1 : disp / PUSH_STRENGTH;
+
+        // integer lerp avoids toFixed allocation overhead
+        const cr = (B_R + (A_R - B_R) * t + 0.5) | 0;
+        const cg = (B_G + (A_G - B_G) * t + 0.5) | 0;
+        const cb = (B_B + (A_B - B_B) * t + 0.5) | 0;
+        const ca =  B_A + (A_A - B_A) * t;
+
+        ctx.beginPath();
+        ctx.arc(x, y, DOT_R, 0, 6.283185307);
+        // round alpha to 2dp to reuse browser string cache where possible
+        ctx.fillStyle = `rgba(${cr},${cg},${cb},${(ca * 100 + 0.5 | 0) / 100})`;
+        ctx.fill();
+      }
+
+      requestAnimationFrame(frame);
+    }
+
+    // ─── Events ──────────────────────────────────────────────────────────────
+    window.addEventListener('resize', buildGrid);
+
+    window.addEventListener('mousemove', e => {
+      mx = e.clientX;
+      my = e.clientY;
+      mActive = true;
+      cursor.style.left = mx + 'px';
+      cursor.style.top  = my + 'px';
+      cursor.style.opacity = '1';
+    });
+
+    window.addEventListener('mouseleave', () => {
+      mActive = false;
+      cursor.style.opacity = '0';
+    });
+
+    // ─── Boot ────────────────────────────────────────────────────────────────
+    buildGrid();
+    requestAnimationFrame(frame);
+  </script>
+</body>
+</html>

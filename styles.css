@@ -664,6 +664,30 @@ footer {
   }
 }
 
+/* Custom cursor */
+* { cursor: none !important; }
+#cursor-dot {
+  position: fixed;
+  width: 6px; height: 6px;
+  background: #FF7D2A;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9999;
+  transform: translate(-50%, -50%);
+  opacity: 0;
+}
+#cursor-ring {
+  position: fixed;
+  width: 28px; height: 28px;
+  border: 1.5px solid #FF7D2A;
+  border-radius: 50%;
+  pointer-events: none;
+  z-index: 9998;
+  transform: translate(-50%, -50%);
+  transition: width 0.2s, height 0.2s, opacity 0.2s;
+  opacity: 0;
+}
+
 /* Print styles */
 @media print {
   nav, footer, .week-nav {
