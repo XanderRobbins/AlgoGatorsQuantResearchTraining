@@ -406,6 +406,15 @@
   });
   hero.addEventListener('mouseleave', () => { mActive = false; });
 
+  hero.addEventListener('touchmove', e => {
+    const r = canvas.getBoundingClientRect();
+    const t = e.touches[0];
+    mx = t.clientX - r.left;
+    my = t.clientY - r.top;
+    mActive = true;
+  }, { passive: true });
+  hero.addEventListener('touchend', () => { mActive = false; });
+
   // resize: rebuild when hero changes size (e.g. window resize)
   new ResizeObserver(buildGrid).observe(hero);
 

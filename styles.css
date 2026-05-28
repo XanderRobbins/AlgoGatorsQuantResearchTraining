@@ -664,8 +664,10 @@ footer {
   }
 }
 
-/* Custom cursor */
-* { cursor: none !important; }
+/* Custom cursor — desktop only */
+@media (hover: hover) and (pointer: fine) {
+  * { cursor: none !important; }
+}
 #cursor-dot {
   position: fixed;
   width: 6px; height: 6px;

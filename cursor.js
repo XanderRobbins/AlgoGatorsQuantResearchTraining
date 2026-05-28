@@ -1,4 +1,5 @@
 (function () {
+  if ('ontouchstart' in window || navigator.maxTouchPoints > 0) return;
   const dot  = document.createElement('div');
   const ring = document.createElement('div');
   dot.id  = 'cursor-dot';

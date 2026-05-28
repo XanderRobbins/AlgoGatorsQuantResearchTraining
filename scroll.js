@@ -1,4 +1,5 @@
 (function () {
+  if ('ontouchstart' in window || navigator.maxTouchPoints > 0) return;
   let current = window.scrollY;
   let target  = window.scrollY;
 
