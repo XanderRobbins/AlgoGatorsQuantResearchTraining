@@ -117,15 +117,15 @@ nav {
 }
 
 .nav-section {
-  color: var(--text-secondary);
-  font-size: 0.85rem;
-  font-weight: 500;
+  color: #000000;
+  font-size: 1.1rem;
+  font-weight: 400;
 }
 
 .nav-links {
   display: flex;
   gap: 1.5rem;
-  font-size: 0.85rem;
+  font-size: 1rem;
   flex-wrap: nowrap;
   align-items: center;
 }

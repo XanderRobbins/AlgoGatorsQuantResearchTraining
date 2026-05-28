@@ -102,10 +102,10 @@
   <div class="nav-brand">
     <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
     <span class="nav-divider">|</span>
-    <span class="nav-section">QR Training</span>
+    <span class="nav-section">QR Training Hub</span>
   </div>
   <div class="nav-links">
-    <a href="index.html" class="active">Hub</a>
+    <a href="index.html" class="active">Home</a>
     <a href="week1.html">W1</a>
     <a href="week2.html">W2</a>
     <a href="week3.html">W3</a>
@@ -279,9 +279,10 @@
 
 <canvas id="spiral-bg" style="position:absolute;top:50%;right:-140px;transform:translateY(-50%);pointer-events:none;z-index:-1;opacity:0.18;"></canvas>
 <canvas id="spiral-bg-2" style="position:absolute;pointer-events:none;z-index:-1;opacity:0.18;clip-path:inset(50% 0 0 50%);"></canvas>
+<canvas id="spiral-bg-3" style="position:absolute;pointer-events:none;z-index:-1;opacity:0.50;"></canvas>
 <style>
 @media (max-width: 768px) {
-  #spiral-bg, #spiral-bg-2 { display: none; }
+  #spiral-bg, #spiral-bg-2, #spiral-bg-3 { display: none; }
   .hero-logo-wrap::before {
     top: -28px; right: -28px;
     width: 28px; height: 28px;
@@ -515,6 +516,52 @@
     ctx.closePath();
     ctx.stroke();
   }
+})();
+</script>
+<script>
+(function () {
+  const canvas = document.getElementById('spiral-bg-3');
+  const ctx    = canvas.getContext('2d');
+  const SIZE   = 1120;
+  canvas.width = canvas.height = SIZE;
+
+  function positionCanvas() {
+    const footer = document.querySelector('footer');
+    canvas.style.left = (-SIZE * 0.30) + 'px';
+    canvas.style.top  = (footer.offsetTop - SIZE * 0.9) + 'px';
+  }
+  positionCanvas();
+  window.addEventListener('resize', positionCanvas);
+
+  const cx = SIZE * 0.50;
+  const cy = SIZE * 0.50;
+  const K       = 3;      // rose with 3 petals
+  const MAX_R   = SIZE * 0.44;
+  const LAYERS  = 9;
+
+  ctx.strokeStyle = '#FF7D2A';
+  ctx.lineWidth   = 1.2;
+
+  for (let layer = 1; layer <= LAYERS; layer++) {
+    const scale = layer / LAYERS;
+    ctx.beginPath();
+    const STEPS = 720;
+    for (let s = 0; s <= STEPS; s++) {
+      const a = (s / STEPS) * Math.PI * 2;
+      const r = MAX_R * scale * Math.cos(K * a);
+      const x = cx + Math.cos(a) * r;
+      const y = cy + Math.sin(a) * r;
+      s === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.stroke();
+  }
+
+  // center dot
+  ctx.beginPath();
+  ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+  ctx.fillStyle = '#FF7D2A';
+  ctx.fill();
 })();
 </script>
 </body>
