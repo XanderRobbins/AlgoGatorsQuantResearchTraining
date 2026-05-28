@@ -34,14 +34,17 @@
   </div>
 </nav>
 
-<div class="container">
-
-  <div class="page-header">
-    <div class="page-week">Week 9</div>
-    <h1>Backtest Results & Performance (IP §4)</h1>
-    <div class="page-phase">Phase 3: Research Execution</div>
-    <p class="page-objective">Run backtests correctly, interpret results honestly, and document your out-of-sample validation. This IS Section 4 of your IP.</p>
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="w9-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Week 09 &mdash; Phase 3: Research Execution</div>
+    <h1>Backtest Results &amp;<br>Performance (IP §4)</h1>
+    <div class="week-hero-pill">Section 4 — Backtest Results</div>
+    <p class="week-hero-objective">Run backtests correctly, interpret results honestly, and document your out-of-sample validation. This IS Section 4 of your IP.</p>
   </div>
+</div>
+
+<div class="container">
 
   <div class="ip-anchor">
     <span class="ip-anchor-label">IP Anchor</span>
@@ -291,6 +294,100 @@ df['net_return'] = df['gross_return'] - (df['trade_flag'] * 2 * total_cost_bps /
       }
     }
   });
+</script>
+
+<script>
+/* Week 9 — equity curve drawing itself with drawdown shading */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('w9-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  let curve = [], hw = [], progress = 0, done = false;
+
+  function genCurve() {
+    curve = [0.5]; hw = [0.5]; progress = 0; done = false;
+    for (let i = 1; i < 620; i++) {
+      const shock = Math.random() < 0.003 ? -(0.03 + Math.random() * 0.05) : 0;
+      const v = Math.max(0.10, Math.min(0.90, curve[i-1] + 0.00042 + (Math.random()-0.5)*0.017 + shock));
+      curve.push(v);
+      hw.push(Math.max(hw[i-1], v));
+    }
+  }
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+    genCurve();
+  }
+
+  const pL=0.04, pR=0.04, pT=0.10, pB=0.10;
+  function px(i) { return (pL + (i/(curve.length-1))*(1-pL-pR)) * W; }
+  function py(v) { return (pT + (1-(v-0.10)/0.80)*(1-pT-pB)) * H; }
+
+  let lastTs = null;
+
+  function frame(ts) {
+    if (!lastTs) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    if (!done) progress = Math.min(1, progress + dt * 0.00038);
+
+    ctx.clearRect(0, 0, W, H);
+
+    const vis = Math.floor(progress * (curve.length - 1)) + 1;
+    if (vis < 2) { requestAnimationFrame(frame); return; }
+
+    /* drawdown fill */
+    ctx.beginPath();
+    ctx.moveTo(px(0), py(hw[0]));
+    for (let i = 1; i < vis; i++) ctx.lineTo(px(i), py(hw[i]));
+    for (let i = vis-1; i >= 0; i--) ctx.lineTo(px(i), py(curve[i]));
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(192,57,43,0.10)';
+    ctx.fill();
+
+    /* high-water line */
+    ctx.beginPath();
+    for (let i = 0; i < vis; i++) {
+      i === 0 ? ctx.moveTo(px(i), py(hw[i])) : ctx.lineTo(px(i), py(hw[i]));
+    }
+    ctx.strokeStyle = 'rgba(255,238,215,0.10)';
+    ctx.lineWidth   = 1;
+    ctx.setLineDash([3, 5]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    /* equity curve */
+    ctx.beginPath();
+    for (let i = 0; i < vis; i++) {
+      i === 0 ? ctx.moveTo(px(i), py(curve[i])) : ctx.lineTo(px(i), py(curve[i]));
+    }
+    ctx.strokeStyle = 'rgba(255,125,42,0.55)';
+    ctx.lineWidth   = 1.8;
+    ctx.stroke();
+
+    /* leading dot */
+    ctx.beginPath();
+    ctx.arc(px(vis-1), py(curve[vis-1]), 3, 0, 6.283);
+    ctx.fillStyle = 'rgba(255,125,42,0.85)';
+    ctx.fill();
+
+    if (progress >= 1 && !done) {
+      done = true;
+      setTimeout(() => genCurve(), 2800);
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  requestAnimationFrame(frame);
+})();
 </script>
 
 <script src="cursor.js"></script>

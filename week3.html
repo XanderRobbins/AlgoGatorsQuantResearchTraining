@@ -34,14 +34,17 @@
   </div>
 </nav>
 
-<div class="container">
-
-  <div class="page-header">
-    <div class="page-week">Week 3</div>
-    <h1>Statistics for Quant Research</h1>
-    <div class="page-phase">Phase 2: Tooling & Hypothesis</div>
-    <p class="page-objective">Understand the statistical assumptions behind the models you'll use. Know how to test them and what to do when they fail.</p>
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="w3-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Week 03 &mdash; Phase 2: Tooling &amp; Hypothesis</div>
+    <h1>Statistics for<br>Quant Research</h1>
+    <div class="week-hero-pill">Section 3b — Model Assumptions</div>
+    <p class="week-hero-objective">Understand the statistical assumptions behind the models you'll use. Know how to test them and what to do when they fail.</p>
   </div>
+</div>
+
+<div class="container">
 
   <div class="ip-anchor">
     <span class="ip-anchor-label">IP Anchor</span>
@@ -266,6 +269,89 @@ print(vif)</code></pre>
       }
     }
   });
+</script>
+
+<script>
+/* Week 3 — particles falling into a bell curve */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('w3-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  function randn() {
+    let u = 0, v = 0;
+    while (!u) u = Math.random();
+    while (!v) v = Math.random();
+    return Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+  }
+
+  const N    = 380;
+  const BINS = 55;
+  let particles = [], elapsed = 0;
+
+  function init() {
+    particles = [];
+    const binCounts = new Array(BINS).fill(0);
+
+    for (let i = 0; i < N; i++) {
+      const nx    = randn() * 0.115 + 0.5;
+      const bIdx  = Math.max(0, Math.min(BINS - 1, Math.floor(nx * BINS)));
+      const stack = binCounts[bIdx]++;
+      const tx    = (bIdx + 0.5) / BINS;
+      const ty    = 0.88 - stack * 0.022;
+
+      particles.push({
+        x: 0.04 + Math.random() * 0.92,
+        y: -(0.02 + Math.random() * 0.70),
+        tx, ty,
+        alpha: 0,
+        delay: i * 10,
+      });
+    }
+    elapsed = 0;
+  }
+
+  let lastTs = null;
+
+  function frame(ts) {
+    if (!lastTs) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+    elapsed += dt;
+
+    ctx.clearRect(0, 0, W, H);
+
+    for (const p of particles) {
+      if (elapsed < p.delay) continue;
+
+      p.alpha = Math.min(0.72, p.alpha + dt * 0.005);
+      const dy = p.ty - p.y;
+      p.y += (dy > 0.25 ? 0.007 : 0.0025) * dt;
+      p.x += (p.tx - p.x) * (dy > 0.25 ? 0.03 : 0.06);
+
+      ctx.beginPath();
+      ctx.arc(p.x * W, p.y * H, 2.2, 0, 6.283);
+      ctx.fillStyle = `rgba(255,125,42,${p.alpha.toFixed(3)})`;
+      ctx.fill();
+    }
+
+    if (elapsed > N * 10 + 3500) init();
+
+    requestAnimationFrame(frame);
+  }
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+    init();
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  requestAnimationFrame(frame);
+})();
 </script>
 
 <script src="cursor.js"></script>

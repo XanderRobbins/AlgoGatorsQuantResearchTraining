@@ -692,6 +692,109 @@ footer {
   opacity: 0;
 }
 
+/* ── Week page hero (shared across all week pages) ──────────── */
+.week-hero {
+  position: relative;
+  overflow: hidden;
+  background: #0e0d0c;
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  padding: 3.8rem 0 3.2rem;
+  margin-bottom: 0;
+}
+.week-hero::before {
+  content: '';
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  height: 1px;
+  background: #FF7D2A;
+  z-index: 2;
+}
+.week-hero::after {
+  content: '';
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  height: 10px;
+  background: linear-gradient(
+    to bottom,
+    #FF7D2A 0px, #FF7D2A 1px,
+    #ffffff 1px, #ffffff 9px,
+    #000000 9px, #000000 10px
+  );
+  z-index: 2;
+}
+.week-hero-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  z-index: 0;
+}
+.week-hero-inner {
+  position: relative;
+  z-index: 1;
+  max-width: 900px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 0 2rem;
+}
+.week-hero-badge {
+  font-family: 'IBM Plex Mono', monospace;
+  color: #FF7D2A;
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  margin-bottom: 1.4rem;
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+}
+.week-hero-badge::before {
+  content: '';
+  display: block;
+  width: 28px;
+  height: 1px;
+  background: #FF7D2A;
+  flex-shrink: 0;
+}
+.week-hero h1 {
+  font-size: 3.6rem;
+  color: rgba(255, 238, 215, 0.95);
+  border: none;
+  margin: 0 0 1.4rem;
+  font-weight: 700;
+  line-height: 1.08;
+  letter-spacing: -0.025em;
+  display: block;
+}
+.week-hero-pill {
+  display: inline-flex;
+  align-items: center;
+  background: rgba(255, 125, 42, 0.10);
+  border: 1px solid rgba(255, 125, 42, 0.28);
+  color: rgba(255, 125, 42, 0.85);
+  font-family: 'IBM Plex Mono', monospace;
+  font-size: 0.72rem;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  padding: 0.38rem 0.9rem;
+  border-radius: 2px;
+  margin-bottom: 1.4rem;
+}
+.week-hero-objective {
+  font-size: 1.1rem;
+  color: rgba(255, 238, 215, 0.40);
+  max-width: 560px;
+  line-height: 1.7;
+  margin: 0;
+  font-style: italic;
+}
+@media (max-width: 768px) {
+  .week-hero { padding: 2.8rem 0 2.4rem; }
+  .week-hero h1 { font-size: 2.3rem; }
+}
+
 /* Print styles */
 @media print {
   nav, footer, .week-nav {

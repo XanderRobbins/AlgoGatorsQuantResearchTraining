@@ -34,14 +34,17 @@
   </div>
 </nav>
 
-<div class="container">
-
-  <div class="page-header">
-    <div class="page-week">Week 5</div>
-    <h1>Writing the Hypothesis (IP §1)</h1>
-    <div class="page-phase">Phase 3: Research Execution</div>
-    <p class="page-objective">Write a hypothesis that is economic, testable, and falsifiable. This IS Section 1 of your Investment Proposal.</p>
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="w5-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Week 05 &mdash; Phase 3: Research Execution</div>
+    <h1>Writing the<br>Hypothesis (IP §1)</h1>
+    <div class="week-hero-pill">Section 1 — Hypothesis</div>
+    <p class="week-hero-objective">Write a hypothesis that is economic, testable, and falsifiable. This IS Section 1 of your Investment Proposal.</p>
   </div>
+</div>
+
+<div class="container">
 
   <div class="ip-anchor">
     <span class="ip-anchor-label">IP Anchor</span>
@@ -247,6 +250,105 @@
       }
     }
   });
+</script>
+
+<script>
+/* Week 5 — mind map growing from central node */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('w5-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+  }
+
+  const N_MAIN = 9;
+  let nodes = [], startTime = null;
+
+  function buildTree() {
+    nodes = [];
+    for (let i = 0; i < N_MAIN; i++) {
+      const ang = (i / N_MAIN) * Math.PI * 2 - Math.PI / 2;
+      const d1  = 0.19;
+      const nx  = 0.5 + Math.cos(ang) * d1;
+      const ny  = 0.5 + Math.sin(ang) * d1 * 0.72;
+      nodes.push({ x: nx, y: ny, px: 0.5, py: 0.5, r: 4, alpha: 0, delay: 500 + i * 180 });
+
+      // always 2 sub-branches per main
+      for (let j = 0; j < 2; j++) {
+        const sa  = ang + (j === 0 ? -0.55 : 0.55);
+        const d2  = 0.13;
+        const sx  = Math.max(0.02, Math.min(0.98, nx + Math.cos(sa) * d2));
+        const sy  = Math.max(0.04, Math.min(0.96, ny + Math.sin(sa) * d2 * 0.72));
+        nodes.push({ x: sx, y: sy, px: nx, py: ny, r: 2.8, alpha: 0, delay: 2000 + i * 180 + j * 220 });
+
+        // 1 sub-sub-branch per sub
+        const ssa  = sa + (Math.random() - 0.5) * 0.7;
+        const d3   = 0.09;
+        const ssx  = Math.max(0.01, Math.min(0.99, sx + Math.cos(ssa) * d3));
+        const ssy  = Math.max(0.03, Math.min(0.97, sy + Math.sin(ssa) * d3 * 0.72));
+        nodes.push({ x: ssx, y: ssy, px: sx, py: sy, r: 1.8, alpha: 0, delay: 3800 + i * 180 + j * 220 });
+      }
+    }
+    startTime = null;
+  }
+
+  let rootAlpha = 0, lastTs = null;
+
+  function frame(ts) {
+    if (!lastTs) lastTs = ts;
+    if (!startTime) startTime = ts;
+    const dt      = Math.min(ts - lastTs, 40);
+    lastTs        = ts;
+    const elapsed = ts - startTime;
+
+    ctx.clearRect(0, 0, W, H);
+
+    /* root */
+    rootAlpha = Math.min(0.75, rootAlpha + dt * 0.005);
+    ctx.beginPath();
+    ctx.arc(W * 0.5, H * 0.5, 6, 0, 6.283);
+    ctx.fillStyle = `rgba(255,125,42,${rootAlpha})`;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(W * 0.5, H * 0.5, 12, 0, 6.283);
+    ctx.strokeStyle = `rgba(255,125,42,${rootAlpha * 0.28})`;
+    ctx.lineWidth = 1;
+    ctx.stroke();
+
+    for (const n of nodes) {
+      if (elapsed < n.delay) continue;
+      n.alpha = Math.min(0.50, n.alpha + dt * 0.004);
+
+      /* line to parent */
+      ctx.beginPath();
+      ctx.moveTo(n.px * W, n.py * H);
+      ctx.lineTo(n.x  * W, n.y  * H);
+      ctx.strokeStyle = `rgba(255,238,215,${(n.alpha * 0.38).toFixed(3)})`;
+      ctx.lineWidth   = 1;
+      ctx.stroke();
+
+      /* node */
+      ctx.beginPath();
+      ctx.arc(n.x * W, n.y * H, n.r, 0, 6.283);
+      ctx.fillStyle = `rgba(255,125,42,${n.alpha.toFixed(3)})`;
+      ctx.fill();
+    }
+
+    if (elapsed > 12000) buildTree();
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(() => { resize(); buildTree(); }).observe(hero);
+  resize();
+  buildTree();
+  requestAnimationFrame(frame);
+})();
 </script>
 
 <script src="cursor.js"></script>

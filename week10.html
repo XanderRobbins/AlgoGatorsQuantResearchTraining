@@ -33,14 +33,17 @@
   </div>
 </nav>
 
-<div class="container">
-
-  <div class="page-header">
-    <div class="page-week">Week 10</div>
-    <h1>Alternative Data Sources</h1>
-    <div class="page-phase">Phase 4: Readiness</div>
-    <p class="page-objective">Understand what alternative data is, where to find it, and how to validate whether it contains real signal. Know the pitfalls before building a strategy.</p>
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="w10-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Week 10 &mdash; Phase 4: Readiness</div>
+    <h1>Alternative<br>Data Sources</h1>
+    <div class="week-hero-pill">Section 1 &amp; 2 — Hypothesis &amp; Data</div>
+    <p class="week-hero-objective">Understand what alternative data is, where to find it, and how to validate whether it contains real signal. Know the pitfalls before building a strategy.</p>
   </div>
+</div>
+
+<div class="container">
 
   <div class="ip-anchor">
     <span class="ip-anchor-label">IP Anchor</span>
@@ -181,6 +184,97 @@
 <footer>
   AlgoGators Investment Fund — QR Training Program // Internal Use Only
 </footer>
+
+<script>
+/* Week 10 — alt data sources sending pulses to central hub */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('w10-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  const N = 9;
+  let sources = [], pulses = [];
+
+  function buildSources() {
+    sources = [];
+    for (let i = 0; i < N; i++) {
+      const ang  = (i / N) * Math.PI * 2;
+      const dist = 0.28 + (i % 3 === 0 ? 0.06 : 0);
+      sources.push({
+        x: 0.5 + Math.cos(ang) * dist,
+        y: 0.5 + Math.sin(ang) * dist * 0.68,
+        next: Math.random() * 2500,
+      });
+    }
+  }
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+    buildSources();
+  }
+
+  let lastTs = null;
+
+  function frame(ts) {
+    if (!lastTs) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    const cx = W * 0.5, cy = H * 0.5;
+    ctx.clearRect(0, 0, W, H);
+
+    /* spokes */
+    for (const s of sources) {
+      ctx.beginPath();
+      ctx.moveTo(s.x * W, s.y * H);
+      ctx.lineTo(cx, cy);
+      ctx.strokeStyle = 'rgba(255,238,215,0.06)';
+      ctx.lineWidth   = 1;
+      ctx.stroke();
+    }
+
+    /* hub */
+    ctx.beginPath(); ctx.arc(cx, cy, 7, 0, 6.283);
+    ctx.fillStyle = 'rgba(255,125,42,0.60)'; ctx.fill();
+    for (const r of [12, 19]) {
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.283);
+      ctx.strokeStyle = `rgba(255,125,42,${0.14 - r*0.004})`; ctx.lineWidth = 1; ctx.stroke();
+    }
+
+    /* source nodes + spawn pulses */
+    for (const s of sources) {
+      s.next -= dt;
+      if (s.next <= 0) {
+        pulses.push({ sx: s.x, sy: s.y, t: 0, dur: 1100 + Math.random() * 400 });
+        s.next = 1600 + Math.random() * 3000;
+      }
+      ctx.beginPath(); ctx.arc(s.x * W, s.y * H, 3.5, 0, 6.283);
+      ctx.fillStyle = 'rgba(255,238,215,0.32)'; ctx.fill();
+    }
+
+    /* animate pulses */
+    for (let i = pulses.length - 1; i >= 0; i--) {
+      const p = pulses[i];
+      p.t += dt;
+      const prog = p.t / p.dur;
+      if (prog > 1) { pulses.splice(i, 1); continue; }
+      const x = (p.sx + (0.5 - p.sx) * prog) * W;
+      const y = (p.sy + (0.5 - p.sy) * prog) * H;
+      ctx.beginPath(); ctx.arc(x, y, 2.5, 0, 6.283);
+      ctx.fillStyle = `rgba(255,125,42,${((1-prog)*0.60).toFixed(3)})`; ctx.fill();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
 
 <script src="cursor.js"></script>
 <script src="scroll.js"></script>

@@ -33,14 +33,17 @@
   </div>
 </nav>
 
-<div class="container">
-
-  <div class="page-header">
-    <div class="page-week">Week 4</div>
-    <h1>Fund Toolstack & Data Pipeline</h1>
-    <div class="page-phase">Phase 2: Tooling & Hypothesis</div>
-    <p class="page-objective">Understand the infrastructure that powers research at AlgoGators. Know what data exists before you write Section 2 of your IP.</p>
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="w4-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Week 04 &mdash; Phase 2: Tooling &amp; Hypothesis</div>
+    <h1>Fund Toolstack &amp;<br>Data Pipeline</h1>
+    <div class="week-hero-pill">Section 2 — Data &amp; QD Approval</div>
+    <p class="week-hero-objective">Understand the infrastructure that powers research at AlgoGators. Know what data exists before you write Section 2 of your IP.</p>
   </div>
+</div>
+
+<div class="container">
 
   <div class="ip-anchor">
     <span class="ip-anchor-label">IP Anchor</span>
@@ -194,6 +197,94 @@ df['signal_entry'] = df['signal'] &lt; -entry_threshold
 <footer>
   AlgoGators Investment Fund — QR Training Program // Internal Use Only
 </footer>
+
+<script>
+/* Week 4 — data pipeline DAG with flowing particles */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('w4-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+  }
+
+  /* node positions (normalized) */
+  const NODES = [
+    { x: 0.07, y: 0.50 },
+    { x: 0.27, y: 0.28 },
+    { x: 0.27, y: 0.72 },
+    { x: 0.50, y: 0.50 },
+    { x: 0.73, y: 0.28 },
+    { x: 0.73, y: 0.72 },
+    { x: 0.93, y: 0.50 },
+  ];
+  const EDGES = [[0,1],[0,2],[1,3],[2,3],[3,4],[3,5],[4,6],[5,6]];
+
+  /* particles */
+  const particles = [];
+  for (const [f, t] of EDGES) {
+    for (let k = 0; k < 2; k++) {
+      particles.push({ f, t, pos: Math.random(), speed: 0.00016 + Math.random() * 0.00010 });
+    }
+  }
+
+  let lastTs = null;
+
+  function frame(ts) {
+    if (!lastTs) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    ctx.clearRect(0, 0, W, H);
+
+    /* edges */
+    ctx.lineWidth = 1;
+    for (const [f, t] of EDGES) {
+      const a = NODES[f], b = NODES[t];
+      ctx.beginPath();
+      ctx.moveTo(a.x * W, a.y * H);
+      ctx.lineTo(b.x * W, b.y * H);
+      ctx.strokeStyle = 'rgba(255,238,215,0.07)';
+      ctx.stroke();
+    }
+
+    /* nodes */
+    for (const n of NODES) {
+      ctx.beginPath();
+      ctx.arc(n.x * W, n.y * H, 5, 0, 6.283);
+      ctx.fillStyle = 'rgba(255,125,42,0.45)';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(n.x * W, n.y * H, 9, 0, 6.283);
+      ctx.strokeStyle = 'rgba(255,125,42,0.18)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    /* flowing particles */
+    for (const p of particles) {
+      p.pos = (p.pos + p.speed * dt) % 1;
+      const a = NODES[p.f], b = NODES[p.t];
+      const x = (a.x + (b.x - a.x) * p.pos) * W;
+      const y = (a.y + (b.y - a.y) * p.pos) * H;
+      ctx.beginPath();
+      ctx.arc(x, y, 2.4, 0, 6.283);
+      ctx.fillStyle = `rgba(255,125,42,${0.55 - p.pos * 0.25})`;
+      ctx.fill();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
 
 <script src="cursor.js"></script>
 <script src="scroll.js"></script>

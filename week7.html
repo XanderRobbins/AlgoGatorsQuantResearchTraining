@@ -34,14 +34,17 @@
   </div>
 </nav>
 
-<div class="container">
-
-  <div class="page-header">
-    <div class="page-week">Week 7</div>
-    <h1>Signal Construction (IP §3a)</h1>
-    <div class="page-phase">Phase 3: Research Execution</div>
-    <p class="page-objective">Write unambiguous trading rules: entry, exit, and position sizing. This IS Section 3a of your IP.</p>
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="w7-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Week 07 &mdash; Phase 3: Research Execution</div>
+    <h1>Signal Construction<br>(IP §3a)</h1>
+    <div class="week-hero-pill">Section 3a — Signal Rules</div>
+    <p class="week-hero-objective">Write unambiguous trading rules: entry, exit, and position sizing. This IS Section 3a of your IP.</p>
   </div>
+</div>
+
+<div class="container">
 
   <div class="ip-anchor">
     <span class="ip-anchor-label">IP Anchor</span>
@@ -290,6 +293,74 @@ position_size = (target_vol / realized_vol) * capital
       }
     }
   });
+</script>
+
+<script>
+/* Week 7 — component waves combining into a composite signal */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('w7-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+  }
+
+  const WAVES = [
+    { freq: 1.6, amp: 0.075, phase: 0.0,  alpha: 0.11, speed: 0.00080 },
+    { freq: 3.3, amp: 0.048, phase: 1.2,  alpha: 0.09, speed: 0.00120 },
+    { freq: 0.8, amp: 0.095, phase: 2.5,  alpha: 0.10, speed: 0.00050 },
+    { freq: 5.2, amp: 0.028, phase: 0.8,  alpha: 0.07, speed: 0.00180 },
+  ];
+
+  let t = 0, lastTs = null;
+
+  function frame(ts) {
+    if (!lastTs) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+    t += dt;
+
+    ctx.clearRect(0, 0, W, H);
+
+    const cy = H * 0.5;
+
+    /* component waves */
+    for (const w of WAVES) {
+      ctx.beginPath();
+      for (let i = 0; i <= W; i++) {
+        const px = (i / W) * Math.PI * 2 * w.freq;
+        const y  = cy + Math.sin(px + w.phase + t * w.speed) * w.amp * H;
+        i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
+      }
+      ctx.strokeStyle = `rgba(255,238,215,${w.alpha})`;
+      ctx.lineWidth   = 0.8;
+      ctx.stroke();
+    }
+
+    /* composite signal */
+    ctx.beginPath();
+    for (let i = 0; i <= W; i++) {
+      const px = (i / W) * Math.PI * 2;
+      let sum  = 0;
+      for (const w of WAVES) sum += Math.sin(px * w.freq + w.phase + t * w.speed) * w.amp;
+      const y = cy + sum * H;
+      i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
+    }
+    ctx.strokeStyle = 'rgba(255,125,42,0.55)';
+    ctx.lineWidth   = 1.8;
+    ctx.stroke();
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  requestAnimationFrame(frame);
+})();
 </script>
 
 <script src="cursor.js"></script>

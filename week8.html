@@ -33,14 +33,17 @@
   </div>
 </nav>
 
-<div class="container">
-
-  <div class="page-header">
-    <div class="page-week">Week 8</div>
-    <h1>Model Assumptions (IP §3b)</h1>
-    <div class="page-phase">Phase 3: Research Execution</div>
-    <p class="page-objective">Test and document every model assumption. This IS Section 3b of your IP. The most critical section for QT risk management.</p>
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="w8-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Week 08 &mdash; Phase 3: Research Execution</div>
+    <h1>Model Assumptions<br>(IP §3b)</h1>
+    <div class="week-hero-pill">Section 3b — Model Assumptions</div>
+    <p class="week-hero-objective">Test and document every model assumption. This IS Section 3b of your IP. The most critical section for QT risk management.</p>
   </div>
+</div>
+
+<div class="container">
 
   <div class="ip-anchor">
     <span class="ip-anchor-label">IP Anchor</span>
@@ -255,6 +258,109 @@ if (vif_data["VIF"] &gt; 10).any():
 <footer>
   AlgoGators Investment Fund — QR Training Program // Internal Use Only
 </footer>
+
+<script>
+/* Week 8 — morphing Gaussian distribution */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('w8-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+  }
+
+  function gauss(x, mu, sig) {
+    return Math.exp(-0.5 * ((x - mu) / sig) ** 2) / (sig * Math.sqrt(2 * Math.PI));
+  }
+
+  const STATES = [
+    { mu: 0.50, sig: 0.10 },
+    { mu: 0.58, sig: 0.13 },
+    { mu: 0.50, sig: 0.17 },
+    { mu: 0.50, sig: 0.07 },
+  ];
+  let sIdx = 0, sT = 0, lastTs = null;
+
+  function ease(t) { return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
+
+  function frame(ts) {
+    if (!lastTs) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    sT += dt * 0.00042;
+    if (sT >= 1) { sT = 0; sIdx = (sIdx + 1) % STATES.length; }
+
+    const from = STATES[sIdx];
+    const to   = STATES[(sIdx + 1) % STATES.length];
+    const et   = ease(sT);
+    const mu   = lerp(from.mu, to.mu, et);
+    const sig  = lerp(from.sig, to.sig, et);
+
+    ctx.clearRect(0, 0, W, H);
+
+    const peak  = gauss(mu, mu, sig);
+    const scY   = H * 0.72;
+    const baseY = H * 0.88;
+
+    /* fill */
+    ctx.beginPath();
+    ctx.moveTo(0, baseY);
+    for (let i = 0; i <= W; i++) {
+      const v = gauss(i / W, mu, sig);
+      ctx.lineTo(i, baseY - (v / peak) * scY);
+    }
+    ctx.lineTo(W, baseY);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255,125,42,0.055)';
+    ctx.fill();
+
+    /* curve */
+    ctx.beginPath();
+    for (let i = 0; i <= W; i++) {
+      const v = gauss(i / W, mu, sig);
+      const y = baseY - (v / peak) * scY;
+      i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
+    }
+    ctx.strokeStyle = 'rgba(255,125,42,0.48)';
+    ctx.lineWidth   = 1.8;
+    ctx.stroke();
+
+    /* mean line */
+    ctx.beginPath();
+    ctx.moveTo(mu * W, baseY);
+    ctx.lineTo(mu * W, baseY - scY * 1.06);
+    ctx.strokeStyle = 'rgba(255,125,42,0.16)';
+    ctx.lineWidth   = 1;
+    ctx.setLineDash([3, 6]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    /* ±1σ ticks */
+    for (const s of [-1, 1]) {
+      const sx = (mu + s * sig) * W;
+      const sv = gauss(mu + s * sig, mu, sig);
+      ctx.beginPath();
+      ctx.moveTo(sx, baseY);
+      ctx.lineTo(sx, baseY - (sv / peak) * scY);
+      ctx.strokeStyle = 'rgba(255,238,215,0.10)';
+      ctx.lineWidth   = 1;
+      ctx.stroke();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
 
 <script src="cursor.js"></script>
 <script src="scroll.js"></script>

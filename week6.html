@@ -34,14 +34,17 @@
   </div>
 </nav>
 
-<div class="container">
-
-  <div class="page-header">
-    <div class="page-week">Week 6</div>
-    <h1>Data Sourcing & Cleaning (IP §2)</h1>
-    <div class="page-phase">Phase 3: Research Execution</div>
-    <p class="page-objective">Write Section 2 of your IP: precise data description and the QD approval gate. Understand the three major data biases and how to avoid them.</p>
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="w6-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Week 06 &mdash; Phase 3: Research Execution</div>
+    <h1>Data Sourcing &amp;<br>Cleaning (IP §2)</h1>
+    <div class="week-hero-pill">Section 2 — Data Sourcing &amp; QD Approval</div>
+    <p class="week-hero-objective">Write Section 2 of your IP: precise data description and the QD approval gate. Understand the three major data biases and how to avoid them.</p>
   </div>
+</div>
+
+<div class="container">
 
   <div class="ip-anchor">
     <span class="ip-anchor-label">IP Anchor</span>
@@ -284,6 +287,136 @@ df['signal'] = rolling_zscore(df['close'], window=60)</code></pre>
       }
     }
   });
+</script>
+
+<script>
+/* Week 6 — chaos → order, mirrored on both sides of centre divider */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('w6-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  const COLS = 9, ROWS = 10;
+  const GY0 = 0.07, GY1 = 0.93;
+  // left grid: 0.03 → 0.44   right grid: 0.56 → 0.97
+  const L0 = 0.03, L1 = 0.44, R0 = 0.56, R1 = 0.97;
+
+  let particles = [];
+
+  function init() {
+    particles = [];
+
+    /* left-side targets */
+    for (let i = 0; i < COLS * ROWS; i++) {
+      const c  = i % COLS, r = Math.floor(i / COLS);
+      const tx = L0 + (c / (COLS - 1)) * (L1 - L0);
+      const ty = GY0 + (r / (ROWS - 1)) * (GY1 - GY0);
+      particles.push({
+        x: 0.46 + Math.random() * 0.08,   // start near centre
+        y: GY0  + Math.random() * (GY1 - GY0),
+        tx, ty,
+        side: 'L',
+        nx: -(Math.random() * 0.003 + 0.001),
+        ny: (Math.random() - 0.5) * 0.004,
+        alpha: 0,
+        delay: Math.random() * 1800,
+      });
+    }
+
+    /* right-side targets (mirror) */
+    for (let i = 0; i < COLS * ROWS; i++) {
+      const c  = i % COLS, r = Math.floor(i / COLS);
+      const tx = R0 + (c / (COLS - 1)) * (R1 - R0);
+      const ty = GY0 + (r / (ROWS - 1)) * (GY1 - GY0);
+      particles.push({
+        x: 0.46 + Math.random() * 0.08,
+        y: GY0  + Math.random() * (GY1 - GY0),
+        tx, ty,
+        side: 'R',
+        nx:  (Math.random() * 0.003 + 0.001),
+        ny: (Math.random() - 0.5) * 0.004,
+        alpha: 0,
+        delay: Math.random() * 1800,
+      });
+    }
+  }
+
+  let elapsed = 0, lastTs = null;
+
+  function frame(ts) {
+    if (!lastTs) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+    elapsed += dt;
+
+    ctx.clearRect(0, 0, W, H);
+
+    /* centre divider */
+    ctx.beginPath();
+    ctx.moveTo(W * 0.50, 0);
+    ctx.lineTo(W * 0.50, H);
+    ctx.strokeStyle = 'rgba(255,125,42,0.14)';
+    ctx.lineWidth   = 1;
+    ctx.setLineDash([4, 7]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    for (const p of particles) {
+      if (elapsed < p.delay) continue;
+      p.alpha = Math.min(0.75, p.alpha + dt * 0.002);
+
+      const settled =
+        p.side === 'L'
+          ? Math.abs(p.x - p.tx) < 0.012 && Math.abs(p.y - p.ty) < 0.012
+          : Math.abs(p.x - p.tx) < 0.012 && Math.abs(p.y - p.ty) < 0.012;
+
+      if (!settled) {
+        /* chaos drift outward from centre */
+        p.x = Math.max(0.01, Math.min(0.99, p.x + p.nx * dt));
+        p.y = Math.max(0.04, Math.min(0.96, p.y + p.ny * dt));
+        if (Math.random() < 0.010) p.ny = (Math.random() - 0.5) * 0.004;
+
+        /* once past the grid zone, start homing */
+        const pastGrid = p.side === 'L' ? p.x < L1 + 0.05 : p.x > R0 - 0.05;
+        if (pastGrid) {
+          p.x += (p.tx - p.x) * 0.05;
+          p.y += (p.ty - p.y) * 0.05;
+        }
+      }
+
+      ctx.beginPath();
+      ctx.arc(p.x * W, p.y * H, 2.2, 0, 6.283);
+      ctx.fillStyle = settled
+        ? `rgba(255,125,42,${p.alpha.toFixed(3)})`
+        : `rgba(255,210,160,${(p.alpha * 0.65).toFixed(3)})`;
+      ctx.fill();
+
+      /* respawn after settling */
+      if (settled && Math.random() < 0.00035 * dt) {
+        p.x     = 0.44 + Math.random() * 0.12;
+        p.y     = GY0  + Math.random() * (GY1 - GY0);
+        p.alpha = 0;
+        p.delay = 0;
+        p.nx    = p.side === 'L' ? -(Math.random() * 0.003 + 0.001) : (Math.random() * 0.003 + 0.001);
+        p.ny    = (Math.random() - 0.5) * 0.004;
+      }
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+    init();
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  requestAnimationFrame(frame);
+})();
 </script>
 
 <script src="cursor.js"></script>

@@ -33,14 +33,17 @@
   </div>
 </nav>
 
-<div class="container">
-
-  <div class="page-header">
-    <div class="page-week">Week 11</div>
-    <h1>Live Research Workshop</h1>
-    <div class="page-phase">Phase 4: Readiness</div>
-    <p class="page-objective">Pitch your research idea to senior QR members. This is the readiness test before submitting your Investment Proposal.</p>
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="w11-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Week 11 &mdash; Phase 4: Readiness</div>
+    <h1>Live Research<br>Workshop</h1>
+    <div class="week-hero-pill">All Four IP Sections</div>
+    <p class="week-hero-objective">Pitch your research idea to senior QR members. This is the readiness test before submitting your Investment Proposal.</p>
   </div>
+</div>
+
+<div class="container">
 
   <div class="ip-anchor">
     <span class="ip-anchor-label">IP Anchor</span>
@@ -232,6 +235,96 @@
 <footer>
   AlgoGators Investment Fund — QR Training Program // Internal Use Only
 </footer>
+
+<script>
+/* Week 11 — IP sections (H D M R) assembling into a complete proposal */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('w11-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+  }
+
+  const SECTIONS = [
+    { label: 'H', angle: -Math.PI * 0.75 },
+    { label: 'D', angle: -Math.PI * 0.25 },
+    { label: 'M', angle:  Math.PI * 0.25  },
+    { label: 'R', angle:  Math.PI * 0.75  },
+  ];
+
+  let nodeA = [0,0,0,0], lineA = [0,0,0,0], hubA = 0, elapsed = 0, lastTs = null;
+
+  function reset() {
+    nodeA = [0,0,0,0]; lineA = [0,0,0,0]; hubA = 0; elapsed = 0;
+  }
+
+  function frame(ts) {
+    if (!lastTs) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+    elapsed += dt;
+
+    const cx = W * 0.5, cy = H * 0.5;
+    const dist = Math.min(W, H) * 0.22;
+    ctx.clearRect(0, 0, W, H);
+
+    hubA = Math.min(0.70, hubA + dt * 0.003);
+
+    for (let i = 0; i < 4; i++) {
+      if (elapsed > i * 380) nodeA[i] = Math.min(0.65, nodeA[i] + dt * 0.006);
+      if (elapsed > 4 * 380 + 300) lineA[i] = Math.min(0.32, lineA[i] + dt * 0.004);
+
+      const s  = SECTIONS[i];
+      const nx = cx + Math.cos(s.angle) * dist;
+      const ny = cy + Math.sin(s.angle) * dist * 0.78;
+
+      if (lineA[i] > 0) {
+        ctx.beginPath(); ctx.moveTo(nx, ny); ctx.lineTo(cx, cy);
+        ctx.strokeStyle = `rgba(255,125,42,${lineA[i].toFixed(3)})`;
+        ctx.lineWidth   = 1.2; ctx.stroke();
+      }
+
+      if (nodeA[i] <= 0) continue;
+
+      ctx.beginPath(); ctx.arc(nx, ny, 14, 0, 6.283);
+      ctx.strokeStyle = `rgba(255,125,42,${nodeA[i].toFixed(3)})`;
+      ctx.lineWidth   = 1.5; ctx.stroke();
+      ctx.beginPath(); ctx.arc(nx, ny, 14, 0, 6.283);
+      ctx.fillStyle   = `rgba(255,125,42,${(nodeA[i]*0.10).toFixed(3)})`; ctx.fill();
+
+      ctx.font         = "bold 13px 'IBM Plex Mono', monospace";
+      ctx.fillStyle    = `rgba(255,238,215,${nodeA[i].toFixed(3)})`;
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'middle';
+      ctx.fillText(s.label, nx, ny);
+    }
+
+    /* hub */
+    ctx.beginPath(); ctx.arc(cx, cy, 8, 0, 6.283);
+    ctx.fillStyle = `rgba(255,125,42,${hubA.toFixed(3)})`; ctx.fill();
+    ctx.beginPath(); ctx.arc(cx, cy, 8, 0, 6.283);
+    ctx.strokeStyle = `rgba(255,125,42,${hubA.toFixed(3)})`; ctx.lineWidth = 1.5; ctx.stroke();
+    ctx.font = "bold 9px 'IBM Plex Mono', monospace";
+    ctx.fillStyle = `rgba(255,238,215,${(hubA*0.70).toFixed(3)})`;
+    ctx.textAlign = 'center'; ctx.textBaseline = 'middle';
+    ctx.fillText('IP', cx, cy);
+
+    if (elapsed > 7200) reset();
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  reset();
+  requestAnimationFrame(frame);
+})();
+</script>
 
 <script src="cursor.js"></script>
 <script src="scroll.js"></script>
