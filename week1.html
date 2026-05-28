@@ -9,6 +9,112 @@
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="icon" type="image/png" href="Delta.png">
+
+  <style>
+    /* ── Week 1 Hero ─────────────────────────────────────────── */
+    .w1-hero {
+      position: relative;
+      overflow: hidden;
+      background: #0e0d0c;
+      display: flex;
+      flex-direction: column;
+      align-items: stretch;
+      padding: 3.8rem 0 3.2rem;
+      margin-bottom: 0;
+    }
+    .w1-hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: #FF7D2A;
+      z-index: 2;
+    }
+    .w1-hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 10px;
+      background: linear-gradient(
+        to bottom,
+        #FF7D2A 0px, #FF7D2A 1px,
+        #ffffff 1px, #ffffff 9px,
+        #000000 9px, #000000 10px
+      );
+      z-index: 2;
+    }
+    #w1-canvas {
+      position: absolute;
+      inset: 0;
+      display: block;
+      z-index: 0;
+    }
+    .w1-hero-inner {
+      position: relative;
+      z-index: 1;
+      max-width: 900px;
+      width: 100%;
+      margin: 0 auto;
+      padding: 0 2rem;
+    }
+    .w1-badge {
+      font-family: 'IBM Plex Mono', monospace;
+      color: #FF7D2A;
+      font-size: 0.72rem;
+      font-weight: 700;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-bottom: 1.4rem;
+      display: flex;
+      align-items: center;
+      gap: 0.9rem;
+    }
+    .w1-badge::before {
+      content: '';
+      display: block;
+      width: 28px;
+      height: 1px;
+      background: #FF7D2A;
+      flex-shrink: 0;
+    }
+    .w1-hero h1 {
+      font-size: 3.6rem;
+      color: rgba(255, 238, 215, 0.95);
+      border: none;
+      margin: 0 0 1.4rem;
+      font-weight: 700;
+      line-height: 1.08;
+      letter-spacing: -0.025em;
+      display: block;
+    }
+    .w1-phase-pill {
+      display: inline-flex;
+      align-items: center;
+      background: rgba(255, 125, 42, 0.10);
+      border: 1px solid rgba(255, 125, 42, 0.28);
+      color: rgba(255, 125, 42, 0.85);
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.72rem;
+      letter-spacing: 0.09em;
+      text-transform: uppercase;
+      padding: 0.38rem 0.9rem;
+      border-radius: 2px;
+      margin-bottom: 1.4rem;
+    }
+    .w1-hero-objective {
+      font-size: 1.1rem;
+      color: rgba(255, 238, 215, 0.40);
+      max-width: 560px;
+      line-height: 1.7;
+      margin: 0;
+      font-style: italic;
+    }
+
+    @media (max-width: 768px) {
+      .w1-hero { padding: 2.8rem 0 2.4rem; }
+      .w1-hero h1 { font-size: 2.3rem; }
+    }
+  </style>
 </head>
 <body>
 
@@ -34,14 +140,18 @@
   </div>
 </nav>
 
-<div class="container">
-
-  <div class="page-header">
-    <div class="page-week">Week 1</div>
-    <h1>What Is a Research Edge?</h1>
-    <div class="page-phase">Phase 1: Foundations</div>
-    <p class="page-objective">Understand the difference between a signal and an edge, and why most backtests fail to prove either.</p>
+<!-- ── Hero ───────────────────────────────────────────────────── -->
+<div class="w1-hero">
+  <canvas id="w1-canvas"></canvas>
+  <div class="w1-hero-inner">
+    <div class="w1-badge">Week 01 &mdash; Phase 1: Foundations</div>
+    <h1>What Is a<br>Research Edge?</h1>
+    <div class="w1-phase-pill">Foundation for all four IP sections</div>
+    <p class="w1-hero-objective">Understand the difference between a signal and an edge, and why most backtests fail to prove either.</p>
   </div>
+</div>
+
+<div class="container">
 
   <div class="ip-anchor">
     <span class="ip-anchor-label">IP Anchor</span>
@@ -220,6 +330,125 @@
 <footer>
   AlgoGators Investment Fund — QR Training Program // Internal Use Only
 </footer>
+
+<script>
+/* ── Animated equity curve hero canvas ─────────────────────── */
+(function () {
+  const hero   = document.querySelector('.w1-hero');
+  const canvas = document.getElementById('w1-canvas');
+  const ctx    = canvas.getContext('2d');
+
+  let W, H;
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+  }
+
+  function makeCurve(isSignal, delayMs) {
+    const N = 700;
+    const pts = new Float32Array(N);
+    let y = 0.45 + (Math.random() - 0.5) * 0.2;
+    pts[0] = y;
+    for (let i = 1; i < N; i++) {
+      const drift = isSignal ? (Math.random() - 0.476) * 0.013 : (Math.random() - 0.5) * 0.016;
+      y = Math.max(0.06, Math.min(0.94, y + drift));
+      pts[i] = y;
+    }
+    return {
+      isSignal,
+      pts,
+      alpha: 0,
+      progress: 0,
+      phase: 'waiting',
+      delay: delayMs,
+      lingerMs: 900 + Math.random() * 600,
+      lingerRemain: 0,
+      speed: 0.00045 + Math.random() * 0.0002,
+      maxAlpha: isSignal ? 0.52 : (0.10 + Math.random() * 0.08),
+    };
+  }
+
+  const curves = [];
+
+  function initCurves() {
+    curves.length = 0;
+    curves.push(makeCurve(true,  400));
+    curves.push(makeCurve(false, 0));
+    curves.push(makeCurve(false, 600));
+    curves.push(makeCurve(false, 1400));
+    curves.push(makeCurve(false, 2200));
+    curves.push(makeCurve(false, 800));
+    curves.push(makeCurve(false, 1800));
+  }
+
+  let lastTs = null;
+
+  function frame(ts) {
+    if (lastTs === null) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    ctx.clearRect(0, 0, W, H);
+
+    for (const c of curves) {
+      if (c.phase === 'waiting') {
+        c.delay -= dt;
+        if (c.delay <= 0) c.phase = 'drawing';
+      }
+
+      if (c.phase === 'drawing') {
+        c.alpha    = Math.min(c.maxAlpha, c.alpha + dt * 0.003);
+        c.progress = Math.min(1, c.progress + c.speed * dt);
+        if (c.progress >= 1) {
+          c.phase        = 'lingering';
+          c.lingerRemain = c.lingerMs;
+        }
+      }
+
+      if (c.phase === 'lingering') {
+        c.lingerRemain -= dt;
+        if (c.lingerRemain <= 0) c.phase = 'fading';
+      }
+
+      if (c.phase === 'fading') {
+        c.alpha -= dt * 0.002;
+        if (c.alpha <= 0) {
+          const newC = makeCurve(c.isSignal, 200 + Math.random() * 2500);
+          Object.assign(c, newC);
+        }
+      }
+
+      if (c.alpha <= 0 || c.progress < 0.002) continue;
+
+      const visCount = Math.max(2, Math.floor(c.progress * W));
+      const N        = c.pts.length;
+
+      ctx.beginPath();
+      ctx.lineWidth   = c.isSignal ? 1.6 : 0.8;
+      ctx.strokeStyle = c.isSignal
+        ? `rgba(255,125,42,${c.alpha.toFixed(3)})`
+        : `rgba(255,238,215,${c.alpha.toFixed(3)})`;
+
+      for (let i = 0; i < visCount; i++) {
+        const x  = (i / (W - 1)) * W;
+        const yi = Math.floor((i / (W - 1)) * (N - 1));
+        const y  = c.pts[yi] * H;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(() => { resize(); initCurves(); }).observe(hero);
+  resize();
+  initCurves();
+  requestAnimationFrame(frame);
+})();
+</script>
 
 <script>
   const ctx = document.getElementById('equityChart').getContext('2d');
