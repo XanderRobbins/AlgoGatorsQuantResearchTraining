@@ -219,18 +219,18 @@ position_size = (target_vol / realized_vol) * capital
   });
 
   // Compute z-score
-  const window = 20;
+  const lookback = 20;
   const zscores = days.map((_, i) => {
-    if (i < window) return 0;
-    const window_prices = prices.slice(i - window, i);
-    const mean = window_prices.reduce((a, b) => a + b) / window;
-    const variance = window_prices.reduce((a, b) => a + (b - mean)**2) / window;
+    if (i < lookback) return 0;
+    const window_prices = prices.slice(i - lookback, i);
+    const mean = window_prices.reduce((a, b) => a + b) / lookback;
+    const variance = window_prices.reduce((a, b) => a + (b - mean)**2) / lookback;
     const std = Math.sqrt(variance);
     return (prices[i] - mean) / std;
   });
 
   // Entry signals: z < -1.5
-  const entries = zscores.map((z, i) => z < -1.5 && i > window ? prices[i] : null);
+  const entries = zscores.map((z, i) => z < -1.5 && i > lookback ? prices[i] : null);
 
   new Chart(ctx, {
     type: 'line',
