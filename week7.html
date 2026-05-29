@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 7: Signal Construction (IP §3a) — QR Training</title>
+  <title>Week 7: Writing the Hypothesis (IP §1) — QR Training</title>
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
@@ -31,6 +31,8 @@
     <a href="week9.html">W9</a>
     <a href="week10.html">W10</a>
     <a href="week11.html">W11</a>
+    <a href="week12.html">W12</a>
+    <a href="week13.html">W13</a>
   </div>
 </nav>
 
@@ -38,9 +40,9 @@
   <canvas class="week-hero-canvas" id="w7-canvas"></canvas>
   <div class="week-hero-inner">
     <div class="week-hero-badge">Week 07 &mdash; Phase 3: Research Execution</div>
-    <h1>Signal Construction<br>(IP §3a)</h1>
-    <div class="week-hero-pill">Section 3a — Signal Rules</div>
-    <p class="week-hero-objective">Write unambiguous trading rules: entry, exit, and position sizing. This IS Section 3a of your IP.</p>
+    <h1>Writing the<br>Hypothesis (IP §1)</h1>
+    <div class="week-hero-pill">Section 1 — Hypothesis</div>
+    <p class="week-hero-objective">Write a hypothesis that is economic, testable, and falsifiable. This IS Section 1 of your Investment Proposal.</p>
   </div>
 </div>
 
@@ -48,159 +50,139 @@
 
   <div class="ip-anchor">
     <span class="ip-anchor-label">IP Anchor</span>
-    <span class="ip-anchor-section">Section 3a — Signal rules</span>
-    <span class="ip-anchor-desc">Every parameter, threshold, and rule must be explicitly documented. No ambiguity. This is Section 3a.</span>
+    <span class="ip-anchor-section">Section 1 — Hypothesis</span>
+    <span class="ip-anchor-desc">This week IS Section 1. Submit the template below as your IP Section 1.</span>
   </div>
 
   <div class="section">
     <h2 class="section-title">What this week covers</h2>
-    <p>A signal is not a hypothesis — it's the operational rule that generates buy/sell decisions. This week teaches three major signal types (z-score, momentum, regression), how to specify entry and exit rules without whipsawing, and how to size positions based on volatility and edge strength.</p>
+    <p>A strong hypothesis has three components: (1) an economic mechanism explaining why the inefficiency exists, (2) the predicted relationship between signal and return, and (3) a falsifiability condition. This week teaches you to write all three, and walks through hypothesis types with real examples.</p>
   </div>
 
   <div class="section">
-    <h2 class="section-title">What Section 3a must contain</h2>
+    <h2 class="section-title">The three components of a strong hypothesis</h2>
 
     <div class="card">
+      <h3 style="margin-top: 0;">1. Economic mechanism</h3>
+      <p>Why does this pattern exist? Not "I found it in the data." Why would market participants allow this inefficiency to persist?</p>
+      <p>Good mechanisms explain:</p>
       <ul style="font-size: 0.95rem;">
-        <li><strong>Signal formula:</strong> Exact mathematical expression with all parameters defined. No vagueness like "use a momentum signal." Write: "5-day momentum = (close_t - close_t-5) / close_t-5"</li>
-        <li><strong>Entry rule:</strong> The condition under which you enter (signal threshold, crossover, etc.). Example: "Long when momentum &gt; 0.02 and volatility regime is positive."</li>
-        <li><strong>Exit rule:</strong> The condition under which you exit (signal reversal, stop loss, take profit, time-based). Example: "Exit long when momentum &lt; -0.01 OR position is held for 30 days, whichever comes first."</li>
-        <li><strong>Position sizing:</strong> How large a position as a function of signal strength and risk. Example: "Size = target_vol / realized_vol * capital"</li>
+        <li><strong>Behavioral:</strong> What bias or constraint causes participants to misbehave? (anchoring, disposition effect, herding, underreaction)</li>
+        <li><strong>Structural:</strong> What market constraint forces suboptimal behavior? (hedging requirements, index rebalancing, roll yield, storage costs)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">2. Predicted relationship</h3>
+      <p>What signal predicts what return, in what direction, over what horizon?</p>
+      <p>Example: "When 30-day rolling soil moisture deviation is more than 1 standard deviation below the 20-year seasonal average, corn futures are expected to have negative returns over the next 5–10 trading days because low soil moisture predicts lower yields, which the market will reprice when USDA yield reports are released."</p>
+      <p>Specify:</p>
+      <ul style="font-size: 0.95rem;">
+        <li>The signal (soil moisture deviation)</li>
+        <li>The direction (negative / low moisture → lower returns)</li>
+        <li>The horizon (5–10 trading days)</li>
+        <li>The mechanism link (yields → prices)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">3. Falsifiability condition</h3>
+      <p>What result would convince you the hypothesis is <em>wrong</em>? If you can't answer this, you don't have a hypothesis.</p>
+      <p>Example: "This hypothesis is falsified if (a) the Information Coefficient between soil moisture deviation and forward corn returns is less than 0.02 (no predictive power), or (b) the backtest Sharpe on a 2023 hold-out period is less than 0.5 (results don't hold out-of-sample)."</p>
+      <p>Good falsifiability conditions are:</p>
+      <ul style="font-size: 0.95rem;">
+        <li><strong>Testable:</strong> You can calculate it from data</li>
+        <li><strong>Specific:</strong> Explicit number, not "seems promising"</li>
+        <li><strong>Fair:</strong> Not unreasonably high (Sharpe 5.0) or low (0.1)</li>
       </ul>
     </div>
   </div>
 
   <div class="section">
-    <h2 class="section-title">Three signal construction patterns</h2>
-
-    <h3 style="margin-top: 1.5rem;">Pattern 1: Z-score signals (mean reversion)</h3>
-    <p>Z-score measures deviation from the rolling mean in standard deviations.</p>
-    \[ z_t = \frac{x_t - \mu_{t,w}}{\sigma_{t,w}} \]
-    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where x_t is price or returns, w is lookback window, μ and σ are rolling mean and std.</p>
-
-    <div class="card">
-      <p><strong>Entry rule:</strong> Long when z &lt; -2.0 (price is 2 std below average). Short when z &gt; +2.0.</p>
-      <p><strong>Exit rule:</strong> Exit when z crosses zero (price returns to mean). Or time-based: exit after 20 trading days if signal hasn't closed.</p>
-      <p><strong>Typical use:</strong> Pairs trading, commodity mean reversion, currency mean reversion.</p>
-      <p><strong>Advantage:</strong> Simple, easy to interpret. Disadvantage: whipsaws in trending markets.</p>
-    </div>
-
-    <h3 style="margin-top: 1.5rem;">Pattern 2: Momentum signals (trend-following)</h3>
-    <p>Momentum measures the rate of change in price. EWMAC (Exponentially Weighted Moving Average Convergence Divergence) is the most robust version.</p>
-    \[ \text{EWMAC}_{f,s} = \text{EWM}_{t,f} - \text{EWM}_{t,s} \]
-    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where EWM_f is fast (short lookback), EWM_s is slow (long lookback).</p>
-
-    <div class="card">
-      <p><strong>Entry rule:</strong> Long when EWMAC &gt; 0 and positive regime filter. Short when EWMAC &lt; 0.</p>
-      <p><strong>Exit rule:</strong> Exit when EWMAC crosses zero. Or time-based: exit after 60 days.</p>
-      <p><strong>Parameters:</strong> Fast window (e.g., 8 days), slow window (e.g., 32 days). Use powers of 2 for efficiency.</p>
-      <p><strong>Typical use:</strong> Trend-following in commodities, equities, FX.</p>
-      <p><strong>Advantage:</strong> Captures trends, avoids mean-reversion whipsaws. Disadvantage: lags trend reversals.</p>
-    </div>
-
-    <h3 style="margin-top: 1.5rem;">Pattern 3: Regression-based signals</h3>
-    <p>Fit a regression model to predict forward returns. Use the fitted value as the signal.</p>
-    \[ \hat{r}_{t+h} = \alpha + \beta_1 x_{1,t} + \beta_2 x_{2,t} + \varepsilon \]
-    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where x_i are predictors (fundamental data, alternative data, technical factors).</p>
-
-    <div class="card">
-      <p><strong>Signal:</strong> Predicted return \(\hat{r}_{t+h}\). Positive = long, negative = short.</p>
-      <p><strong>Entry rule:</strong> Long when \(\hat{r} &gt; \text{threshold}\) (e.g., 0.5% expected return).</p>
-      <p><strong>Exit rule:</strong> Exit when \(\hat{r} &lt; 0\) (expected return turns negative) or after 20 days.</p>
-      <p><strong>Advantage:</strong> Can use multiple factors. Captures fundamental information.</p>
-      <p><strong>Disadvantage:</strong> More parameters, higher overfitting risk. Must test assumptions carefully (Section 3b).</p>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Position sizing</h2>
-
-    <h3 style="margin-top: 1.5rem;">Volatility-targeted sizing (preferred at AlgoGators)</h3>
-    <p>Scale position size inversely to volatility. High volatility → smaller position. Low volatility → larger position. Maintains constant risk contribution.</p>
-    \[ \text{position size} = \frac{\text{target vol}}{\sigma_t} \cdot \text{capital} \]
-
-    <div class="card">
-      <p><strong>Example:</strong></p>
-      <pre><code>target_vol = 0.10  # 10% annualized target volatility
-annual_factor = np.sqrt(252)
-
-realized_vol = returns.rolling(20).std() * annual_factor
-position_size = (target_vol / realized_vol) * capital
-
-# When realized_vol is high (20%), size down
-# When realized_vol is low (5%), size up
-</code></pre>
-      <p style="margin-top: 1rem;"><strong>Advantage:</strong> Risk contribution is stable across time. Avoids overlevering in calm periods.</p>
-    </div>
-
-    <h3 style="margin-top: 1.5rem;">Kelly Criterion (rarely used in practice)</h3>
-    <p>Optimal fraction of capital to bet given win probability and payoff ratio.</p>
-    \[ f^* = \frac{p \cdot b - q}{b} \]
-    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where p = win probability, q = 1-p, b = win/loss ratio.</p>
-
-    <p style="margin-top: 1rem;">Full Kelly is too aggressive. Most funds use half-Kelly or quarter-Kelly.</p>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Regime filters</h2>
-    <p>A regime filter conditions signal execution on market state. Example: only trade momentum when in an uptrend.</p>
-
-    <div class="card">
-      <p><strong>Example:</strong> Trend filter</p>
-      \[ \text{regime}_t = \mathbb{1}\left[P_t &gt; \text{EMA}_{t,200}\right] \]
-      <p style="margin-top: 1rem;">Only execute momentum signals when price is above the 200-day exponential moving average. In downtrends, stay in cash.</p>
-      <p style="margin-top: 1rem;"><strong>Advantage:</strong> Reduces drawdowns by avoiding trades in bad regimes. <strong>Disadvantage:</strong> Misses opportunities at regime transitions.</p>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Chart: Signal timeline example</h2>
-    <div class="chart-container">
-      <canvas id="signalChart"></canvas>
-    </div>
-    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">Price (blue), z-score signal (orange), entry points (green dots = buy, red = sell). Notice the whipsaws: several short-lived entries and exits. This is mean reversion, not ideal in trends.</p>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Section 3a template</h2>
+    <h2 class="section-title">Hypothesis template</h2>
+    <p style="color: var(--text-secondary); margin-bottom: 1rem;">Copy this template into Section 1 of your IP. Fill in each section with your hypothesis.</p>
 
     <div class="card" style="background: var(--bg-elevated); font-size: 0.9rem;">
-      <p style="color: var(--accent); font-weight: 600;">SECTION 3A: SIGNAL CONSTRUCTION</p>
+      <p style="font-weight: 600; color: var(--accent);">HYPOTHESIS TEMPLATE</p>
 
-      <p style="margin-top: 1rem;"><strong>3a.1 Signal formula</strong></p>
-      <p style="font-style: italic;">z_t = (close_t - mean(close_t-20:t)) / std(close_t-20:t)</p>
+      <p style="margin-top: 1.5rem;"><strong>Economic mechanism:</strong></p>
+      <p style="font-style: italic; color: var(--text-secondary);">[Market participants systematically _____ because _____, which causes prices to _____ .]</p>
 
-      <p style="margin-top: 1rem;"><strong>3a.2 Entry rule</strong></p>
-      <p style="font-style: italic;">Long: z_t &lt; -1.5 AND regime_t = 1 (positive trend)</p>
-      <p style="font-style: italic;">regime_t = 1 if close_t &gt; EMA(close, 50), else 0</p>
+      <p style="margin-top: 1.5rem;"><strong>Predicted relationship:</strong></p>
+      <p style="font-style: italic; color: var(--text-secondary);">[When [signal] is [high/low/rising/falling], [asset] returns are expected to be [positive/negative] over [horizon], because [mechanism above].]</p>
 
-      <p style="margin-top: 1rem;"><strong>3a.3 Exit rule</strong></p>
-      <p style="font-style: italic;">Exit long if: z_t &gt; 0 OR position held for 30 days, whichever first</p>
+      <p style="margin-top: 1.5rem;"><strong>Falsifiability:</strong></p>
+      <p style="font-style: italic; color: var(--text-secondary);">[This hypothesis would be rejected if [specific quantitative condition — e.g., Information Coefficient &lt; 0.02, or Sharpe &lt; 0.5 on hold-out period, or directional accuracy &lt; 55% on out-of-sample data].]</p>
+    </div>
+  </div>
 
-      <p style="margin-top: 1rem;"><strong>3a.4 Position sizing</strong></p>
-      <p style="font-style: italic;">units = (target_vol / realized_vol) * capital / price</p>
-      <p style="font-style: italic;">target_vol = 0.10 (10% annual target)</p>
-      <p style="font-style: italic;">realized_vol = 20-day rolling volatility, annualized</p>
+  <div class="section">
+    <h2 class="section-title">Hypothesis types with examples</h2>
+
+    <h3 style="margin-top: 1.5rem;">Type 1: Behavioral inefficiency</h3>
+    <div class="card">
+      <p><strong>Example: Post-earnings drift (momentum)</strong></p>
+      <p><strong>Economic mechanism:</strong> Investors systematically underreact to earnings news. The market reprices gradually over weeks or months, not immediately at announcement. Short-selling constraints and institutional limitations on volatility exposure prevent arbitrageurs from eliminating this drift immediately.</p>
+      <p><strong>Predicted relationship:</strong> When earnings surprise is large and positive (actual EPS &gt; consensus EPS by more than 1 standard deviation), the stock is expected to have positive abnormal returns for 3–6 months post-announcement.</p>
+      <p><strong>Falsifiability:</strong> This hypothesis is rejected if the average post-announcement drift is not significantly different from zero (t-stat &lt; 1.96) over a 3-month hold period, or if the drift reverses (negative returns) in the first week after announcement.</p>
+    </div>
+
+    <h3 style="margin-top: 1.5rem;">Type 2: Structural inefficiency</h3>
+    <div class="card">
+      <p><strong>Example: Commodity roll yield (contango/backwardation)</strong></p>
+      <p><strong>Economic mechanism:</strong> Commodity futures contracts are rolled before expiry. When the term structure is in backwardation (near-month contract trading at a premium to far-month), rolling captures positive yield. This is not an arbitrage — it reflects the physical convenience value of holding inventory. Hedgers (producers and consumers) are willing to pay this premium because holding physical commodity has value. The premium is persistent because the underlying convenience value doesn't disappear.</p>
+      <p><strong>Predicted relationship:</strong> When the front/second-month spread is in backwardation (front price &gt; second-month price), a rolling long position in the front-month contract is expected to earn positive roll yield equal to the spread minus the cost of financing. Expected return is positive.</p>
+      <p><strong>Falsifiability:</strong> This hypothesis is rejected if average roll yield is zero or negative over a 5-year period, or if roll yield does not persist after transaction costs.</p>
+    </div>
+
+    <h3 style="margin-top: 1.5rem;">Type 3: Alternative data (information latency)</h3>
+    <div class="card">
+      <p><strong>Example: Satellite weather data predicting crop yields</strong></p>
+      <p><strong>Economic mechanism:</strong> NASA satellite data provides daily measurements of soil moisture and temperature at the field level. These measurements predict crop yields. The market prices crops based on USDA forecasts, which are survey-based and release once per month. There is an information gap: satellite data predicts yields before USDA reports them. The market does not instantaneously incorporate satellite data because (a) the data is not in standard market feeds, (b) processing it requires domain expertise, (c) few market participants have access or motivation to use it.</p>
+      <p><strong>Predicted relationship:</strong> When growing-season soil moisture anomalies (satellite GDD deviation from 20-year seasonal average) are large and negative, corn prices are expected to decline in the 5–10 days preceding the next USDA yield report, capturing the market's repricing as the report data becomes known.</p>
+      <p><strong>Falsifiability:</strong> This hypothesis is rejected if the Information Coefficient between satellite moisture deviation and forward corn returns is &lt; 0.02, or if the strategy has negative Sharpe on a 2023 hold-out period.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Information Coefficient (IC)</h2>
+    <p>IC measures the correlation between your signal and forward returns. It's the core metric for evaluating whether your hypothesis has predictive power before you build the full backtest.</p>
+    \[ IC = \text{Corr}(\text{signal}_t,\ r_{t+h}) \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where signal_t is your signal at time t, r_{t+h} is the return from t to t+h (your chosen horizon).</p>
+
+    <p style="margin-top: 1.5rem;"><strong>Interpretation:</strong></p>
+    <ul>
+      <li>IC ≈ 0: No predictive power (noise)</li>
+      <li>IC = 0.05–0.10: Meaningful in quantitative finance. This is the zone for real edges.</li>
+      <li>IC = 0.20+: Exceptional (and suspicious — check for look-ahead bias)</li>
+    </ul>
+
+    <p style="margin-top: 1.5rem;"><strong>IC Information Ratio (ICIR):</strong></p>
+    \[ ICIR = \frac{\overline{IC}}{\sigma_{IC}} \]
+    <p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">Average IC divided by the standard deviation of IC. ICIR &gt; 0.5 suggests a consistently predictive signal.</p>
+
+    <div class="chart-container" style="margin-top: 1.5rem;">
+      <canvas id="icChart"></canvas>
     </div>
   </div>
 
   <div class="section">
     <h2 class="section-title">Common mistakes</h2>
     <div class="mistakes-list">
-      <h4 style="margin-top: 0;">Five signal construction failures</h4>
+      <h4 style="margin-top: 0;">Five hypothesis failures</h4>
       <ul>
-        <li><strong>Entry and exit rules that create whipsawing.</strong> Entering and exiting every few days on noise. Use regime filters or time-holding requirements to stabilize.</li>
-        <li><strong>Not defining parameter values in Section 3a.</strong> "Use momentum" is vague. "5-day momentum = (close_t - close_t-5) / close_t-5 with entry at +2% threshold" is precise.</li>
-        <li><strong>Position sizing that doesn't account for volatility.</strong> 1 contract in calm markets vs. volatile markets = very different risk. Use vol-targeting.</li>
-        <li><strong>Stop losses at arbitrary round numbers.</strong> Stop at 10% loss instead of 2 std-dev move. Round numbers are often support/resistance where slippage is terrible.</li>
-        <li><strong>No exit rule.</strong> Every position must have an explicit exit condition. "Hold until I decide" creates uncontrolled risk and decision fatigue.</li>
+        <li><strong>Writing the hypothesis as a tautology.</strong> "When momentum is positive, the stock continues to have positive momentum." This is circular — of course it's true. A real hypothesis explains WHY.</li>
+        <li><strong>No falsifiability condition.</strong> If you can't state what result would make you reject the hypothesis, you don't have a hypothesis. Add a specific quantitative threshold.</li>
+        <li><strong>Economic mechanism stated too vaguely.</strong> "The market is inefficient" doesn't distinguish from data mining. "Investors underreact to earnings by an average of 6 weeks due to limited attention" is specific enough to test.</li>
+        <li><strong>Signal direction not specified before testing.</strong> "I'll look at momentum and see if it predicts returns." Wrong. "High momentum predicts positive returns over 1-month horizon" specified before you test.</li>
+        <li><strong>Hypothesis changed after seeing the data.</strong> If you test 10 signal variants and then form a hypothesis around the best one, you're p-hacking. The hypothesis must come before the backtest.</li>
       </ul>
     </div>
   </div>
 
   <div class="week-nav">
-    <a href="week6.html" class="week-nav-button">← Week 6: Data Sourcing</a>
-    <a href="week8.html" class="week-nav-button">Week 8: Model Assumptions →</a>
+    <a href="week6.html" class="week-nav-button">← Week 6: Toolstack</a>
+    <a href="week8.html" class="week-nav-button">Week 8: Data Sourcing →</a>
   </div>
 
 </div>
@@ -210,59 +192,41 @@ position_size = (target_vol / realized_vol) * capital
 </footer>
 
 <script>
-  const ctx = document.getElementById('signalChart').getContext('2d');
+  const ctx = document.getElementById('icChart').getContext('2d');
 
-  const days = Array.from({length: 100}, (_, i) => i);
+  // Generate sample IC data
+  const periods = Array.from({length: 60}, (_, i) => i + 1);
 
-  // Generate prices with mean-reversion pattern
-  const prices = days.map((_, i) => {
-    const trend = 100 + i * 0.1;
-    const mean_rev = Math.sin(i / 10) * 5;
-    return trend + mean_rev + (Math.random() - 0.5) * 2;
-  });
+  // Simulated good signal: positive IC with noise
+  const goodSignalIC = periods.map(() => 0.08 + (Math.random() - 0.5) * 0.05);
 
-  // Compute z-score
-  const lookback = 20;
-  const zscores = days.map((_, i) => {
-    if (i < lookback) return 0;
-    const window_prices = prices.slice(i - lookback, i);
-    const mean = window_prices.reduce((a, b) => a + b) / lookback;
-    const variance = window_prices.reduce((a, b) => a + (b - mean)**2) / lookback;
-    const std = Math.sqrt(variance);
-    return (prices[i] - mean) / std;
-  });
-
-  // Entry signals: z < -1.5
-  const entries = zscores.map((z, i) => z < -1.5 && i > lookback ? prices[i] : null);
+  // Simulated noise signal: IC around zero
+  const noiseSignalIC = periods.map(() => (Math.random() - 0.5) * 0.08);
 
   new Chart(ctx, {
     type: 'line',
     data: {
-      labels: days,
+      labels: periods,
       datasets: [
         {
-          label: 'Price',
-          data: prices,
-          borderColor: '#4a86e8',
-          borderWidth: 2,
-          pointRadius: 0,
-          yAxisID: 'y'
-        },
-        {
-          label: 'Z-Score Signal',
-          data: zscores,
+          label: 'Good Signal (mean IC ≈ 0.08)',
+          data: goodSignalIC,
           borderColor: '#FF9500',
+          backgroundColor: 'rgba(255, 149, 0, 0.1)',
           borderWidth: 2,
-          pointRadius: 0,
-          yAxisID: 'y1'
+          pointRadius: 2,
+          fill: true,
+          tension: 0.3
         },
         {
-          label: 'Entry Signals',
-          data: entries,
-          type: 'scatter',
-          pointBackgroundColor: '#2a9d5c',
-          pointRadius: 6,
-          yAxisID: 'y'
+          label: 'Noise Signal (mean IC ≈ 0)',
+          data: noiseSignalIC,
+          borderColor: '#d97757',
+          backgroundColor: 'rgba(217, 119, 87, 0.1)',
+          borderWidth: 2,
+          pointRadius: 2,
+          fill: true,
+          tension: 0.3
         }
       ]
     },
@@ -275,20 +239,15 @@ position_size = (target_vol / realized_vol) * capital
         }
       },
       scales: {
-        x: { grid: { color: '#1f1f1f' }, ticks: { color: '#888888' } },
+        x: {
+          ticks: { color: '#888888' },
+          grid: { color: '#1f1f1f' },
+          title: { display: true, text: 'Period', color: '#888' }
+        },
         y: {
-          type: 'linear',
-          position: 'left',
           grid: { color: '#1f1f1f' },
           ticks: { color: '#888888' },
-          title: { display: true, text: 'Price', color: '#888' }
-        },
-        y1: {
-          type: 'linear',
-          position: 'right',
-          grid: { drawOnChartArea: false },
-          ticks: { color: '#888888' },
-          title: { display: true, text: 'Z-Score', color: '#888' }
+          title: { display: true, text: 'Information Coefficient', color: '#888' }
         }
       }
     }
@@ -296,7 +255,7 @@ position_size = (target_vol / realized_vol) * capital
 </script>
 
 <script>
-/* Week 7 — component waves combining into a composite signal */
+/* Week 7 — mind map growing from central node */
 (function () {
   const hero   = document.querySelector('.week-hero');
   const canvas = document.getElementById('w7-canvas');
@@ -309,56 +268,87 @@ position_size = (target_vol / realized_vol) * capital
     H = canvas.height = Math.round(r.height);
   }
 
-  const WAVES = [
-    { freq: 1.6, amp: 0.075, phase: 0.0,  alpha: 0.11, speed: 0.00080 },
-    { freq: 3.3, amp: 0.048, phase: 1.2,  alpha: 0.09, speed: 0.00120 },
-    { freq: 0.8, amp: 0.095, phase: 2.5,  alpha: 0.10, speed: 0.00050 },
-    { freq: 5.2, amp: 0.028, phase: 0.8,  alpha: 0.07, speed: 0.00180 },
-  ];
+  const N_MAIN = 9;
+  let nodes = [], startTime = null;
 
-  let t = 0, lastTs = null;
+  function buildTree() {
+    nodes = [];
+    for (let i = 0; i < N_MAIN; i++) {
+      const ang = (i / N_MAIN) * Math.PI * 2 - Math.PI / 2;
+      const d1  = 0.19;
+      const nx  = 0.5 + Math.cos(ang) * d1;
+      const ny  = 0.5 + Math.sin(ang) * d1 * 0.72;
+      nodes.push({ x: nx, y: ny, px: 0.5, py: 0.5, r: 4, alpha: 0, delay: 500 + i * 180 });
+
+      // always 2 sub-branches per main
+      for (let j = 0; j < 2; j++) {
+        const sa  = ang + (j === 0 ? -0.55 : 0.55);
+        const d2  = 0.13;
+        const sx  = Math.max(0.02, Math.min(0.98, nx + Math.cos(sa) * d2));
+        const sy  = Math.max(0.04, Math.min(0.96, ny + Math.sin(sa) * d2 * 0.72));
+        nodes.push({ x: sx, y: sy, px: nx, py: ny, r: 2.8, alpha: 0, delay: 2000 + i * 180 + j * 220 });
+
+        // 1 sub-sub-branch per sub
+        const ssa  = sa + (Math.random() - 0.5) * 0.7;
+        const d3   = 0.09;
+        const ssx  = Math.max(0.01, Math.min(0.99, sx + Math.cos(ssa) * d3));
+        const ssy  = Math.max(0.03, Math.min(0.97, sy + Math.sin(ssa) * d3 * 0.72));
+        nodes.push({ x: ssx, y: ssy, px: sx, py: sy, r: 1.8, alpha: 0, delay: 3800 + i * 180 + j * 220 });
+      }
+    }
+    startTime = null;
+  }
+
+  let rootAlpha = 0, lastTs = null;
 
   function frame(ts) {
     if (!lastTs) lastTs = ts;
-    const dt = Math.min(ts - lastTs, 40);
-    lastTs = ts;
-    t += dt;
+    if (!startTime) startTime = ts;
+    const dt      = Math.min(ts - lastTs, 40);
+    lastTs        = ts;
+    const elapsed = ts - startTime;
 
     ctx.clearRect(0, 0, W, H);
 
-    const cy = H * 0.5;
-
-    /* component waves */
-    for (const w of WAVES) {
-      ctx.beginPath();
-      for (let i = 0; i <= W; i++) {
-        const px = (i / W) * Math.PI * 2 * w.freq;
-        const y  = cy + Math.sin(px + w.phase + t * w.speed) * w.amp * H;
-        i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
-      }
-      ctx.strokeStyle = `rgba(255,238,215,${w.alpha})`;
-      ctx.lineWidth   = 0.8;
-      ctx.stroke();
-    }
-
-    /* composite signal */
+    /* root */
+    rootAlpha = Math.min(0.75, rootAlpha + dt * 0.005);
     ctx.beginPath();
-    for (let i = 0; i <= W; i++) {
-      const px = (i / W) * Math.PI * 2;
-      let sum  = 0;
-      for (const w of WAVES) sum += Math.sin(px * w.freq + w.phase + t * w.speed) * w.amp;
-      const y = cy + sum * H;
-      i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
-    }
-    ctx.strokeStyle = 'rgba(255,125,42,0.55)';
-    ctx.lineWidth   = 1.8;
+    ctx.arc(W * 0.5, H * 0.5, 6, 0, 6.283);
+    ctx.fillStyle = `rgba(255,125,42,${rootAlpha})`;
+    ctx.fill();
+    ctx.beginPath();
+    ctx.arc(W * 0.5, H * 0.5, 12, 0, 6.283);
+    ctx.strokeStyle = `rgba(255,125,42,${rootAlpha * 0.28})`;
+    ctx.lineWidth = 1;
     ctx.stroke();
+
+    for (const n of nodes) {
+      if (elapsed < n.delay) continue;
+      n.alpha = Math.min(0.50, n.alpha + dt * 0.004);
+
+      /* line to parent */
+      ctx.beginPath();
+      ctx.moveTo(n.px * W, n.py * H);
+      ctx.lineTo(n.x  * W, n.y  * H);
+      ctx.strokeStyle = `rgba(255,238,215,${(n.alpha * 0.38).toFixed(3)})`;
+      ctx.lineWidth   = 1;
+      ctx.stroke();
+
+      /* node */
+      ctx.beginPath();
+      ctx.arc(n.x * W, n.y * H, n.r, 0, 6.283);
+      ctx.fillStyle = `rgba(255,125,42,${n.alpha.toFixed(3)})`;
+      ctx.fill();
+    }
+
+    if (elapsed > 12000) buildTree();
 
     requestAnimationFrame(frame);
   }
 
-  new ResizeObserver(resize).observe(hero);
+  new ResizeObserver(() => { resize(); buildTree(); }).observe(hero);
   resize();
+  buildTree();
   requestAnimationFrame(frame);
 })();
 </script>

@@ -3,11 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 6: Data Sourcing & Cleaning (IP §2) — QR Training</title>
+  <title>Week 6: Fund Toolstack & Data Pipeline — QR Training</title>
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="icon" type="image/png" href="Delta.png">
 </head>
 <body>
@@ -31,16 +30,18 @@
     <a href="week9.html">W9</a>
     <a href="week10.html">W10</a>
     <a href="week11.html">W11</a>
+    <a href="week12.html">W12</a>
+    <a href="week13.html">W13</a>
   </div>
 </nav>
 
 <div class="week-hero">
   <canvas class="week-hero-canvas" id="w6-canvas"></canvas>
   <div class="week-hero-inner">
-    <div class="week-hero-badge">Week 06 &mdash; Phase 3: Research Execution</div>
-    <h1>Data Sourcing &amp;<br>Cleaning (IP §2)</h1>
-    <div class="week-hero-pill">Section 2 — Data Sourcing &amp; QD Approval</div>
-    <p class="week-hero-objective">Write Section 2 of your IP: precise data description and the QD approval gate. Understand the three major data biases and how to avoid them.</p>
+    <div class="week-hero-badge">Week 06 &mdash; Phase 2: Tooling &amp; Hypothesis</div>
+    <h1>Fund Toolstack &amp;<br>Data Pipeline</h1>
+    <div class="week-hero-pill">Section 2 — Data &amp; QD Approval</div>
+    <p class="week-hero-objective">Understand the infrastructure that powers research at AlgoGators. Know what data exists before you write Section 2 of your IP.</p>
   </div>
 </div>
 
@@ -49,175 +50,148 @@
   <div class="ip-anchor">
     <span class="ip-anchor-label">IP Anchor</span>
     <span class="ip-anchor-section">Section 2 — Data sourcing & QD approval</span>
-    <span class="ip-anchor-desc">Section 2a is your data description. Section 2b is the QD gate: without it, your IP is incomplete. You can't proceed without both.</span>
+    <span class="ip-anchor-desc">The QD approval gate (Section 2b) exists because data is not free and pipelines have limits. Understand the infrastructure before writing your data section.</span>
   </div>
 
   <div class="section">
     <h2 class="section-title">What this week covers</h2>
-    <p>Data quality determines backtest quality. This week teaches what belongs in Section 2a (detailed data sourcing and cleaning), the three major data biases (survivorship, look-ahead, and point-in-time), and why Section 2b (the QD approval gate) must be completed before you run any backtest.</p>
+    <p>Every strategy runs on data. The data must exist, be accessible, be affordable, and be ingestible into our systems. This week walks through the AlgoGators data pipeline: what tools ingest data, where it lives, how it flows to strategies, and what the QD approval gate (Section 2b) is checking for.</p>
   </div>
 
   <div class="section">
-    <h2 class="section-title">Section 2a: What to include</h2>
+    <h2 class="section-title">The data flow at AlgoGators</h2>
 
-    <div class="card">
-      <p style="font-weight: 600; margin-bottom: 1rem;">Your data section should contain:</p>
-      <ul style="font-size: 0.95rem;">
-        <li><strong>Data series:</strong> Asset name, exchange/source, frequency (daily/hourly/tick), date range, units</li>
-        <li><strong>Cleaning steps:</strong> Outlier treatment, missing value handling, corporate action adjustments with specific methods</li>
-        <li><strong>Feature construction:</strong> Derived variables, with exact formulas. Example: "5-day rolling z-score: (close_t - mean(close_t-5:t)) / std(close_t-5:t)"</li>
-        <li><strong>Descriptive statistics:</strong> Mean, std, skewness, kurtosis, lag-1 autocorrelation of primary series</li>
-      </ul>
-    </div>
+    <div class="card" style="background: var(--bg-elevated); padding: 2rem; font-family: 'IBM Plex Mono'; font-size: 0.85rem; overflow-x: auto; white-space: pre;">Raw market data
+    ↓
+Databento (ingest)
+    ↓
+TimescaleDB (storage)
+    ↓
+data-ngin (transform)
+    ↓
+AlgoSystem (backtest/live)
+    ↓
+Strategy execution
 
-    <h3 style="margin-top: 1.5rem;">Worked example Section 2a: Corn futures</h3>
-    <div class="card" style="background: var(--bg-elevated); font-size: 0.9rem;">
-      <p style="color: var(--accent); font-weight: 600;">DATA SOURCING & CLEANING — Corn Futures Strategy</p>
+← QR writes signal spec here
+← QD implements from IP</div>
 
-      <p style="margin-top: 1rem;"><strong>2a.1 Data series</strong></p>
-      <p>Continuous corn futures (CBOT ZC), front-month contract rolled 5 trading days before first notice date. Daily close prices from 2010-01-01 to 2024-01-31. Units: cents per bushel. Source: Databento (live) / CME historical archive (backtest).</p>
-
-      <p style="margin-top: 1rem;"><strong>2a.2 Cleaning steps</strong></p>
-      <ul style="margin-left: 1.5rem; font-size: 0.9rem;">
-        <li>Raw prices: unadjusted. Split/delivery adjustments N/A (futures).</li>
-        <li>Outlier detection: daily moves &gt; 10% of 30-day rolling volatility flagged for inspection. None removed (verified legitimate). Liquidity gap handling: contracts within 5 trading days of first notice are excluded (low liquidity, high bid-ask).</li>
-        <li>Missing days: none (futures trade daily).</li>
-        <li>Roll handling: front month rolled 5 days before expiry. New contract takes over seamlessly in TimescaleDB continuous aggregate.</li>
-      </ul>
-
-      <p style="margin-top: 1rem;"><strong>2a.3 Features</strong></p>
-      <ul style="margin-left: 1.5rem; font-size: 0.9rem;">
-        <li>Price momentum (5-day): (close_t / close_t-5) - 1</li>
-        <li>Volatility (30-day): std(log-returns_t-30:t) × sqrt(252) [annualized]</li>
-        <li>Seasonal factor: deviation from 10-year average price for calendar day-of-year</li>
-      </ul>
-
-      <p style="margin-top: 1rem;"><strong>2a.4 Descriptive statistics (2020–2024 sample)</strong></p>
-      <ul style="margin-left: 1.5rem; font-size: 0.9rem;">
-        <li>Mean daily return: 0.08%</li>
-        <li>Std dev: 1.42%</li>
-        <li>Skewness: -0.31 (left tail)</li>
-        <li>Kurtosis: 4.2 (fat tails, excess kurtosis = 1.2)</li>
-        <li>AC(1): 0.04 (minimal autocorrelation)</li>
-      </ul>
-    </div>
+    <p style="margin-top: 2rem;">Understanding this flow is critical. You will describe your data requirements in Section 2a. The QD team will use those requirements to build the pipeline. But you need to understand the constraints at each step.</p>
   </div>
 
   <div class="section">
-    <h2 class="section-title">The three major data biases</h2>
-
-    <h3 style="margin-top: 1.5rem;">1. Survivorship bias</h3>
-    <div class="card">
-      <p><strong>What it is:</strong> Your backtest universe only includes assets that survived to today. You've excluded all the bankruptcies, delistings, and failures.</p>
-      <p><strong>Example:</strong> You backtest a long-only equity strategy on the current S&P 500 constituents going back to 2010. But the current 500 are not the same 500 as 2010. Companies that were in the index in 2010 and have since been delisted are missing from your analysis. Your backtest systematically excludes the losers.</p>
-      <p><strong>Impact:</strong> Your backtest Sharpe overstates live Sharpe. You're comparing 14 years of current winners against 14 years of actual 2010 universe (which included some failures). The survivor set looks better.</p>
-      <p><strong>How to fix:</strong> Use point-in-time constituent lists. If you want to backtest on S&P 500 from 2010–2024, get the actual S&P 500 constituents as they were on each date, not today's constituents.</p>
-    </div>
-
-    <h3 style="margin-top: 1.5rem;">2. Look-ahead bias</h3>
-    <div class="card">
-      <p><strong>What it is:</strong> Using data in your signal that wasn't available at the time the signal fired.</p>
-      <p><strong>Example:</strong> You build a signal using dividend-adjusted prices. But dividend adjustments are applied backward — the adjusted price on day T reflects information (the dividend) that was announced on day T+500. Your signal is using future information.</p>
-      <p><strong>More examples:</strong></p>
-      <ul style="font-size: 0.95rem;">
-        <li>Using the month's final close on day 1 of the month</li>
-        <li>Using year-end financial data to predict January returns</li>
-        <li>Using revised/final numbers instead of as-reported earnings</li>
-        <li>Using forward prices to trade spot on the same day (latency)</li>
-      </ul>
-      <p><strong>How to fix:</strong> Use as-reported data, not revised. Use prices available at the time. Build features on raw (not backward-adjusted) prices, apply adjustments only to returns.</p>
-    </div>
-
-    <h3 style="margin-top: 1.5rem;">3. Point-in-time data</h3>
-    <div class="card">
-      <p><strong>What it is:</strong> Fundamental data (earnings, balance sheets, analyst estimates) is released with a lag and revised afterward. If you backtest using the final revised figure, you're using data the market didn't have yet.</p>
-      <p><strong>Example:</strong> A company reports Q1 earnings of $1.50 EPS on April 15. But the reported figure is later revised to $1.45 on July 1 due to restatement. If you use $1.45 in your backtest for April 15, you're using information that wasn't available on April 15.</p>
-      <p><strong>How to fix:</strong> Use as-reported data on the as-reported date. Avoid pre-revised figures. Many data providers (Bloomberg, FactSet) provide point-in-time data specifically for this reason.</p>
-    </div>
-
-    <h3 style="margin-top: 1.5rem;">Chart: Survivorship bias impact</h3>
-    <div class="chart-container" style="margin-top: 1.5rem;">
-      <canvas id="survivalChart"></canvas>
-    </div>
-    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">The orange curve (survivors only) compounds faster than the blue curve (including delisted companies). The difference grows over time — by year 15, survivorship bias has inflated apparent returns by roughly 16%.</p>
+    <h2 class="section-title">Databento</h2>
+    <p><strong>What it is:</strong> A market data provider. Tick data, OHLCV (open, high, low, close, volume), order book snapshots across equities, futures, options, FX.</p>
+    <p><strong>Coverage:</strong> US equities, US futures (CME, CBOT, COMEX), cryptocurrencies, FX futures. International coverage limited.</p>
+    <p><strong>Cost:</strong> Databento charges per data series per month. Novel data sources require approval before you spend time on them.</p>
+    <p><strong>Frequency:</strong> Tick-level to daily OHLCV. You request the granularity you need.</p>
+    <p style="color: var(--text-secondary); margin-top: 1rem;"><strong>For QR:</strong> Know what you're asking for before Section 2b. If you want daily closing prices for the last 10 years, that's cheap and trivial. If you want 1-minute bars for 500 stocks for 5 years, that's expensive and requires approval.</p>
   </div>
 
   <div class="section">
-    <h2 class="section-title">Section 2b: The QD approval gate</h2>
-    <p><strong>This is non-negotiable.</strong> You cannot submit an IP with incomplete Section 2b. This is not bureaucracy — it's a forcing function to catch infeasible research early.</p>
-
-    <div class="card">
-      <p style="font-weight: 600; margin-bottom: 1rem;">Section 2b must contain:</p>
-      <ul style="font-size: 0.95rem;">
-        <li>Data availability: exact asset/frequency/date range, confirmed available from Databento or other source</li>
-        <li>Ingestibility: confirmation that data can be ingested into TimescaleDB at the required frequency</li>
-        <li>Alternative data licensing: if using satellite, social, proprietary data — confirmed licensed and available</li>
-        <li><strong>Written sign-off from the Head of Data Engineering</strong> confirming all above</li>
-      </ul>
-    </div>
-
-    <h3 style="margin-top: 1.5rem;">Example Section 2b</h3>
-    <div class="card" style="background: var(--bg-elevated); font-size: 0.9rem;">
-      <p style="color: var(--accent); font-weight: 600;">SECTION 2B: QD APPROVAL — Corn Futures Strategy</p>
-
-      <p style="margin-top: 1rem;">Data sourcing: Continuous corn futures (CBOT ZC) daily close from 2010-01-01 to 2024-01-31 is available via Databento at no additional cost (existing subscription covers). Historical archive verified via CME website.</p>
-
-      <p style="margin-top: 0.5rem;">Ingestibility: Daily OHLCV can be ingested into TimescaleDB continuous aggregate within 1 hour of daily close. Data-ngin pipeline has existing handling for commodity futures roll management.</p>
-
-      <p style="margin-top: 0.5rem;">Alternative data: None required.</p>
-
-      <p style="margin-top: 0.5rem;"><strong>Head of Data Engineering approval (Jane Smith, jane.smith@algogators.com):</strong></p>
-      <p style="margin-top: 0.5rem; font-style: italic;">"Confirmed: ZC daily data available, ingestible, covers requested date range. Rollover logic already in place. No additional pipeline work required. Approved for development. — JS"</p>
-    </div>
+    <h2 class="section-title">TimescaleDB</h2>
+    <p><strong>What it is:</strong> PostgreSQL extension optimized for time-series data. Time-indexed tables, automatic partitioning, continuous aggregates (pre-computed rolling statistics).</p>
+    <p><strong>How it works:</strong> Raw tick data from Databento is ingested into TimescaleDB. Millions of rows a day. Partitioned by time so queries on recent data are fast.</p>
+    <p><strong>Continuous aggregates:</strong> You can define a continuous aggregate that automatically computes, say, daily OHLCV from tick data. No extra code required — TimescaleDB handles it.</p>
+    <p style="color: var(--text-secondary); margin-top: 1rem;"><strong>For QR:</strong> You don't write SQL. You define your data requirements in Section 2a ("daily OHLCV for corn futures"), and QD writes the queries. But knowing the data lives in TimescaleDB helps you understand data availability and freshness.</p>
   </div>
 
   <div class="section">
-    <h2 class="section-title">Data cleaning Python patterns</h2>
+    <h2 class="section-title">data-ngin (data engineering pipeline)</h2>
+    <p><strong>What it is:</strong> Internal cleaning and feature engineering layer. Handles corporate actions (stock splits, dividends), outlier detection, missing value handling, and feature construction.</p>
+    <p><strong>Corporate actions:</strong> When a stock splits 2-for-1, raw prices from two days don't compare. data-ngin adjusts for this. Uses point-in-time adjustments (historical prices adjusted forward, not backward, to avoid look-ahead bias).</p>
+    <p><strong>Outliers:</strong> Exchange halts, data errors, gaps. data-ngin flags and handles these.</p>
+    <p><strong>Features:</strong> When you describe your signal as "5-day rolling z-score," data-ngin is what computes it. You specify the formula in your IP; QD implements it in data-ngin.</p>
+    <p style="color: var(--text-secondary); margin-top: 1rem;"><strong>For QR:</strong> In Section 2a, you describe the features you need with formulas. In Section 3a, you use those features in your signal. data-ngin makes them available.</p>
+  </div>
 
-    <h3 style="margin-top: 1.5rem;">Winsorizing outliers</h3>
-    <pre><code>import numpy as np
+  <div class="section">
+    <h2 class="section-title">The QD Approval Gate (Section 2b)</h2>
+    <p>This is a critical checkpoint. <strong>You cannot move forward without QD sign-off.</strong></p>
+    <p><strong>Why it exists:</strong> Too many QR analysts have written strategies on data that doesn't exist. They spent weeks developing on a dataset that was never subscribed to, or that costs $500k/month, or that isn't available at the frequency needed, or that has only 3 years of history (too short for backtesting).</p>
+    <p><strong>What Section 2b must contain:</strong></p>
+    <ul>
+      <li>The exact data series needed (asset name, exchange, frequency, date range)</li>
+      <li>The cleaning steps and transformations (split adjustments, outlier treatment)</li>
+      <li>Any external or alternative data (satellite, social, etc.) with licensing status</li>
+      <li><strong>Written confirmation from the Head of Data Engineering</strong> that the data is acquirable, ingestible at the required frequency, and fits within budget/subscriptions</li>
+    </ul>
+    <p style="margin-top: 1.5rem;"><strong>What happens:</strong> You submit your IP with Section 2 (both 2a and 2b). QT reviews strategy fit. QD reviews data feasibility and signs off in 2b. If 2b is not signed, the IP is rejected, full stop. This is not punitive — it's a forcing function to catch infeasible research early.</p>
+  </div>
 
-# Cap extreme returns at ±3 standard deviations
-mean_ret = df['returns'].mean()
-std_ret = df['returns'].std()
-df['returns_clean'] = df['returns'].clip(
-    lower=mean_ret - 3*std_ret,
-    upper=mean_ret + 3*std_ret
-)</code></pre>
+  <div class="section">
+    <h2 class="section-title">Python data access patterns</h2>
 
-    <h3 style="margin-top: 1.5rem;">Missing value handling</h3>
-    <pre><code># Forward-fill prices (last known price)
-df['close'] = df['close'].ffill()
+    <h3 style="margin-top: 1.5rem;">Pulling OHLCV from TimescaleDB</h3>
+    <pre><code>import pandas as pd
+import psycopg2
 
-# Do NOT forward-fill volume — use NaN-aware methods
-df['volume_avg'] = df['volume'].rolling(20).mean()
-# rolling() handles NaN gracefully</code></pre>
+conn = psycopg2.connect(
+    host="timescaledb.internal",
+    dbname="algogators",
+    user="qr_user",
+    password="***"
+)
 
-    <h3 style="margin-top: 1.5rem;">Rolling z-score normalization</h3>
-    <pre><code>def rolling_zscore(series, window=60):
-    return (series - series.rolling(window).mean()) / \
-           series.rolling(window).std()
+query = """
+    SELECT timestamp, open, high, low, close, volume
+    FROM corn_futures
+    WHERE timestamp BETWEEN '2020-01-01' AND '2024-01-01'
+    ORDER BY timestamp
+"""
 
-df['signal'] = rolling_zscore(df['close'], window=60)</code></pre>
+df = pd.read_sql(query, conn, parse_dates=['timestamp'], index_col='timestamp')
+</code></pre>
+
+    <h3 style="margin-top: 1.5rem;">Feature construction: rolling z-score</h3>
+    <pre><code>def rolling_zscore(series, window=20):
+    """Z-score normalization using rolling window."""
+    mean = series.rolling(window).mean()
+    std = series.rolling(window).std()
+    return (series - mean) / std
+
+# Normalized signal for entry/exit
+df['signal'] = rolling_zscore(df['close'], window=60)
+entry_threshold = 2.0  # Entry when signal &lt; -2
+df['signal_entry'] = df['signal'] &lt; -entry_threshold
+</code></pre>
+
+    <h3 style="margin-top: 1.5rem;">Handling corporate actions (splits/dividends)</h3>
+    <pre><code># data-ngin handles this automatically
+# You specify the adjustment method in Section 2a:
+# "Prices adjusted for splits/dividends using backward-adjusted method.
+#  Adjustment factors applied at ex-date."
+# QD implements it; you use the adjusted prices in your signal.</code></pre>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">NasaPowerCouncil data pipeline (example)</h2>
+    <div class="card">
+      <p><strong>Raw data:</strong> NASA POWER API. Daily solar radiation (ALLSKY_SFC_SW_DWN), temperature (T2M), precipitation (PRECTOTCORR) at lat/lon grid.</p>
+      <p><strong>Geographic mapping:</strong> Corn Belt counties (IL, IA, MN, MO, etc.). Map each county to grid point lat/lon centroids.</p>
+      <p><strong>Transformation:</strong> Compute growing-degree-day (GDD) deviation from 20-year seasonal average. Daily rolling sums, seasonal adjustment.</p>
+      <p><strong>Feature:</strong> GDD_deviation_30d = 30-day rolling sum of (daily GDD - 20-year seasonal average for that calendar window).</p>
+      <p><strong>Section 2b sign-off:</strong> "Data sourced from NASA POWER REST API (public, no licensing cost). Daily resolution, available back to 1981. Ingestible via Python requests → CSV → TimescaleDB. QD: Confirmed."</p>
+    </div>
   </div>
 
   <div class="section">
     <h2 class="section-title">Common mistakes</h2>
     <div class="mistakes-list">
-      <h4 style="margin-top: 0;">Five data sins</h4>
+      <h4 style="margin-top: 0;">Five data pipeline failures</h4>
       <ul>
-        <li><strong>Using adjusted-close prices for signal construction.</strong> This is look-ahead bias. Use raw close, adjust only the final returns for splits and dividends.</li>
-        <li><strong>Not documenting the exact date range.</strong> "2010–2024 S&P 500 data" is vague. "ZC CBOT front-contract, 2010-01-01 through 2024-01-31, rolled 5 days before first notice" is precise. Be precise.</li>
-        <li><strong>Cleaning data by removing bad periods.</strong> "I removed 2008 because it was too volatile." Wrong. Document what happened (gap, halt, unusual volume) and handle it (forward-fill, interpolate). Don't just delete outliers.</li>
-        <li><strong>Not checking historical depth of alternative data.</strong> Satellite data goes back 10 years. That's 2.5 full market cycles — okay. But if it only goes back 3 years, you have only one bull/bear cycle — too short.</li>
-        <li><strong>Incomplete Section 2b.</strong> If you don't have written QD approval, your IP is rejected. No exceptions.</li>
+        <li><strong>Skipping Section 2b and assuming data availability.</strong> You need written confirmation from QD. Email counts; attachment or reply-all to your IP draft counts. Verbal is not enough.</li>
+        <li><strong>Requesting data at the wrong frequency.</strong> You want daily but need intraday? Requesting daily won't work. Be precise: "daily close at 4:00 PM ET" not "daily data."</li>
+        <li><strong>Not accounting for data latency.</strong> Some releases lag: COT data (Friday for Tuesday), USDA forecasts (monthly, mid-month), earnings (announced after close). If your signal fires before data arrives, you have look-ahead bias.</li>
+        <li><strong>Writing Section 2a so vaguely that QD can't parse what you need.</strong> "Corn price data" is not enough. Need: "Continuous corn futures (ZC, nearest-to-expiry rolled 5 days before contract expiry), daily close, 2015–2024."</li>
+        <li><strong>Assuming alternative data is cheap.</strong> Satellite data, web scraping, proprietary sources cost money. Get pricing in Section 2b before committing 10 weeks to research that costs $50k/month to run.</li>
       </ul>
     </div>
   </div>
 
   <div class="week-nav">
-    <a href="week5.html" class="week-nav-button">← Week 5: The Hypothesis</a>
-    <a href="week7.html" class="week-nav-button">Week 7: Signal Construction →</a>
+    <a href="week5.html" class="week-nav-button">← Week 5: Statistics</a>
+    <a href="week7.html" class="week-nav-button">Week 7: The Hypothesis →</a>
   </div>
 
 </div>
@@ -227,190 +201,85 @@ df['signal'] = rolling_zscore(df['close'], window=60)</code></pre>
 </footer>
 
 <script>
-  const ctx = document.getElementById('survivalChart').getContext('2d');
-
-  const years = Array.from({length: 15}, (_, i) => 2010 + i);
-
-  // Biased path (survivors only) — ~11% per year
-  const survivors = years.map((_, i) => {
-    return Math.round(100 * Math.exp(0.11 * (i + 1)));
-  });
-
-  // Unbiased path (including failed companies) — ~10% per year
-  const unbiased = years.map((_, i) => {
-    return Math.round(100 * Math.exp(0.10 * (i + 1)));
-  });
-
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: years,
-      datasets: [
-        {
-          label: 'Survivors Only (Biased)',
-          data: survivors,
-          borderColor: '#FF9500',
-          borderWidth: 3,
-          pointRadius: 4,
-          fill: false,
-          tension: 0.3
-        },
-        {
-          label: 'Including Delisted (Unbiased)',
-          data: unbiased,
-          borderColor: '#4a86e8',
-          borderWidth: 3,
-          pointRadius: 4,
-          fill: false,
-          tension: 0.3
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          labels: { color: '#888888', font: { family: "'IBM Plex Mono'" } }
-        }
-      },
-      scales: {
-        x: {
-          ticks: { color: '#888888' },
-          grid: { color: '#1f1f1f' }
-        },
-        y: {
-          grid: { color: '#1f1f1f' },
-          ticks: { color: '#888888' },
-          title: { display: true, text: 'Cumulative Return ($)', color: '#888' }
-        }
-      }
-    }
-  });
-</script>
-
-<script>
-/* Week 6 — chaos → order, mirrored on both sides of centre divider */
+/* Week 6 — data pipeline DAG with flowing particles */
 (function () {
   const hero   = document.querySelector('.week-hero');
   const canvas = document.getElementById('w6-canvas');
   const ctx    = canvas.getContext('2d');
   let W, H;
 
-  const COLS = 9, ROWS = 10;
-  const GY0 = 0.07, GY1 = 0.93;
-  // left grid: 0.03 → 0.44   right grid: 0.56 → 0.97
-  const L0 = 0.03, L1 = 0.44, R0 = 0.56, R1 = 0.97;
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+  }
 
-  let particles = [];
+  /* node positions (normalized) */
+  const NODES = [
+    { x: 0.07, y: 0.50 },
+    { x: 0.27, y: 0.28 },
+    { x: 0.27, y: 0.72 },
+    { x: 0.50, y: 0.50 },
+    { x: 0.73, y: 0.28 },
+    { x: 0.73, y: 0.72 },
+    { x: 0.93, y: 0.50 },
+  ];
+  const EDGES = [[0,1],[0,2],[1,3],[2,3],[3,4],[3,5],[4,6],[5,6]];
 
-  function init() {
-    particles = [];
-
-    /* left-side targets */
-    for (let i = 0; i < COLS * ROWS; i++) {
-      const c  = i % COLS, r = Math.floor(i / COLS);
-      const tx = L0 + (c / (COLS - 1)) * (L1 - L0);
-      const ty = GY0 + (r / (ROWS - 1)) * (GY1 - GY0);
-      particles.push({
-        x: 0.46 + Math.random() * 0.08,   // start near centre
-        y: GY0  + Math.random() * (GY1 - GY0),
-        tx, ty,
-        side: 'L',
-        nx: -(Math.random() * 0.003 + 0.001),
-        ny: (Math.random() - 0.5) * 0.004,
-        alpha: 0,
-        delay: Math.random() * 1800,
-      });
-    }
-
-    /* right-side targets (mirror) */
-    for (let i = 0; i < COLS * ROWS; i++) {
-      const c  = i % COLS, r = Math.floor(i / COLS);
-      const tx = R0 + (c / (COLS - 1)) * (R1 - R0);
-      const ty = GY0 + (r / (ROWS - 1)) * (GY1 - GY0);
-      particles.push({
-        x: 0.46 + Math.random() * 0.08,
-        y: GY0  + Math.random() * (GY1 - GY0),
-        tx, ty,
-        side: 'R',
-        nx:  (Math.random() * 0.003 + 0.001),
-        ny: (Math.random() - 0.5) * 0.004,
-        alpha: 0,
-        delay: Math.random() * 1800,
-      });
+  /* particles */
+  const particles = [];
+  for (const [f, t] of EDGES) {
+    for (let k = 0; k < 2; k++) {
+      particles.push({ f, t, pos: Math.random(), speed: 0.00016 + Math.random() * 0.00010 });
     }
   }
 
-  let elapsed = 0, lastTs = null;
+  let lastTs = null;
 
   function frame(ts) {
     if (!lastTs) lastTs = ts;
     const dt = Math.min(ts - lastTs, 40);
     lastTs = ts;
-    elapsed += dt;
 
     ctx.clearRect(0, 0, W, H);
 
-    /* centre divider */
-    ctx.beginPath();
-    ctx.moveTo(W * 0.50, 0);
-    ctx.lineTo(W * 0.50, H);
-    ctx.strokeStyle = 'rgba(255,125,42,0.14)';
-    ctx.lineWidth   = 1;
-    ctx.setLineDash([4, 7]);
-    ctx.stroke();
-    ctx.setLineDash([]);
-
-    for (const p of particles) {
-      if (elapsed < p.delay) continue;
-      p.alpha = Math.min(0.75, p.alpha + dt * 0.002);
-
-      const settled =
-        p.side === 'L'
-          ? Math.abs(p.x - p.tx) < 0.012 && Math.abs(p.y - p.ty) < 0.012
-          : Math.abs(p.x - p.tx) < 0.012 && Math.abs(p.y - p.ty) < 0.012;
-
-      if (!settled) {
-        /* chaos drift outward from centre */
-        p.x = Math.max(0.01, Math.min(0.99, p.x + p.nx * dt));
-        p.y = Math.max(0.04, Math.min(0.96, p.y + p.ny * dt));
-        if (Math.random() < 0.010) p.ny = (Math.random() - 0.5) * 0.004;
-
-        /* once past the grid zone, start homing */
-        const pastGrid = p.side === 'L' ? p.x < L1 + 0.05 : p.x > R0 - 0.05;
-        if (pastGrid) {
-          p.x += (p.tx - p.x) * 0.05;
-          p.y += (p.ty - p.y) * 0.05;
-        }
-      }
-
+    /* edges */
+    ctx.lineWidth = 1;
+    for (const [f, t] of EDGES) {
+      const a = NODES[f], b = NODES[t];
       ctx.beginPath();
-      ctx.arc(p.x * W, p.y * H, 2.2, 0, 6.283);
-      ctx.fillStyle = settled
-        ? `rgba(255,125,42,${p.alpha.toFixed(3)})`
-        : `rgba(255,210,160,${(p.alpha * 0.65).toFixed(3)})`;
-      ctx.fill();
+      ctx.moveTo(a.x * W, a.y * H);
+      ctx.lineTo(b.x * W, b.y * H);
+      ctx.strokeStyle = 'rgba(255,238,215,0.07)';
+      ctx.stroke();
+    }
 
-      /* respawn after settling */
-      if (settled && Math.random() < 0.00035 * dt) {
-        p.x     = 0.44 + Math.random() * 0.12;
-        p.y     = GY0  + Math.random() * (GY1 - GY0);
-        p.alpha = 0;
-        p.delay = 0;
-        p.nx    = p.side === 'L' ? -(Math.random() * 0.003 + 0.001) : (Math.random() * 0.003 + 0.001);
-        p.ny    = (Math.random() - 0.5) * 0.004;
-      }
+    /* nodes */
+    for (const n of NODES) {
+      ctx.beginPath();
+      ctx.arc(n.x * W, n.y * H, 5, 0, 6.283);
+      ctx.fillStyle = 'rgba(255,125,42,0.45)';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(n.x * W, n.y * H, 9, 0, 6.283);
+      ctx.strokeStyle = 'rgba(255,125,42,0.18)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    /* flowing particles */
+    for (const p of particles) {
+      p.pos = (p.pos + p.speed * dt) % 1;
+      const a = NODES[p.f], b = NODES[p.t];
+      const x = (a.x + (b.x - a.x) * p.pos) * W;
+      const y = (a.y + (b.y - a.y) * p.pos) * H;
+      ctx.beginPath();
+      ctx.arc(x, y, 2.4, 0, 6.283);
+      ctx.fillStyle = `rgba(255,125,42,${0.55 - p.pos * 0.25})`;
+      ctx.fill();
     }
 
     requestAnimationFrame(frame);
-  }
-
-  function resize() {
-    const r = hero.getBoundingClientRect();
-    W = canvas.width  = Math.round(r.width);
-    H = canvas.height = Math.round(r.height);
-    init();
   }
 
   new ResizeObserver(resize).observe(hero);

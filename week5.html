@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 5: Writing the Hypothesis (IP §1) — QR Training</title>
+  <title>Week 5: Statistics for Quant Research — QR Training</title>
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
@@ -31,16 +31,18 @@
     <a href="week9.html">W9</a>
     <a href="week10.html">W10</a>
     <a href="week11.html">W11</a>
+    <a href="week12.html">W12</a>
+    <a href="week13.html">W13</a>
   </div>
 </nav>
 
 <div class="week-hero">
   <canvas class="week-hero-canvas" id="w5-canvas"></canvas>
   <div class="week-hero-inner">
-    <div class="week-hero-badge">Week 05 &mdash; Phase 3: Research Execution</div>
-    <h1>Writing the<br>Hypothesis (IP §1)</h1>
-    <div class="week-hero-pill">Section 1 — Hypothesis</div>
-    <p class="week-hero-objective">Write a hypothesis that is economic, testable, and falsifiable. This IS Section 1 of your Investment Proposal.</p>
+    <div class="week-hero-badge">Week 05 &mdash; Phase 2: Tooling &amp; Hypothesis</div>
+    <h1>Statistical<br>Inference</h1>
+    <div class="week-hero-pill">Section 3b — Model Assumptions</div>
+    <p class="week-hero-objective">Understand the statistical assumptions behind the models you'll use. Know how to test them and what to do when they fail.</p>
   </div>
 </div>
 
@@ -48,139 +50,132 @@
 
   <div class="ip-anchor">
     <span class="ip-anchor-label">IP Anchor</span>
-    <span class="ip-anchor-section">Section 1 — Hypothesis</span>
-    <span class="ip-anchor-desc">This week IS Section 1. Submit the template below as your IP Section 1.</span>
+    <span class="ip-anchor-section">Section 3b — Model Assumptions</span>
+    <span class="ip-anchor-desc">This week teaches tests you must run and report. Every assumption you make goes in Section 3b of your IP.</span>
   </div>
 
   <div class="section">
     <h2 class="section-title">What this week covers</h2>
-    <p>A strong hypothesis has three components: (1) an economic mechanism explaining why the inefficiency exists, (2) the predicted relationship between signal and return, and (3) a falsifiability condition. This week teaches you to write all three, and walks through hypothesis types with real examples.</p>
+    <p>Models have assumptions. When assumptions are violated, results are misleading — sometimes catastrophically. This week walks through the five major assumptions in quantitative finance, how to test each, and what to do when they fail. Every test here must appear in your Investment Proposal's Section 3b.</p>
   </div>
 
   <div class="section">
-    <h2 class="section-title">The three components of a strong hypothesis</h2>
+    <h2 class="section-title">Why model assumptions matter in QR</h2>
+    <p>Many analysts skip Section 3b because testing assumptions feels like busywork. It's not. Here's why:</p>
+    <p>Assume you build an OLS regression model to predict returns. OLS assumes normally distributed residuals. Your actual residuals have fat tails (returns have more extreme events than a normal distribution predicts). You report a Sharpe ratio assuming normality. QT reads your backtest results and sizes positions based on the Sharpe. When the strategy goes live, the worst drawdown is 3x what normal distribution would predict. The strategy has negative Sharpe live, but your IP said positive. Why? Violated assumptions.</p>
+    <p><strong>This is why Section 3b is mandatory.</strong> It forces you to document which assumptions you're making and which you've tested. If you document "residuals are non-normal with fat tails," QT can adjust their risk model accordingly.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Five critical assumptions</h2>
 
     <div class="card">
-      <h3 style="margin-top: 0;">1. Economic mechanism</h3>
-      <p>Why does this pattern exist? Not "I found it in the data." Why would market participants allow this inefficiency to persist?</p>
-      <p>Good mechanisms explain:</p>
-      <ul style="font-size: 0.95rem;">
-        <li><strong>Behavioral:</strong> What bias or constraint causes participants to misbehave? (anchoring, disposition effect, herding, underreaction)</li>
-        <li><strong>Structural:</strong> What market constraint forces suboptimal behavior? (hedging requirements, index rebalancing, roll yield, storage costs)</li>
-      </ul>
+      <h3 style="margin-top: 0;">1. Normality of residuals</h3>
+      <p>Many models (OLS, standard Sharpe ratio) assume residuals or returns are normally distributed. In finance, returns have fat tails — more extreme events than a normal distribution predicts.</p>
+      <p><strong>Why it fails:</strong> Markets have crashes. The 1987 crash, 2008, 2020 — these are 5+ standard deviation events. Normal distribution assigns essentially zero probability to these.</p>
+      <p><strong>Test:</strong> Jarque-Bera or Shapiro-Wilk</p>
+      \[ JB = \frac{n}{6}\left(S^2 + \frac{(K-3)^2}{4}\right) \]
+      <p style="font-size: 0.9rem; color: var(--text-secondary);">Where S = skewness, K = kurtosis. Under normality, JB ~ χ²(2). p &lt; 0.05 rejects normality.</p>
+      <p style="margin-top: 1rem;"><strong>Python:</strong></p>
+      <pre><code>from scipy import stats
+
+jb_stat, jb_p = stats.jarque_bera(residuals)
+sw_stat, sw_p = stats.shapiro(residuals)
+
+print(f"Jarque-Bera: stat={jb_stat:.4f}, p={jb_p:.4f}")
+print(f"Shapiro-Wilk: stat={sw_stat:.4f}, p={sw_p:.4f}")
+# p &lt; 0.05 → reject normality</code></pre>
+      <p style="margin-top: 1rem;"><strong>If it fails:</strong> Report it. Use robust standard errors. Mention fat-tail risk in your expected drawdowns.</p>
     </div>
 
     <div class="card">
-      <h3 style="margin-top: 0;">2. Predicted relationship</h3>
-      <p>What signal predicts what return, in what direction, over what horizon?</p>
-      <p>Example: "When 30-day rolling soil moisture deviation is more than 1 standard deviation below the 20-year seasonal average, corn futures are expected to have negative returns over the next 5–10 trading days because low soil moisture predicts lower yields, which the market will reprice when USDA yield reports are released."</p>
-      <p>Specify:</p>
-      <ul style="font-size: 0.95rem;">
-        <li>The signal (soil moisture deviation)</li>
-        <li>The direction (negative / low moisture → lower returns)</li>
-        <li>The horizon (5–10 trading days)</li>
-        <li>The mechanism link (yields → prices)</li>
-      </ul>
+      <h3 style="margin-top: 0;">2. Stationarity of time series</h3>
+      <p>Time series models require stationarity — the mean and variance don't change over time. Price levels are almost never stationary. Returns usually are. Cointegration is a special case: a linear combination of two non-stationary series can be stationary.</p>
+      <p><strong>Why it fails:</strong> You regress price on price (running OLS on price levels). Prices trend. Non-stationary series produce spurious regressions — high R², significant coefficients, but meaningless results.</p>
+      <p><strong>Tests:</strong> Augmented Dickey-Fuller (ADF), KPSS</p>
+      <p style="margin-top: 1rem;"><strong>Python:</strong></p>
+      <pre><code>from statsmodels.tsa.stattools import adfuller, kpss
+
+adf_result = adfuller(series, autolag='AIC')
+print(f"ADF stat: {adf_result[0]:.4f}, p-value: {adf_result[1]:.4f}")
+# p &lt; 0.05 → reject H0 (unit root), series is stationary
+
+kpss_result = kpss(series, regression='c', nlags='auto')
+print(f"KPSS stat: {kpss_result[0]:.4f}, p-value: {kpss_result[1]:.4f}")
+# p &lt; 0.05 → reject H0 (stationarity), series is non-stationary</code></pre>
+      <p style="margin-top: 1rem;"><strong>If it fails:</strong> Difference the series (use returns instead of prices) or use cointegration if appropriate.</p>
     </div>
 
     <div class="card">
-      <h3 style="margin-top: 0;">3. Falsifiability condition</h3>
-      <p>What result would convince you the hypothesis is <em>wrong</em>? If you can't answer this, you don't have a hypothesis.</p>
-      <p>Example: "This hypothesis is falsified if (a) the Information Coefficient between soil moisture deviation and forward corn returns is less than 0.02 (no predictive power), or (b) the backtest Sharpe on a 2023 hold-out period is less than 0.5 (results don't hold out-of-sample)."</p>
-      <p>Good falsifiability conditions are:</p>
-      <ul style="font-size: 0.95rem;">
-        <li><strong>Testable:</strong> You can calculate it from data</li>
-        <li><strong>Specific:</strong> Explicit number, not "seems promising"</li>
-        <li><strong>Fair:</strong> Not unreasonably high (Sharpe 5.0) or low (0.1)</li>
-      </ul>
+      <h3 style="margin-top: 0;">3. No autocorrelation in residuals</h3>
+      <p>OLS assumes errors are uncorrelated with each other. If residuals at time t are correlated with residuals at time t-1, standard errors are wrong — you're underestimating uncertainty. Also: autocorrelated returns suggest momentum or mean reversion, which has signal implications.</p>
+      <p><strong>Why it fails:</strong> Volatility clusters. After a big move, another big move is more likely.</p>
+      <p><strong>Test:</strong> Ljung-Box test</p>
+      \[ Q = n(n+2)\sum_{k=1}^{m}\frac{\hat{\rho}_k^2}{n-k} \sim \chi^2(m) \]
+      <p style="margin-top: 1rem;"><strong>Python:</strong></p>
+      <pre><code>from statsmodels.stats.diagnostic import acorr_ljungbox
+
+lb = acorr_ljungbox(residuals, lags=[10, 20], return_df=True)
+print(lb)
+# p &lt; 0.05 → autocorrelation present</code></pre>
+      <p style="margin-top: 1rem;"><strong>If it fails:</strong> Use Newey-West HAC standard errors (robust to autocorrelation).</p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">4. Homoscedasticity (constant variance)</h3>
+      <p>Volatility changes over time. If your model assumes constant variance but volatility clusters, standard errors are wrong and risk estimates are too. This is called heteroscedasticity or GARCH effects.</p>
+      <p><strong>Why it fails:</strong> Markets are calm, then they spike. Volatility regimes are real.</p>
+      <p><strong>Test:</strong> Breusch-Pagan</p>
+      <p style="margin-top: 1rem;"><strong>Python:</strong></p>
+      <pre><code>from statsmodels.stats.diagnostic import het_breuschpagan
+
+bp_stat, bp_p, _, _ = het_breuschpagan(residuals, exog)
+print(f"Breusch-Pagan: stat={bp_stat:.4f}, p={bp_p:.4f}")
+# p &lt; 0.05 → heteroscedasticity present</code></pre>
+      <p style="margin-top: 1rem;"><strong>If it fails:</strong> Use heteroscedasticity-robust standard errors (HC3 or HC4) or model volatility with GARCH.</p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">5. No multicollinearity</h3>
+      <p>For models with multiple predictors: if predictors are highly correlated, coefficient estimates are unstable and unreliable. The model can't distinguish which predictor is doing the work.</p>
+      <p><strong>Why it fails:</strong> You use correlated features. Momentum at 5 days and momentum at 6 days are almost perfectly correlated.</p>
+      <p><strong>Test:</strong> Variance Inflation Factor (VIF)</p>
+      \[ VIF_j = \frac{1}{1 - R_j^2} \]
+      <p style="font-size: 0.9rem; color: var(--text-secondary);">VIF &gt; 10 is problematic. VIF &gt; 5 warrants investigation. VIF = 1 means no correlation with other predictors.</p>
+      <p style="margin-top: 1rem;"><strong>Python:</strong></p>
+      <pre><code>from statsmodels.stats.outliers_influence import variance_inflation_factor
+
+vif = [variance_inflation_factor(X.values, i) for i in range(X.shape[1])]
+print(vif)</code></pre>
+      <p style="margin-top: 1rem;"><strong>If it fails:</strong> Drop one of the correlated features or combine them.</p>
     </div>
   </div>
 
   <div class="section">
-    <h2 class="section-title">Hypothesis template</h2>
-    <p style="color: var(--text-secondary); margin-bottom: 1rem;">Copy this template into Section 1 of your IP. Fill in each section with your hypothesis.</p>
-
-    <div class="card" style="background: var(--bg-elevated); font-size: 0.9rem;">
-      <p style="font-weight: 600; color: var(--accent);">HYPOTHESIS TEMPLATE</p>
-
-      <p style="margin-top: 1.5rem;"><strong>Economic mechanism:</strong></p>
-      <p style="font-style: italic; color: var(--text-secondary);">[Market participants systematically _____ because _____, which causes prices to _____ .]</p>
-
-      <p style="margin-top: 1.5rem;"><strong>Predicted relationship:</strong></p>
-      <p style="font-style: italic; color: var(--text-secondary);">[When [signal] is [high/low/rising/falling], [asset] returns are expected to be [positive/negative] over [horizon], because [mechanism above].]</p>
-
-      <p style="margin-top: 1.5rem;"><strong>Falsifiability:</strong></p>
-      <p style="font-style: italic; color: var(--text-secondary);">[This hypothesis would be rejected if [specific quantitative condition — e.g., Information Coefficient &lt; 0.02, or Sharpe &lt; 0.5 on hold-out period, or directional accuracy &lt; 55% on out-of-sample data].]</p>
+    <h2 class="section-title">Chart: Example distribution with fat tails</h2>
+    <div class="chart-container">
+      <canvas id="distributionChart"></canvas>
     </div>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Hypothesis types with examples</h2>
-
-    <h3 style="margin-top: 1.5rem;">Type 1: Behavioral inefficiency</h3>
-    <div class="card">
-      <p><strong>Example: Post-earnings drift (momentum)</strong></p>
-      <p><strong>Economic mechanism:</strong> Investors systematically underreact to earnings news. The market reprices gradually over weeks or months, not immediately at announcement. Short-selling constraints and institutional limitations on volatility exposure prevent arbitrageurs from eliminating this drift immediately.</p>
-      <p><strong>Predicted relationship:</strong> When earnings surprise is large and positive (actual EPS &gt; consensus EPS by more than 1 standard deviation), the stock is expected to have positive abnormal returns for 3–6 months post-announcement.</p>
-      <p><strong>Falsifiability:</strong> This hypothesis is rejected if the average post-announcement drift is not significantly different from zero (t-stat &lt; 1.96) over a 3-month hold period, or if the drift reverses (negative returns) in the first week after announcement.</p>
-    </div>
-
-    <h3 style="margin-top: 1.5rem;">Type 2: Structural inefficiency</h3>
-    <div class="card">
-      <p><strong>Example: Commodity roll yield (contango/backwardation)</strong></p>
-      <p><strong>Economic mechanism:</strong> Commodity futures contracts are rolled before expiry. When the term structure is in backwardation (near-month contract trading at a premium to far-month), rolling captures positive yield. This is not an arbitrage — it reflects the physical convenience value of holding inventory. Hedgers (producers and consumers) are willing to pay this premium because holding physical commodity has value. The premium is persistent because the underlying convenience value doesn't disappear.</p>
-      <p><strong>Predicted relationship:</strong> When the front/second-month spread is in backwardation (front price &gt; second-month price), a rolling long position in the front-month contract is expected to earn positive roll yield equal to the spread minus the cost of financing. Expected return is positive.</p>
-      <p><strong>Falsifiability:</strong> This hypothesis is rejected if average roll yield is zero or negative over a 5-year period, or if roll yield does not persist after transaction costs.</p>
-    </div>
-
-    <h3 style="margin-top: 1.5rem;">Type 3: Alternative data (information latency)</h3>
-    <div class="card">
-      <p><strong>Example: Satellite weather data predicting crop yields</strong></p>
-      <p><strong>Economic mechanism:</strong> NASA satellite data provides daily measurements of soil moisture and temperature at the field level. These measurements predict crop yields. The market prices crops based on USDA forecasts, which are survey-based and release once per month. There is an information gap: satellite data predicts yields before USDA reports them. The market does not instantaneously incorporate satellite data because (a) the data is not in standard market feeds, (b) processing it requires domain expertise, (c) few market participants have access or motivation to use it.</p>
-      <p><strong>Predicted relationship:</strong> When growing-season soil moisture anomalies (satellite GDD deviation from 20-year seasonal average) are large and negative, corn prices are expected to decline in the 5–10 days preceding the next USDA yield report, capturing the market's repricing as the report data becomes known.</p>
-      <p><strong>Falsifiability:</strong> This hypothesis is rejected if the Information Coefficient between satellite moisture deviation and forward corn returns is &lt; 0.02, or if the strategy has negative Sharpe on a 2023 hold-out period.</p>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Information Coefficient (IC)</h2>
-    <p>IC measures the correlation between your signal and forward returns. It's the core metric for evaluating whether your hypothesis has predictive power before you build the full backtest.</p>
-    \[ IC = \text{Corr}(\text{signal}_t,\ r_{t+h}) \]
-    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where signal_t is your signal at time t, r_{t+h} is the return from t to t+h (your chosen horizon).</p>
-
-    <p style="margin-top: 1.5rem;"><strong>Interpretation:</strong></p>
-    <ul>
-      <li>IC ≈ 0: No predictive power (noise)</li>
-      <li>IC = 0.05–0.10: Meaningful in quantitative finance. This is the zone for real edges.</li>
-      <li>IC = 0.20+: Exceptional (and suspicious — check for look-ahead bias)</li>
-    </ul>
-
-    <p style="margin-top: 1.5rem;"><strong>IC Information Ratio (ICIR):</strong></p>
-    \[ ICIR = \frac{\overline{IC}}{\sigma_{IC}} \]
-    <p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">Average IC divided by the standard deviation of IC. ICIR &gt; 0.5 suggests a consistently predictive signal.</p>
-
-    <div class="chart-container" style="margin-top: 1.5rem;">
-      <canvas id="icChart"></canvas>
-    </div>
+    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">Blue bars: actual returns. Orange curve: normal distribution fitted to these returns. Notice the tails: actual returns have more extreme events than normal would predict. This is why the Jarque-Bera test fails and why fat-tail risk is real.</p>
   </div>
 
   <div class="section">
     <h2 class="section-title">Common mistakes</h2>
     <div class="mistakes-list">
-      <h4 style="margin-top: 0;">Five hypothesis failures</h4>
+      <h4 style="margin-top: 0;">Five statistical sins</h4>
       <ul>
-        <li><strong>Writing the hypothesis as a tautology.</strong> "When momentum is positive, the stock continues to have positive momentum." This is circular — of course it's true. A real hypothesis explains WHY.</li>
-        <li><strong>No falsifiability condition.</strong> If you can't state what result would make you reject the hypothesis, you don't have a hypothesis. Add a specific quantitative threshold.</li>
-        <li><strong>Economic mechanism stated too vaguely.</strong> "The market is inefficient" doesn't distinguish from data mining. "Investors underreact to earnings by an average of 6 weeks due to limited attention" is specific enough to test.</li>
-        <li><strong>Signal direction not specified before testing.</strong> "I'll look at momentum and see if it predicts returns." Wrong. "High momentum predicts positive returns over 1-month horizon" specified before you test.</li>
-        <li><strong>Hypothesis changed after seeing the data.</strong> If you test 10 signal variants and then form a hypothesis around the best one, you're p-hacking. The hypothesis must come before the backtest.</li>
+        <li><strong>Using price levels instead of returns in regression.</strong> Price levels are non-stationary. Always test with ADF first. If non-stationary, use returns or differences.</li>
+        <li><strong>Ignoring fat tails because "it's close enough" to normal.</strong> It's not. Document the deviation from normality in Section 3b. Report expected extreme drawdown.</li>
+        <li><strong>Running ADF but not reporting it in Section 3b.</strong> If you run the test, report the result and p-value in your IP. QT needs to know you validated assumptions.</li>
+        <li><strong>Building a multi-factor model without checking VIF.</strong> Correlated factors cancel each other out silently in live trading. Check VIF before submitting.</li>
+        <li><strong>Skipping assumptions entirely.</strong> Section 3b is mandatory. At minimum: test residuals for normality and autocorrelation, test series for stationarity. Report results.</li>
       </ul>
     </div>
   </div>
 
   <div class="week-nav">
-    <a href="week4.html" class="week-nav-button">← Week 4: Toolstack</a>
-    <a href="week6.html" class="week-nav-button">Week 6: Data Sourcing →</a>
+    <a href="week4.html" class="week-nav-button">← Week 4: Fixed Income &amp; Equity Factors</a>
+    <a href="week6.html" class="week-nav-button">Week 6: Toolstack →</a>
   </div>
 
 </div>
@@ -190,40 +185,70 @@
 </footer>
 
 <script>
-  const ctx = document.getElementById('icChart').getContext('2d');
+  const ctx = document.getElementById('distributionChart').getContext('2d');
 
-  // Generate sample IC data
-  const periods = Array.from({length: 60}, (_, i) => i + 1);
+  // Generate returns with fat tails
+  const genReturns = () => {
+    const returns = [];
+    for (let i = 0; i < 5000; i++) {
+      // Mix of normal + occasional outliers
+      if (Math.random() < 0.98) {
+        returns.push(gauss(0, 1));
+      } else {
+        returns.push((Math.random() > 0.5 ? 1 : -1) * (3 + Math.random() * 3));
+      }
+    }
+    return returns.sort((a, b) => a - b);
+  };
 
-  // Simulated good signal: positive IC with noise
-  const goodSignalIC = periods.map(() => 0.08 + (Math.random() - 0.5) * 0.05);
+  function gauss(m, s) {
+    let u = 0, v = 0;
+    while(u === 0) u = Math.random();
+    while(v === 0) v = Math.random();
+    return m + s * Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+  }
 
-  // Simulated noise signal: IC around zero
-  const noiseSignalIC = periods.map(() => (Math.random() - 0.5) * 0.08);
+  const returns = genReturns();
+
+  // Create histogram bins
+  const bins = 50;
+  const minR = -6, maxR = 6;
+  const binWidth = (maxR - minR) / bins;
+  const histogram = Array(bins).fill(0);
+
+  returns.forEach(r => {
+    const bin = Math.floor((r - minR) / binWidth);
+    if (bin >= 0 && bin < bins) histogram[bin]++;
+  });
+
+  // Normal distribution overlay
+  const normalDist = Array(bins).fill(0).map((_, i) => {
+    const x = minR + (i + 0.5) * binWidth;
+    return (1 / Math.sqrt(2 * Math.PI)) * Math.exp(-0.5 * x * x) * returns.length * binWidth;
+  });
+
+  const labels = Array(bins).fill(0).map((_, i) => (minR + i * binWidth).toFixed(1));
 
   new Chart(ctx, {
-    type: 'line',
+    type: 'bar',
     data: {
-      labels: periods,
+      labels,
       datasets: [
         {
-          label: 'Good Signal (mean IC ≈ 0.08)',
-          data: goodSignalIC,
-          borderColor: '#FF9500',
-          backgroundColor: 'rgba(255, 149, 0, 0.1)',
-          borderWidth: 2,
-          pointRadius: 2,
-          fill: true,
-          tension: 0.3
+          label: 'Actual Returns',
+          data: histogram,
+          backgroundColor: '#4a86e8',
+          borderRadius: 0,
+          barThickness: 'flex'
         },
         {
-          label: 'Noise Signal (mean IC ≈ 0)',
-          data: noiseSignalIC,
-          borderColor: '#d97757',
-          backgroundColor: 'rgba(217, 119, 87, 0.1)',
+          label: 'Normal Distribution',
+          data: normalDist,
+          type: 'line',
+          borderColor: '#FF9500',
           borderWidth: 2,
-          pointRadius: 2,
-          fill: true,
+          pointRadius: 0,
+          fill: false,
           tension: 0.3
         }
       ]
@@ -237,15 +262,11 @@
         }
       },
       scales: {
-        x: {
-          ticks: { color: '#888888' },
-          grid: { color: '#1f1f1f' },
-          title: { display: true, text: 'Period', color: '#888' }
-        },
+        x: { display: false },
         y: {
           grid: { color: '#1f1f1f' },
           ticks: { color: '#888888' },
-          title: { display: true, text: 'Information Coefficient', color: '#888' }
+          title: { display: true, text: 'Frequency', color: '#888' }
         }
       }
     }
@@ -253,100 +274,105 @@
 </script>
 
 <script>
-/* Week 5 — mind map growing from central node */
+/* Week 5 — animated normal distribution curves */
 (function () {
   const hero   = document.querySelector('.week-hero');
   const canvas = document.getElementById('w5-canvas');
   const ctx    = canvas.getContext('2d');
   let W, H;
 
-  function resize() {
-    const r = hero.getBoundingClientRect();
-    W = canvas.width  = Math.round(r.width);
-    H = canvas.height = Math.round(r.height);
+  function makeCurve(isPrimary, delayMs) {
+    const mu    = 0.12 + Math.random() * 0.76;
+    const sigma = 0.13 + Math.random() * 0.10;
+    const amp   = 0.55 + Math.random() * 0.30;
+    return {
+      isPrimary, mu, sigma, amp,
+      alpha: 0,
+      progress: 0,
+      phase: 'waiting',
+      delay: delayMs,
+      lingerMs: 900 + Math.random() * 700,
+      lingerRemain: 0,
+      speed: 0.00040 + Math.random() * 0.00020,
+      maxAlpha: isPrimary ? 0.52 : (0.09 + Math.random() * 0.09),
+    };
   }
 
-  const N_MAIN = 9;
-  let nodes = [], startTime = null;
+  const curves = [];
 
-  function buildTree() {
-    nodes = [];
-    for (let i = 0; i < N_MAIN; i++) {
-      const ang = (i / N_MAIN) * Math.PI * 2 - Math.PI / 2;
-      const d1  = 0.19;
-      const nx  = 0.5 + Math.cos(ang) * d1;
-      const ny  = 0.5 + Math.sin(ang) * d1 * 0.72;
-      nodes.push({ x: nx, y: ny, px: 0.5, py: 0.5, r: 4, alpha: 0, delay: 500 + i * 180 });
-
-      // always 2 sub-branches per main
-      for (let j = 0; j < 2; j++) {
-        const sa  = ang + (j === 0 ? -0.55 : 0.55);
-        const d2  = 0.13;
-        const sx  = Math.max(0.02, Math.min(0.98, nx + Math.cos(sa) * d2));
-        const sy  = Math.max(0.04, Math.min(0.96, ny + Math.sin(sa) * d2 * 0.72));
-        nodes.push({ x: sx, y: sy, px: nx, py: ny, r: 2.8, alpha: 0, delay: 2000 + i * 180 + j * 220 });
-
-        // 1 sub-sub-branch per sub
-        const ssa  = sa + (Math.random() - 0.5) * 0.7;
-        const d3   = 0.09;
-        const ssx  = Math.max(0.01, Math.min(0.99, sx + Math.cos(ssa) * d3));
-        const ssy  = Math.max(0.03, Math.min(0.97, sy + Math.sin(ssa) * d3 * 0.72));
-        nodes.push({ x: ssx, y: ssy, px: sx, py: sy, r: 1.8, alpha: 0, delay: 3800 + i * 180 + j * 220 });
-      }
-    }
-    startTime = null;
+  function initCurves() {
+    curves.length = 0;
+    curves.push(makeCurve(true,  400));
+    curves.push(makeCurve(false, 0));
+    curves.push(makeCurve(false, 600));
+    curves.push(makeCurve(false, 1400));
+    curves.push(makeCurve(false, 2200));
+    curves.push(makeCurve(false, 800));
+    curves.push(makeCurve(false, 1800));
   }
 
-  let rootAlpha = 0, lastTs = null;
+  let lastTs = null;
 
   function frame(ts) {
-    if (!lastTs) lastTs = ts;
-    if (!startTime) startTime = ts;
-    const dt      = Math.min(ts - lastTs, 40);
-    lastTs        = ts;
-    const elapsed = ts - startTime;
+    if (lastTs === null) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
 
     ctx.clearRect(0, 0, W, H);
 
-    /* root */
-    rootAlpha = Math.min(0.75, rootAlpha + dt * 0.005);
-    ctx.beginPath();
-    ctx.arc(W * 0.5, H * 0.5, 6, 0, 6.283);
-    ctx.fillStyle = `rgba(255,125,42,${rootAlpha})`;
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(W * 0.5, H * 0.5, 12, 0, 6.283);
-    ctx.strokeStyle = `rgba(255,125,42,${rootAlpha * 0.28})`;
-    ctx.lineWidth = 1;
-    ctx.stroke();
+    for (const c of curves) {
+      if (c.phase === 'waiting') {
+        c.delay -= dt;
+        if (c.delay <= 0) c.phase = 'drawing';
+      }
+      if (c.phase === 'drawing') {
+        c.alpha    = Math.min(c.maxAlpha, c.alpha + dt * 0.003);
+        c.progress = Math.min(1, c.progress + c.speed * dt);
+        if (c.progress >= 1) { c.phase = 'lingering'; c.lingerRemain = c.lingerMs; }
+      }
+      if (c.phase === 'lingering') {
+        c.lingerRemain -= dt;
+        if (c.lingerRemain <= 0) c.phase = 'fading';
+      }
+      if (c.phase === 'fading') {
+        c.alpha -= dt * 0.002;
+        if (c.alpha <= 0) Object.assign(c, makeCurve(c.isPrimary, 200 + Math.random() * 2500));
+      }
 
-    for (const n of nodes) {
-      if (elapsed < n.delay) continue;
-      n.alpha = Math.min(0.50, n.alpha + dt * 0.004);
+      if (c.alpha <= 0 || c.progress < 0.01) continue;
 
-      /* line to parent */
+      const visCount = Math.max(2, Math.floor(c.progress * W));
+      const peak     = 1 / (c.sigma * Math.sqrt(2 * Math.PI));
+
       ctx.beginPath();
-      ctx.moveTo(n.px * W, n.py * H);
-      ctx.lineTo(n.x  * W, n.y  * H);
-      ctx.strokeStyle = `rgba(255,238,215,${(n.alpha * 0.38).toFixed(3)})`;
-      ctx.lineWidth   = 1;
+      ctx.lineWidth   = c.isPrimary ? 1.6 : 0.8;
+      ctx.strokeStyle = c.isPrimary
+        ? `rgba(255,125,42,${c.alpha.toFixed(3)})`
+        : `rgba(255,238,215,${c.alpha.toFixed(3)})`;
+
+      for (let i = 0; i < visCount; i++) {
+        const xn = i / (W - 1);
+        const g  = Math.exp(-0.5 * ((xn - c.mu) / c.sigma) ** 2) / peak;
+        const y  = H * (0.72 - g * c.amp * 0.82);
+        i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
+      }
       ctx.stroke();
-
-      /* node */
-      ctx.beginPath();
-      ctx.arc(n.x * W, n.y * H, n.r, 0, 6.283);
-      ctx.fillStyle = `rgba(255,125,42,${n.alpha.toFixed(3)})`;
-      ctx.fill();
     }
-
-    if (elapsed > 12000) buildTree();
 
     requestAnimationFrame(frame);
   }
 
-  new ResizeObserver(() => { resize(); buildTree(); }).observe(hero);
-  resize();
-  buildTree();
+  new ResizeObserver(() => {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+    initCurves();
+  }).observe(hero);
+
+  const r0 = hero.getBoundingClientRect();
+  W = canvas.width  = Math.round(r0.width);
+  H = canvas.height = Math.round(r0.height);
+  initCurves();
   requestAnimationFrame(frame);
 })();
 </script>

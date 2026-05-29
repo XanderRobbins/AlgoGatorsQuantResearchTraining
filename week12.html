@@ -1,0 +1,283 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 12: Alternative Data Sources — QR Training</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <link rel="icon" type="image/png" href="Delta.png">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">QR Training Hub</span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html">Home</a>
+    <a href="week1.html">W1</a>
+    <a href="week2.html">W2</a>
+    <a href="week3.html">W3</a>
+    <a href="week4.html">W4</a>
+    <a href="week5.html">W5</a>
+    <a href="week6.html">W6</a>
+    <a href="week7.html">W7</a>
+    <a href="week8.html">W8</a>
+    <a href="week9.html">W9</a>
+    <a href="week10.html">W10</a>
+    <a href="week11.html">W11</a>
+    <a href="week12.html" class="active">W12</a>
+    <a href="week13.html">W13</a>
+  </div>
+</nav>
+
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="w12-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Week 12 &mdash; Phase 4: Readiness</div>
+    <h1>Alternative<br>Data Sources</h1>
+    <div class="week-hero-pill">Section 1 &amp; 2 — Hypothesis &amp; Data</div>
+    <p class="week-hero-objective">Understand what alternative data is, where to find it, and how to validate whether it contains real signal. Know the pitfalls before building a strategy.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="ip-anchor">
+    <span class="ip-anchor-label">IP Anchor</span>
+    <span class="ip-anchor-section">Section 1 & 2 — Hypothesis & Data sourcing</span>
+    <span class="ip-anchor-desc">Alternative data informs which hypotheses are worth exploring and what data is feasible. This week bridges hypothesis and data sourcing.</span>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">What this week covers</h2>
+    <p>Alternative data is any non-standard data source that provides an information edge. This week walks through three major categories (satellite, positioning, sentiment), real examples from AlgoGators, and the key validation steps before committing research time to an alternative data hypothesis.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">What makes data "alternative"?</h2>
+
+    <p>Standard data: OHLCV prices, fundamentals (earnings, balance sheets), economic releases.</p>
+    <p>Alternative data: Anything else — satellites, credit card transactions, web scraping, shipping data, options flow, weather.</p>
+
+    <p style="margin-top: 1.5rem;"><strong>The four questions to ask about any alternative dataset:</strong></p>
+    <ol style="font-size: 0.95rem;">
+      <li><strong>Does it contain information not already in market prices?</strong> If the market already prices in the data, there's no edge.</li>
+      <li><strong>Is it available at the time the signal fires (no look-ahead)?</strong> If there's a 1-week data lag, you can't trade on it intraday.</li>
+      <li><strong>Does the fund have access, and can it be ingested at the required frequency?</strong> Data that costs $500k/month requires budget approval. Data not in our subscriptions requires QD investigation.</li>
+      <li><strong>How long is the history?</strong> Less than 5 years is usually insufficient. You need at least two full market cycles (bull and bear).</li>
+    </ol>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Satellite data: NasaPowerCouncil (detailed example)</h2>
+
+    <div class="card">
+      <p><strong>Data source:</strong> NASA POWER API. Free, public. Daily data back to 1981.</p>
+      <p><strong>Variables:</strong> Solar radiation (ALLSKY_SFC_SW_DWN), temperature (T2M, T2M_MAX, T2M_MIN), precipitation (PRECTOTCORR), humidity.</p>
+      <p><strong>Geographic coverage:</strong> Any latitude/longitude on Earth. You request the grid.</p>
+
+      <p style="margin-top: 1rem;"><strong>Information advantage:</strong> Crop yields depend on growing season weather. USDA yield forecasts are survey-based and release monthly (dates announced in advance). Satellite data provides daily field-level conditions. Market doesn't instantaneously incorporate satellite data because (a) not in standard feeds, (b) requires domain expertise to process, (c) few participants use it.</p>
+
+      <p style="margin-top: 1rem;"><strong>Signal:</strong> Growing-degree-day (GDD) deviation from 20-year seasonal average. When cumulative GDD is abnormally low relative to the 10-year average for the calendar week, crop stress is high. This predicts lower USDA yields.</p>
+
+      <p style="margin-top: 1rem;"><strong>Validation:</strong> Information Coefficient between satellite GDD deviation and corn yield surprises (actual USDA yield - prior month forecast). IC &gt; 0.05 = meaningful predictive power.</p>
+
+      <p style="margin-top: 1rem;"><strong>Cost & access:</strong> Free. No licensing required. Ingestible via Python requests → database. No budget approval needed.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Positioning data: COT reports</h2>
+
+    <div class="card">
+      <p><strong>Data source:</strong> CFTC Commitment of Traders reports. Free, published every Friday. Data lag: reporting Tuesday's positions on Friday.</p>
+      <p><strong>Coverage:</strong> All major US futures (oil, gold, corn, wheat, currency, interest rates, equities).</p>
+
+      <p style="margin-top: 1rem;"><strong>Information advantage:</strong> COT breaks down positioning by trader category: commercial hedgers (producers, consumers), large speculators, small speculators. When large speculators are extremely net long (crowded trade), the position often reverses. When commercial hedgers are extremely short (hedging supply), the commodity is often at peak prices.</p>
+
+      <p style="margin-top: 1rem;"><strong>Signal:</strong> Speculator positioning zscore. When net spec positioning is &gt; 2 std above the 20-year average (crowded long), short the commodity. When &lt; -2 std (crowded short), go long. Contrarian signal.</p>
+
+      <p style="margin-top: 1rem;"><strong>Data lag risk:</strong> COT data is released Friday for Tuesday. You can't trade intraday Tuesday on Friday data — you trade Thursday/Friday on Friday release. This is acceptable for daily/weekly signals.</p>
+
+      <p style="margin-top: 1rem;"><strong>Cost & access:</strong> Free from CFTC website. Historical data via Bloomberg Terminal. Parseable via Python.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Options flow & market microstructure</h2>
+
+    <div class="card">
+      <p><strong>Data source:</strong> Options flow (put/call volume, open interest, implied volatility). Available from exchanges (CBOE, CME) or data providers (Databento, OptionsIntelligence).</p>
+
+      <p style="margin-top: 1rem;"><strong>Information advantage:</strong> Options traders are often informed (they're willing to pay gamma to express a view). Unusual put buying can precede declines. Skew in implied volatility surfaces can signal tail hedging demand.</p>
+
+      <p style="margin-top: 1rem;"><strong>Signal examples:</strong></p>
+      <ul style="font-size: 0.95rem;">
+        <li>Put/call ratio inversion: when calls exceed puts (bullish), the move often continues. When puts exceed calls (bearish), trend reversal likely.</li>
+        <li>IV skew steepening: when downside IV &gt; upside IV by &gt; 2 vol points (unusual), downside risk is being hedged. Precedes rebounds.</li>
+      </ul>
+
+      <p style="margin-top: 1rem;"><strong>Cost & access:</strong> Included in Databento subscription (existing infrastructure).</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Alternative data validation checklist</h2>
+
+    <p style="margin-bottom: 1.5rem;"><strong>Before committing 10 weeks to an alternative data hypothesis, validate:</strong></p>
+
+    <div class="card">
+      <ul style="font-size: 0.95rem;">
+        <li><strong>Information uniqueness:</strong> Is this information publicly available? If it's in earnings transcripts, most sell-side researchers already parsed it. Low information value.</li>
+        <li><strong>Market pricing lag:</strong> How long between data release and market incorporation? If it takes 6 months to fully price, edge is real. If 1 day, probably no edge.</li>
+        <li><strong>Historical depth:</strong> At least 5 years of history. Ideally 10+ years covering multiple market cycles.</li>
+        <li><strong>Data quality:</strong> No unexplained gaps, outliers, or quality issues. Satellite data: cloud cover bias? Weather data: sensor drift? Verify.</li>
+        <li><strong>Cost & feasibility:</strong> Get pricing in writing. Budget approval if &gt; $10k/month. Confirm it can be ingested into TimescaleDB at your required frequency.</li>
+        <li><strong>IC test:</strong> Before full backtest, compute Information Coefficient between raw alt data and forward returns. IC &gt; 0.02 is promising. IC &lt; 0.01 means move on.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Real hypotheses using alternative data</h2>
+
+    <div class="card">
+      <p><strong>Hypothesis 1: Satellite weather → corn futures</strong></p>
+      <p style="font-style: italic; color: var(--text-secondary);">Growing-season soil moisture anomalies, measured via satellite, predict USDA yield report surprises. Market prices are set on survey data; satellite data arrives before surveys are finalized. Information lag of 2–4 weeks.</p>
+    </div>
+
+    <div class="card">
+      <p><strong>Hypothesis 2: Speculator crowding → FX reversals</strong></p>
+      <p style="font-style: italic; color: var(--text-secondary);">When CFTC large speculators are positioned at extreme net-long (historical 95th percentile), the currency pair reverses within 2–8 weeks. Contrarian edge from crowded positioning.</p>
+    </div>
+
+    <div class="card">
+      <p><strong>Hypothesis 3: Options skew → equity tail protection</strong></p>
+      <p style="font-style: italic; color: var(--text-secondary);">When put/call skew steepens (downside IV exceeds upside by &gt; 2 vols), downside is overhedged. Market rebounds 3–10 days after peak skew. Mean-reversion in hedging demand.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Common mistakes with alternative data</h2>
+    <div class="mistakes-list">
+      <h4 style="margin-top: 0;">Five alternative data pitfalls</h4>
+      <ul>
+        <li><strong>Using alt data that requires paying for a license the fund doesn't have.</strong> Confirm cost and budget availability BEFORE spending research time. QD won't green-light a strategy on data they can't afford.</li>
+        <li><strong>Not checking the data's lookback history.</strong> "Great satellite dataset available from 2020 onward" = 4 years of history. That's only one bull market. You need two full cycles (bull + bear).</li>
+        <li><strong>Failing to account for data release lag.</strong> COT data released Friday applies to Tuesday positions. You can't trade intraday Tuesday. Yield forecast data released mid-month applies to month-end expectations. Signal lags matter.</li>
+        <li><strong>Overfitting to an alt data peculiarity.</strong> "This parameter works great for this specific alt data in this specific market." Doesn't generalize. Always test robustness across subsets.</li>
+        <li><strong>Skipping the IC test.</strong> Before building a backtest, compute Information Coefficient. IC &lt; 0.02 = probably no edge. Move on. Save 8 weeks of wasted development.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <a href="week11.html" class="week-nav-button">← Week 11: Backtest Results</a>
+    <a href="week13.html" class="week-nav-button">Week 13: Live Workshop →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — QR Training Program // Internal Use Only
+</footer>
+
+<script>
+/* Week 12 — alt data sources sending pulses to central hub */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('w12-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  const N = 9;
+  let sources = [], pulses = [];
+
+  function buildSources() {
+    sources = [];
+    for (let i = 0; i < N; i++) {
+      const ang  = (i / N) * Math.PI * 2;
+      const dist = 0.28 + (i % 3 === 0 ? 0.06 : 0);
+      sources.push({
+        x: 0.5 + Math.cos(ang) * dist,
+        y: 0.5 + Math.sin(ang) * dist * 0.68,
+        next: Math.random() * 2500,
+      });
+    }
+  }
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+    buildSources();
+  }
+
+  let lastTs = null;
+
+  function frame(ts) {
+    if (!lastTs) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    const cx = W * 0.5, cy = H * 0.5;
+    ctx.clearRect(0, 0, W, H);
+
+    /* spokes */
+    for (const s of sources) {
+      ctx.beginPath();
+      ctx.moveTo(s.x * W, s.y * H);
+      ctx.lineTo(cx, cy);
+      ctx.strokeStyle = 'rgba(255,238,215,0.06)';
+      ctx.lineWidth   = 1;
+      ctx.stroke();
+    }
+
+    /* hub */
+    ctx.beginPath(); ctx.arc(cx, cy, 7, 0, 6.283);
+    ctx.fillStyle = 'rgba(255,125,42,0.60)'; ctx.fill();
+    for (const r of [12, 19]) {
+      ctx.beginPath(); ctx.arc(cx, cy, r, 0, 6.283);
+      ctx.strokeStyle = `rgba(255,125,42,${0.14 - r*0.004})`; ctx.lineWidth = 1; ctx.stroke();
+    }
+
+    /* source nodes + spawn pulses */
+    for (const s of sources) {
+      s.next -= dt;
+      if (s.next <= 0) {
+        pulses.push({ sx: s.x, sy: s.y, t: 0, dur: 1100 + Math.random() * 400 });
+        s.next = 1600 + Math.random() * 3000;
+      }
+      ctx.beginPath(); ctx.arc(s.x * W, s.y * H, 3.5, 0, 6.283);
+      ctx.fillStyle = 'rgba(255,238,215,0.32)'; ctx.fill();
+    }
+
+    /* animate pulses */
+    for (let i = pulses.length - 1; i >= 0; i--) {
+      const p = pulses[i];
+      p.t += dt;
+      const prog = p.t / p.dur;
+      if (prog > 1) { pulses.splice(i, 1); continue; }
+      const x = (p.sx + (0.5 - p.sx) * prog) * W;
+      const y = (p.sy + (0.5 - p.sy) * prog) * H;
+      ctx.beginPath(); ctx.arc(x, y, 2.5, 0, 6.283);
+      ctx.fillStyle = `rgba(255,125,42,${((1-prog)*0.60).toFixed(3)})`; ctx.fill();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
+
+<script src="cursor.js"></script>
+</body>
+</html>

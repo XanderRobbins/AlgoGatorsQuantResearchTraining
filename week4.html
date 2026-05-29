@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 4: Fund Toolstack & Data Pipeline — QR Training</title>
+  <title>Week 4: Fixed Income & Equity Factors — QR Training</title>
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="icon" type="image/png" href="Delta.png">
 </head>
 <body>
@@ -30,16 +31,18 @@
     <a href="week9.html">W9</a>
     <a href="week10.html">W10</a>
     <a href="week11.html">W11</a>
+    <a href="week12.html">W12</a>
+    <a href="week13.html">W13</a>
   </div>
 </nav>
 
 <div class="week-hero">
   <canvas class="week-hero-canvas" id="w4-canvas"></canvas>
   <div class="week-hero-inner">
-    <div class="week-hero-badge">Week 04 &mdash; Phase 2: Tooling &amp; Hypothesis</div>
-    <h1>Fund Toolstack &amp;<br>Data Pipeline</h1>
-    <div class="week-hero-pill">Section 2 — Data &amp; QD Approval</div>
-    <p class="week-hero-objective">Understand the infrastructure that powers research at AlgoGators. Know what data exists before you write Section 2 of your IP.</p>
+    <div class="week-hero-badge">Week 04 &mdash; Phase 1: Foundations</div>
+    <h1>Fixed Income &amp;<br>Equity Factors</h1>
+    <div class="week-hero-pill">Section 1 — Hypothesis</div>
+    <p class="week-hero-objective">Understand yield curve mechanics and equity factor models. Know the structural forces and documented anomalies that have driven returns — and their limitations.</p>
   </div>
 </div>
 
@@ -47,149 +50,156 @@
 
   <div class="ip-anchor">
     <span class="ip-anchor-label">IP Anchor</span>
-    <span class="ip-anchor-section">Section 2 — Data sourcing & QD approval</span>
-    <span class="ip-anchor-desc">The QD approval gate (Section 2b) exists because data is not free and pipelines have limits. Understand the infrastructure before writing your data section.</span>
+    <span class="ip-anchor-section">Section 1 — Hypothesis</span>
+    <span class="ip-anchor-desc">You can only write a hypothesis about markets you understand. This week completes the market foundations with fixed income and equity factors.</span>
   </div>
 
   <div class="section">
     <h2 class="section-title">What this week covers</h2>
-    <p>Every strategy runs on data. The data must exist, be accessible, be affordable, and be ingestible into our systems. This week walks through the AlgoGators data pipeline: what tools ingest data, where it lives, how it flows to strategies, and what the QD approval gate (Section 2b) is checking for.</p>
+    <p>This week completes the market foundations. Fixed income pricing is driven by yield curve expectations, inflation, and credit. Equity systematic research targets documented "factors" — sources of return variation that have persisted across decades and geographies. Both topics feed directly into hypothesis writing: without knowing what drives these markets, you can't explain why an edge should exist.</p>
   </div>
 
   <div class="section">
-    <h2 class="section-title">The data flow at AlgoGators</h2>
+    <h2 class="section-title">Fixed income</h2>
 
-    <div class="card" style="background: var(--bg-elevated); padding: 2rem; font-family: 'IBM Plex Mono'; font-size: 0.85rem; overflow-x: auto; white-space: pre;">Raw market data
-    ↓
-Databento (ingest)
-    ↓
-TimescaleDB (storage)
-    ↓
-data-ngin (transform)
-    ↓
-AlgoSystem (backtest/live)
-    ↓
-Strategy execution
+    <h3 style="margin-top: 1.5rem;">Core mechanics</h3>
+    <p>Bond prices move inversely to yields. A bond's yield reflects the market's expected return given maturity, credit risk, and inflation expectations. The yield curve (how yields vary by maturity) encodes the market's view of the future.</p>
 
-← QR writes signal spec here
-← QD implements from IP</div>
-
-    <p style="margin-top: 2rem;">Understanding this flow is critical. You will describe your data requirements in Section 2a. The QD team will use those requirements to build the pipeline. But you need to understand the constraints at each step.</p>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Databento</h2>
-    <p><strong>What it is:</strong> A market data provider. Tick data, OHLCV (open, high, low, close, volume), order book snapshots across equities, futures, options, FX.</p>
-    <p><strong>Coverage:</strong> US equities, US futures (CME, CBOT, COMEX), cryptocurrencies, FX futures. International coverage limited.</p>
-    <p><strong>Cost:</strong> Databento charges per data series per month. Novel data sources require approval before you spend time on them.</p>
-    <p><strong>Frequency:</strong> Tick-level to daily OHLCV. You request the granularity you need.</p>
-    <p style="color: var(--text-secondary); margin-top: 1rem;"><strong>For QR:</strong> Know what you're asking for before Section 2b. If you want daily closing prices for the last 10 years, that's cheap and trivial. If you want 1-minute bars for 500 stocks for 5 years, that's expensive and requires approval.</p>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">TimescaleDB</h2>
-    <p><strong>What it is:</strong> PostgreSQL extension optimized for time-series data. Time-indexed tables, automatic partitioning, continuous aggregates (pre-computed rolling statistics).</p>
-    <p><strong>How it works:</strong> Raw tick data from Databento is ingested into TimescaleDB. Millions of rows a day. Partitioned by time so queries on recent data are fast.</p>
-    <p><strong>Continuous aggregates:</strong> You can define a continuous aggregate that automatically computes, say, daily OHLCV from tick data. No extra code required — TimescaleDB handles it.</p>
-    <p style="color: var(--text-secondary); margin-top: 1rem;"><strong>For QR:</strong> You don't write SQL. You define your data requirements in Section 2a ("daily OHLCV for corn futures"), and QD writes the queries. But knowing the data lives in TimescaleDB helps you understand data availability and freshness.</p>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">data-ngin (data engineering pipeline)</h2>
-    <p><strong>What it is:</strong> Internal cleaning and feature engineering layer. Handles corporate actions (stock splits, dividends), outlier detection, missing value handling, and feature construction.</p>
-    <p><strong>Corporate actions:</strong> When a stock splits 2-for-1, raw prices from two days don't compare. data-ngin adjusts for this. Uses point-in-time adjustments (historical prices adjusted forward, not backward, to avoid look-ahead bias).</p>
-    <p><strong>Outliers:</strong> Exchange halts, data errors, gaps. data-ngin flags and handles these.</p>
-    <p><strong>Features:</strong> When you describe your signal as "5-day rolling z-score," data-ngin is what computes it. You specify the formula in your IP; QD implements it in data-ngin.</p>
-    <p style="color: var(--text-secondary); margin-top: 1rem;"><strong>For QR:</strong> In Section 2a, you describe the features you need with formulas. In Section 3a, you use those features in your signal. data-ngin makes them available.</p>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">The QD Approval Gate (Section 2b)</h2>
-    <p>This is a critical checkpoint. <strong>You cannot move forward without QD sign-off.</strong></p>
-    <p><strong>Why it exists:</strong> Too many QR analysts have written strategies on data that doesn't exist. They spent weeks developing on a dataset that was never subscribed to, or that costs $500k/month, or that isn't available at the frequency needed, or that has only 3 years of history (too short for backtesting).</p>
-    <p><strong>What Section 2b must contain:</strong></p>
+    <h3 style="margin-top: 1.5rem;">The yield curve</h3>
     <ul>
-      <li>The exact data series needed (asset name, exchange, frequency, date range)</li>
-      <li>The cleaning steps and transformations (split adjustments, outlier treatment)</li>
-      <li>Any external or alternative data (satellite, social, etc.) with licensing status</li>
-      <li><strong>Written confirmation from the Head of Data Engineering</strong> that the data is acquirable, ingestible at the required frequency, and fits within budget/subscriptions</li>
+      <li><strong>Normal (upward sloping):</strong> Long-term rates higher than short-term. Investors demand a premium for giving up liquidity. Most common in normal times.</li>
+      <li><strong>Flat:</strong> Short and long rates nearly equal. Transition zone. Market uncertainty about the future.</li>
+      <li><strong>Inverted (downward sloping):</strong> Short-term rates higher than long-term. Signals recession expectations. The "2s10s" spread (2-year minus 10-year yield) has historically inverted before recessions.</li>
     </ul>
-    <p style="margin-top: 1.5rem;"><strong>What happens:</strong> You submit your IP with Section 2 (both 2a and 2b). QT reviews strategy fit. QD reviews data feasibility and signs off in 2b. If 2b is not signed, the IP is rejected, full stop. This is not punitive — it's a forcing function to catch infeasible research early.</p>
-  </div>
 
-  <div class="section">
-    <h2 class="section-title">Python data access patterns</h2>
+    <h3 style="margin-top: 1.5rem;">Duration</h3>
+    <p>Duration measures how sensitive a bond is to interest rate changes. A bond with 5-year duration loses 5% in value for every 1% rise in yield. Higher duration = more sensitivity.</p>
 
-    <h3 style="margin-top: 1.5rem;">Pulling OHLCV from TimescaleDB</h3>
-    <pre><code>import pandas as pd
-import psycopg2
+    <p style="margin-top: 1rem;">Modified duration formula:</p>
+    \[ D_{\text{mod}} = \frac{D_{\text{Macaulay}}}{1 + y/m} \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where y = yield to maturity, m = number of coupon periods per year. Price change ≈ −D_mod × Δy × Price.</p>
 
-conn = psycopg2.connect(
-    host="timescaledb.internal",
-    dbname="algogators",
-    user="qr_user",
-    password="***"
-)
+    <h3 style="margin-top: 1.5rem;">What drives the yield curve</h3>
+    <ul>
+      <li><strong>Fed policy:</strong> The Fed controls short-term rates directly. Market expectations about future rate changes drive the curve.</li>
+      <li><strong>Inflation expectations:</strong> If inflation is rising, bond investors demand higher yields to compensate.</li>
+      <li><strong>Term premium:</strong> Investors demand extra return for the uncertainty of long-term bonds. The term premium varies over time.</li>
+      <li><strong>Credit spreads:</strong> Corporate bonds trade at a spread over Treasuries. Spreads widen in risk-off environments, tighten in risk-on.</li>
+    </ul>
 
-query = """
-    SELECT timestamp, open, high, low, close, volume
-    FROM corn_futures
-    WHERE timestamp BETWEEN '2020-01-01' AND '2024-01-01'
-    ORDER BY timestamp
-"""
+    <h3 style="margin-top: 1.5rem;">The edge: Carry and curve positioning</h3>
+    <p>Fixed income edges typically come from: (1) carry (buying yield from bonds above the repo rate), (2) curve positioning (being long or short specific parts of the curve), (3) credit selection (finding bonds that will outperform). These are harder to systematize than commodity or FX edges, which is why systematic fixed income is more challenging.</p>
 
-df = pd.read_sql(query, conn, parse_dates=['timestamp'], index_col='timestamp')
-</code></pre>
-
-    <h3 style="margin-top: 1.5rem;">Feature construction: rolling z-score</h3>
-    <pre><code>def rolling_zscore(series, window=20):
-    """Z-score normalization using rolling window."""
-    mean = series.rolling(window).mean()
-    std = series.rolling(window).std()
-    return (series - mean) / std
-
-# Normalized signal for entry/exit
-df['signal'] = rolling_zscore(df['close'], window=60)
-entry_threshold = 2.0  # Entry when signal &lt; -2
-df['signal_entry'] = df['signal'] &lt; -entry_threshold
-</code></pre>
-
-    <h3 style="margin-top: 1.5rem;">Handling corporate actions (splits/dividends)</h3>
-    <pre><code># data-ngin handles this automatically
-# You specify the adjustment method in Section 2a:
-# "Prices adjusted for splits/dividends using backward-adjusted method.
-#  Adjustment factors applied at ex-date."
-# QD implements it; you use the adjusted prices in your signal.</code></pre>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">NasaPowerCouncil data pipeline (example)</h2>
     <div class="card">
-      <p><strong>Raw data:</strong> NASA POWER API. Daily solar radiation (ALLSKY_SFC_SW_DWN), temperature (T2M), precipitation (PRECTOTCORR) at lat/lon grid.</p>
-      <p><strong>Geographic mapping:</strong> Corn Belt counties (IL, IA, MN, MO, etc.). Map each county to grid point lat/lon centroids.</p>
-      <p><strong>Transformation:</strong> Compute growing-degree-day (GDD) deviation from 20-year seasonal average. Daily rolling sums, seasonal adjustment.</p>
-      <p><strong>Feature:</strong> GDD_deviation_30d = 30-day rolling sum of (daily GDD - 20-year seasonal average for that calendar window).</p>
-      <p><strong>Section 2b sign-off:</strong> "Data sourced from NASA POWER REST API (public, no licensing cost). Daily resolution, available back to 1981. Ingestible via Python requests → CSV → TimescaleDB. QD: Confirmed."</p>
+      <p><strong>Fixed income instruments at AlgoGators:</strong></p>
+      <ul style="font-size: 0.95rem; margin-top: 0.5rem;">
+        <li>US Treasury futures (ZN = 10-year, ZF = 5-year, ZB = 30-year) via CBOT</li>
+        <li>Eurodollar futures for short-end positioning (SOFR transition)</li>
+        <li>Credit spreads via CDX indices (less common in the systematic book)</li>
+      </ul>
+      <p style="margin-top: 0.75rem; font-size: 0.9rem; color: var(--text-secondary);">All futures — same clearinghouse mechanics you learned in Week 2. Daily mark-to-market, initial margin, variation margin.</p>
     </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Equity factors</h2>
+
+    <p>Systematic research in equities often targets known "factors" — sources of return variation that persist across time and markets.</p>
+
+    <h3 style="margin-top: 1.5rem;">Fama-French three-factor model</h3>
+    \[ R_i - R_f = \alpha + \beta_m (R_m - R_f) + \beta_{SMB} \cdot SMB + \beta_{HML} \cdot HML + \varepsilon \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where R_i = stock return, R_f = risk-free rate, R_m = market return, SMB = Small Minus Big (return spread between small and large caps), HML = High Minus Low (return spread between high book-to-market and low book-to-market stocks).</p>
+
+    <h3 style="margin-top: 1.5rem;">Major factors</h3>
+    <ul>
+      <li><strong>Market beta:</strong> Higher correlation to the market means higher expected return (compensated for systematic risk).</li>
+      <li><strong>Size:</strong> Small-cap stocks have higher expected returns than large-cap (historically). But this relationship is time-varying and sometimes disappears.</li>
+      <li><strong>Value (HML):</strong> High book-to-market stocks (value stocks) outperform low book-to-market (growth) over long periods. But value underperformed massively 2010–2020.</li>
+      <li><strong>Momentum (UMD):</strong> Stocks with strong recent returns continue to outperform. One of the most robust factors.</li>
+      <li><strong>Quality:</strong> High-quality stocks (profitability, low leverage, stable earnings) tend to outperform. Behavioral: investors overpay for quality.</li>
+      <li><strong>Low volatility (min-vol):</strong> Low-volatility stocks outperform high-volatility. Counterintuitive but empirical fact. Probably due to behavioral over-leverage (investors overweight high-vol, pushing down their returns).</li>
+    </ul>
+
+    <h3 style="margin-top: 1.5rem;">Important caveat</h3>
+    <p>Factors are documented empirical phenomena, not guaranteed. Each has multi-year drawdown periods. Momentum crashed hard in 2009 (mean reversion), value underperformed 2010–2020, low-vol underperformed 2021–2022. The persistence of factors is an active research question. Some are behavioral (will compress as more people learn), others may be risk compensations (will persist).</p>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">Factor decomposition example</h3>
+      <p>Suppose you're looking at a stock with the following characteristics relative to peers:</p>
+      <ul style="font-size: 0.9rem;">
+        <li>12-month momentum: +32% (strong momentum signal)</li>
+        <li>P/B ratio: 1.2x (low = value-like)</li>
+        <li>Market cap: $800M (small-cap)</li>
+        <li>Trailing ROE: 18% (high quality)</li>
+        <li>30-day realized vol: 22% (moderate)</li>
+      </ul>
+      <p style="margin-top: 0.75rem;">This stock would score positively on momentum, value, size, and quality factors simultaneously. Multi-factor overlap can amplify returns — or expose you to a correlated factor drawdown.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Comparing all four asset classes</h2>
+
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>Dimension</th>
+          <th>FX</th>
+          <th>Commodities</th>
+          <th>Fixed Income</th>
+          <th>Equity Factors</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Primary driver</strong></td>
+          <td>Rate differentials, policy</td>
+          <td>Physical supply/demand, storage</td>
+          <td>Yield curve, inflation</td>
+          <td>Risk premia, behavioral bias</td>
+        </tr>
+        <tr>
+          <td><strong>Main structural edge</strong></td>
+          <td>Carry (UIP failure)</td>
+          <td>Roll yield, seasonality</td>
+          <td>Carry, curve shape</td>
+          <td>Value, momentum, quality</td>
+        </tr>
+        <tr>
+          <td><strong>Edge persistence</strong></td>
+          <td>High (structural risk premium)</td>
+          <td>High (physical constraints)</td>
+          <td>Moderate (rate regime dependent)</td>
+          <td>Moderate (can compress)</td>
+        </tr>
+        <tr>
+          <td><strong>Key risk</strong></td>
+          <td>Sudden policy shifts, carry unwinds</td>
+          <td>Roll cost in contango, delivery</td>
+          <td>Duration risk, curve inversions</td>
+          <td>Factor drawdowns, crowding</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
   <div class="section">
     <h2 class="section-title">Common mistakes</h2>
     <div class="mistakes-list">
-      <h4 style="margin-top: 0;">Five data pipeline failures</h4>
+      <h4 style="margin-top: 0;">Five false assumptions about fixed income and equity factors</h4>
       <ul>
-        <li><strong>Skipping Section 2b and assuming data availability.</strong> You need written confirmation from QD. Email counts; attachment or reply-all to your IP draft counts. Verbal is not enough.</li>
-        <li><strong>Requesting data at the wrong frequency.</strong> You want daily but need intraday? Requesting daily won't work. Be precise: "daily close at 4:00 PM ET" not "daily data."</li>
-        <li><strong>Not accounting for data latency.</strong> Some releases lag: COT data (Friday for Tuesday), USDA forecasts (monthly, mid-month), earnings (announced after close). If your signal fires before data arrives, you have look-ahead bias.</li>
-        <li><strong>Writing Section 2a so vaguely that QD can't parse what you need.</strong> "Corn price data" is not enough. Need: "Continuous corn futures (ZC, nearest-to-expiry rolled 5 days before contract expiry), daily close, 2015–2024."</li>
-        <li><strong>Assuming alternative data is cheap.</strong> Satellite data, web scraping, proprietary sources cost money. Get pricing in Section 2b before committing 10 weeks to research that costs $50k/month to run.</li>
+        <li><strong>Treating equity factors as guaranteed sources of return.</strong> Value had a 10+ year drawdown. Momentum crashed in 2009. Document the worst drawdown you can find in history, and ask whether live performance will be worse.</li>
+        <li><strong>Ignoring duration when discussing fixed income positions.</strong> A "long Treasuries" position in 30-year bonds has radically different risk than a "long Treasuries" position in 2-year notes. Duration is the risk unit, not notional.</li>
+        <li><strong>Confusing factor alpha with factor beta.</strong> A stock with high momentum exposure isn't necessarily alpha — it's just loading on the momentum factor. Real alpha is the residual after controlling for factor loadings.</li>
+        <li><strong>Forgetting that factor crowding creates crash risk.</strong> When everyone is long the same factor (e.g., all quant funds long momentum), a de-risking event forces simultaneous selling. Factor crashes are correlated with crowding. Check COT-equivalent positioning data for factors.</li>
+        <li><strong>Building a fixed income carry strategy without modeling repo rates.</strong> Carry in fixed income is yield minus repo cost. If repo rates spike (e.g., repo squeeze in 2019), carry strategies go negative. Always compute net carry, not gross.</li>
       </ul>
     </div>
   </div>
 
   <div class="week-nav">
-    <a href="week3.html" class="week-nav-button">← Week 3: Statistics</a>
-    <a href="week5.html" class="week-nav-button">Week 5: The Hypothesis →</a>
+    <a href="week3.html" class="week-nav-button">← Week 3: FX &amp; Commodity Markets</a>
+    <a href="week5.html" class="week-nav-button">Week 5: Statistics →</a>
   </div>
 
 </div>
@@ -199,7 +209,7 @@ df['signal_entry'] = df['signal'] &lt; -entry_threshold
 </footer>
 
 <script>
-/* Week 4 — data pipeline DAG with flowing particles */
+/* Week 4 — data pipeline DAG with flowing particles (reused for market flows) */
 (function () {
   const hero   = document.querySelector('.week-hero');
   const canvas = document.getElementById('w4-canvas');
