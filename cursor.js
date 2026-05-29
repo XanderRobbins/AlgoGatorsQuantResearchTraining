@@ -6,6 +6,10 @@
   ring.id = 'cursor-ring';
   document.body.appendChild(dot);
   document.body.appendChild(ring);
+  document.documentElement.style.setProperty('cursor', 'none', 'important');
+  const style = document.createElement('style');
+  style.textContent = '* { cursor: none !important; }';
+  document.head.appendChild(style);
 
   let tx = 0, ty = 0;
   let rx = 0, ry = 0;
@@ -24,8 +28,8 @@
   });
 
   (function animateRing() {
-    rx += (tx - rx) * 0.04;
-    ry += (ty - ry) * 0.04;
+    rx += (tx - rx) * 0.05;
+    ry += (ty - ry) * 0.05;
     ring.style.left = rx + 'px';
     ring.style.top  = ry + 'px';
     requestAnimationFrame(animateRing);
