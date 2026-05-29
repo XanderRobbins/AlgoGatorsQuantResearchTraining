@@ -28,8 +28,8 @@
   });
 
   (function animateRing() {
-    rx += (tx - rx) * 0.05;
-    ry += (ty - ry) * 0.05;
+    rx += (tx - rx) * 0.15;
+    ry += (ty - ry) * 0.15;
     ring.style.left = rx + 'px';
     ring.style.top  = ry + 'px';
     requestAnimationFrame(animateRing);
