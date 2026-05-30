@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>QR Training Hub — AlgoGators</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    /* ── Hero dark island ───────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      overflow: hidden;
+      background: #0e0d0c;
+      border-bottom: none;
+      margin-bottom: 3rem;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding-bottom: 2rem;
+    }
+    #hero-canvas {
+      position: absolute;
+      inset: 0;
+      display: block;
+      z-index: 0;
+    }
+    .hero::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 1px;
+      background: #FF7D2A;
+      z-index: 2;
+    }
+    .hero::after {
+      content: '';
+      position: absolute;
+      bottom: 0; left: 0; right: 0;
+      height: 10px;
+      background: linear-gradient(
+        to bottom,
+        #FF7D2A 0px, #FF7D2A 1px,
+        #ffffff 1px, #ffffff 9px,
+        #000000 9px, #000000 10px
+      );
+      z-index: 2;
+    }
+    /* lift all hero children above canvas */
+    .hero > *:not(#hero-canvas) {
+      position: relative;
+      z-index: 1;
+    }
+    .hero-logo {
+      border-radius: 16px;
+      outline: 2px solid #ffffff;
+      outline-offset: 16px;
+      display: block;
+    }
+    .hero-logo-wrap {
+      position: relative;
+      display: inline-flex;
+      margin: 2rem 0 1.5rem;
+    }
+    /* top-right corner */
+    .hero-logo-wrap::before {
+      content: '';
+      position: absolute;
+      top: -44px; right: -80px;
+      width: 48px; height: 48px;
+      border-top: 2px solid #FF7D2A;
+      border-right: 2px solid #FF7D2A;
+      border-radius: 0 10px 0 0;
+    }
+    /* bottom-left corner */
+    .hero-logo-wrap::after {
+      content: '';
+      position: absolute;
+      bottom: -44px; left: -80px;
+      width: 48px; height: 48px;
+      border-bottom: 2px solid #FF7D2A;
+      border-left: 2px solid #FF7D2A;
+      border-radius: 0 0 0 10px;
+    }
+    /* re-color text for dark bg */
+    .hero h1 {
+      color: rgba(255, 238, 215, 0.95);
+      border-bottom-color: #FF7D2A;
+    }
+    .hero .hero-subtitle {
+      color: rgba(255, 238, 215, 0.35);
+    }
+    .hero .hero-meta {
+      color: rgba(255, 238, 215, 0.50);
+    }
+  </style>
+  <link rel="icon" type="image/png" href="Delta.png">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">QR Training Hub</span>
+  </div>
+  <div class="nav-links">
+    <a href="new-analyst.html">← Teams</a>
+    <a href="qr-home.html" class="active">Home</a>
+    <a href="week1.html">W1</a>
+    <a href="week2.html">W2</a>
+    <a href="week3.html">W3</a>
+    <a href="week4.html">W4</a>
+    <a href="week5.html">W5</a>
+    <a href="week6.html">W6</a>
+    <a href="week7.html">W7</a>
+    <a href="week8.html">W8</a>
+    <a href="week9.html">W9</a>
+    <a href="week10.html">W10</a>
+    <a href="week11.html">W11</a>
+    <a href="week12.html">W12</a>
+    <a href="week13.html">W13</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <canvas id="hero-canvas"></canvas>
+  <div class="hero-logo-wrap">
+    <img src="Stacked.png" alt="AlgoGators Stacked Logo" class="hero-logo">
+  </div>
+  <h1>QR Analyst Training Program</h1>
+  <p class="hero-subtitle">2026 Fall AlgoGators New Analyst Training Program</p>
+  <p class="hero-meta">AlgoGators Investment Fund — Internal Resource</p>
+</div>
+
+<div class="container">
+
+  <div class="section">
+    <h2>Investment Proposal Framework</h2>
+    <p style="color: var(--text-secondary); margin-bottom: 2.5rem; font-size: 1.05rem;">Every analyst builds toward the same structure: a complete Investment Proposal (IP) that documents hypothesis, data, methodology, and backtest results.</p>
+
+    <div class="grid grid-4">
+      <div class="card">
+        <div style="font-family: 'IBM Plex Sans', sans-serif; color: var(--accent); font-weight: 700; margin-bottom: 0.8rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em;">Section 1</div>
+        <h3 style="margin-top: 0; margin-bottom: 0.8rem; font-size: 1.2rem;">Hypothesis</h3>
+        <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;">Economic mechanism. Why does this inefficiency exist? What will the signal predict?</p>
+      </div>
+      <div class="card">
+        <div style="font-family: 'IBM Plex Sans', sans-serif; color: var(--accent); font-weight: 700; margin-bottom: 0.8rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em;">Section 2</div>
+        <h3 style="margin-top: 0; margin-bottom: 0.8rem; font-size: 1.2rem;">Data</h3>
+        <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;">2a: Data sourcing & cleaning. 2b: QD approval gate. Data must exist before backtest.</p>
+      </div>
+      <div class="card">
+        <div style="font-family: 'IBM Plex Sans', sans-serif; color: var(--accent); font-weight: 700; margin-bottom: 0.8rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em;">Section 3</div>
+        <h3 style="margin-top: 0; margin-bottom: 0.8rem; font-size: 1.2rem;">Methodology</h3>
+        <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;">3a: Signal rules. 3b: Model assumptions. Every assumption tested & documented.</p>
+      </div>
+      <div class="card">
+        <div style="font-family: 'IBM Plex Sans', sans-serif; color: var(--accent); font-weight: 700; margin-bottom: 0.8rem; font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.1em;">Section 4</div>
+        <h3 style="margin-top: 0; margin-bottom: 0.8rem; font-size: 1.2rem;">Results</h3>
+        <p style="color: var(--text-secondary); font-size: 0.95rem; line-height: 1.5;">Sharpe ratio, annual return, win rate, profit factor. Equity curve & drawdown analysis.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>Four-Phase Curriculum</h2>
+    <p style="color: var(--text-secondary); margin-bottom: 2rem;">13 weeks organized into four phases, building from foundations to research readiness.</p>
+
+    <div class="grid grid-2">
+      <div class="phase-card">
+        <div class="phase-number">Phase 1</div>
+        <h3 class="phase-title">Foundations</h3>
+        <p class="phase-week">Weeks 1–4</p>
+        <ul style="font-size: 0.95rem; margin-left: 1.5rem;">
+          <li>What defines a research edge</li>
+          <li>Derivatives & contract mechanics</li>
+          <li>FX & commodity markets</li>
+          <li>Fixed income & equity factors</li>
+        </ul>
+      </div>
+      <div class="phase-card">
+        <div class="phase-number">Phase 2</div>
+        <h3 class="phase-title">Tooling & Hypothesis</h3>
+        <p class="phase-week">Weeks 5–6</p>
+        <ul style="font-size: 0.95rem; margin-left: 1.5rem;">
+          <li>Statistics for quant research</li>
+          <li>AlgoGators toolstack & data pipeline</li>
+        </ul>
+      </div>
+      <div class="phase-card">
+        <div class="phase-number">Phase 3</div>
+        <h3 class="phase-title">Research Execution</h3>
+        <p class="phase-week">Weeks 7–11</p>
+        <ul style="font-size: 0.95rem; margin-left: 1.5rem;">
+          <li>Writing the hypothesis (Section 1)</li>
+          <li>Data sourcing & cleaning (Section 2)</li>
+          <li>Signal construction (Section 3a)</li>
+          <li>Model assumptions (Section 3b)</li>
+          <li>Backtest results & performance (Section 4)</li>
+        </ul>
+      </div>
+      <div class="phase-card">
+        <div class="phase-number">Phase 4</div>
+        <h3 class="phase-title">Readiness</h3>
+        <p class="phase-week">Weeks 12–13</p>
+        <ul style="font-size: 0.95rem; margin-left: 1.5rem;">
+          <li>Alternative data sources</li>
+          <li>Live research workshop & pitch</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2>13-Week Training Grid</h2>
+    <p style="color: var(--text-secondary); margin-bottom: 2rem;">Select a week to view its content. Each page is a self-contained reference for the topic.</p>
+
+    <div class="grid grid-2">
+      <a href="week1.html" class="week-card">
+        <span class="week-number">Week 1</span>
+        <h3 class="week-title">What Is a Research Edge?</h3>
+      </a>
+
+      <a href="week2.html" class="week-card">
+        <span class="week-number">Week 2</span>
+        <h3 class="week-title">Derivatives & Contract Mechanics</h3>
+      </a>
+
+      <a href="week3.html" class="week-card">
+        <span class="week-number">Week 3</span>
+        <h3 class="week-title">FX & Commodity Markets</h3>
+      </a>
+
+      <a href="week4.html" class="week-card">
+        <span class="week-number">Week 4</span>
+        <h3 class="week-title">Fixed Income & Equity Factors</h3>
+      </a>
+
+      <a href="week5.html" class="week-card">
+        <span class="week-number">Week 5</span>
+        <h3 class="week-title">Statistics for Quant Research</h3>
+      </a>
+
+      <a href="week6.html" class="week-card">
+        <span class="week-number">Week 6</span>
+        <h3 class="week-title">Fund Toolstack & Data Pipeline</h3>
+      </a>
+
+      <a href="week7.html" class="week-card">
+        <span class="week-number">Week 7</span>
+        <h3 class="week-title">Writing the Hypothesis (IP §1)</h3>
+      </a>
+
+      <a href="week8.html" class="week-card">
+        <span class="week-number">Week 8</span>
+        <h3 class="week-title">Data Sourcing & Cleaning (IP §2)</h3>
+      </a>
+
+      <a href="week9.html" class="week-card">
+        <span class="week-number">Week 9</span>
+        <h3 class="week-title">Signal Construction (IP §3a)</h3>
+      </a>
+
+      <a href="week10.html" class="week-card">
+        <span class="week-number">Week 10</span>
+        <h3 class="week-title">Model Assumptions (IP §3b)</h3>
+      </a>
+
+      <a href="week11.html" class="week-card">
+        <span class="week-number">Week 11</span>
+        <h3 class="week-title">Backtest Results & Performance (IP §4)</h3>
+      </a>
+
+      <a href="week12.html" class="week-card">
+        <span class="week-number">Week 12</span>
+        <h3 class="week-title">Alternative Data Sources</h3>
+      </a>
+
+      <a href="week13.html" class="week-card">
+        <span class="week-number">Week 13</span>
+        <h3 class="week-title">Live Research Workshop</h3>
+      </a>
+    </div>
+  </div>
+
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — QR Training Program // Internal Use Only
+</footer>
+
+
+<canvas id="spiral-bg" style="position:absolute;top:50%;right:-140px;transform:translateY(-50%);pointer-events:none;z-index:-1;opacity:0.18;"></canvas>
+<canvas id="spiral-bg-2" style="position:absolute;pointer-events:none;z-index:-1;opacity:0.18;clip-path:inset(50% 0 0 50%);"></canvas>
+<canvas id="spiral-bg-3" style="position:absolute;pointer-events:none;z-index:-1;opacity:0.50;"></canvas>
+<style>
+@media (max-width: 768px) {
+  #spiral-bg, #spiral-bg-2, #spiral-bg-3 { display: none; }
+  .hero-logo-wrap::before {
+    top: -28px; right: -28px;
+    width: 28px; height: 28px;
+  }
+  .hero-logo-wrap::after {
+    bottom: -28px; left: -28px;
+    width: 28px; height: 28px;
+  }
+}
+</style>
+
+<script src="cursor.js"></script>
+
+<script>
+(function () {
+  // ── Config ────────────────────────────────────────────────────────
+  const SPACING       = 24;    // grid pitch px
+  const DOT_R         = 1.6;   // dot radius px
+  const PUSH_RADIUS   = 135;   // mouse influence radius px
+  const PUSH_STRENGTH = 72;    // max displacement px
+  const STIFFNESS     = 0.055;
+  const DAMPING       = 0.72;
+
+  // Base: dim orange  |  Accent: bright orange #FF7D2A = 255,125,42
+  const B_R=255, B_G=125, B_B=42, B_A=0.60;
+  const A_R=255, A_G=165, A_B=80, A_A=1.00;
+
+  // ── State ─────────────────────────────────────────────────────────
+  const hero   = document.querySelector('.hero');
+  const canvas = document.getElementById('hero-canvas');
+  const ctx    = canvas.getContext('2d');
+
+  let W, H, dots, dotCount;
+  let mx = -9999, my = -9999, mActive = false;
+
+  // ── Grid build ────────────────────────────────────────────────────
+  function buildGrid() {
+    const rect = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(rect.width);
+    H = canvas.height = Math.round(rect.height);
+
+    const cols = Math.ceil(W / SPACING) + 1;
+    const rows = Math.ceil(H / SPACING) + 1;
+    const offX = (W - (cols - 1) * SPACING) / 2;
+    const offY = (H - (rows - 1) * SPACING) / 2;
+
+    dotCount = cols * rows;
+    dots = new Float32Array(dotCount * 6);
+
+    let n = 0;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const ox = offX + c * SPACING;
+        const oy = offY + r * SPACING;
+        dots[n]   = ox; dots[n+1] = oy; // origin
+        dots[n+2] = ox; dots[n+3] = oy; // current
+        dots[n+4] = 0;  dots[n+5] = 0;  // velocity
+        n += 6;
+      }
+    }
+  }
+
+  // ── Render loop ───────────────────────────────────────────────────
+  function frame() {
+    ctx.clearRect(0, 0, W, H);
+    const PUSH_R2 = PUSH_RADIUS * PUSH_RADIUS;
+    const len = dotCount * 6;
+
+    for (let i = 0; i < len; i += 6) {
+      const ox = dots[i],   oy = dots[i+1];
+      let   x  = dots[i+2], y  = dots[i+3];
+      let   vx = dots[i+4], vy = dots[i+5];
+
+      // repulsion target
+      let tx = ox, ty = oy;
+      if (mActive) {
+        const dx = x - mx, dy = y - my;
+        const d2 = dx*dx + dy*dy;
+        if (d2 < PUSH_R2 && d2 > 0.01) {
+          const d  = Math.sqrt(d2);
+          const t  = 1.0 - d / PUSH_RADIUS;
+          const f  = t * t * PUSH_STRENGTH;
+          tx = ox + (dx / d) * f;
+          ty = oy + (dy / d) * f;
+        }
+      }
+
+      // spring physics
+      vx += (tx - x) * STIFFNESS;
+      vy += (ty - y) * STIFFNESS;
+      vx *= DAMPING;
+      vy *= DAMPING;
+      x  += vx; y += vy;
+
+      dots[i+2]=x; dots[i+3]=y; dots[i+4]=vx; dots[i+5]=vy;
+
+      // color by displacement
+      const dispX = x - ox, dispY = y - oy;
+      const disp  = Math.sqrt(dispX*dispX + dispY*dispY);
+      const t     = disp / PUSH_STRENGTH > 1 ? 1 : disp / PUSH_STRENGTH;
+
+      const cr = (B_R + (A_R - B_R) * t + 0.5) | 0;
+      const cg = (B_G + (A_G - B_G) * t + 0.5) | 0;
+      const cb = (B_B + (A_B - B_B) * t + 0.5) | 0;
+      const ca =  B_A + (A_A - B_A) * t;
+
+      ctx.beginPath();
+      ctx.arc(x, y, DOT_R, 0, 6.283185307);
+      ctx.fillStyle = `rgba(${cr},${cg},${cb},${(ca*100+0.5|0)/100})`;
+      ctx.fill();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  // ── Events ────────────────────────────────────────────────────────
+  hero.addEventListener('mousemove', e => {
+    const r = canvas.getBoundingClientRect();
+    mx = e.clientX - r.left;
+    my = e.clientY - r.top;
+    mActive = true;
+  });
+  hero.addEventListener('mouseleave', () => { mActive = false; });
+
+  hero.addEventListener('touchmove', e => {
+    const r = canvas.getBoundingClientRect();
+    const t = e.touches[0];
+    mx = t.clientX - r.left;
+    my = t.clientY - r.top;
+    mActive = true;
+  }, { passive: true });
+  hero.addEventListener('touchend', () => { mActive = false; });
+
+  // resize: rebuild when hero changes size (e.g. window resize)
+  new ResizeObserver(buildGrid).observe(hero);
+
+  buildGrid();
+  requestAnimationFrame(frame);
+})();
+</script>
+
+<script>
+(function () {
+  const canvas = document.getElementById('spiral-bg');
+  const ctx    = canvas.getContext('2d');
+  const SIZE   = 640;
+  canvas.width = canvas.height = SIZE;
+
+  const fx = SIZE * 0.52;   // focal point x
+  const fy = SIZE * 0.46;   // focal point y
+  const RINGS    = 62;
+  const MAX_R    = SIZE * 0.47;
+
+  ctx.clearRect(0, 0, SIZE, SIZE);
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth   = 1.1;
+
+  for (let i = 1; i <= RINGS; i++) {
+    const t = i / RINGS;                       // 0→center, 1→outer
+    const r = MAX_R * Math.pow(t, 0.75);       // slightly compressed spacing
+
+    // spiral angle over 2 full rotations
+    const spiralAngle = t * Math.PI * 4;
+
+    // offset the ellipse center slightly around the focal point
+    const offMag = r * 0.13 * (1 - t * 0.4);
+    const ox = fx + Math.cos(spiralAngle) * offMag;
+    const oy = fy + Math.sin(spiralAngle) * offMag;
+
+    // aspect ratio: more elongated near outer rings
+    const aspect = 0.55 + 0.45 * (1 - t);
+
+    // rotation tracks the spiral tangent
+    const rotation = spiralAngle + Math.PI * 0.5;
+
+    ctx.beginPath();
+    ctx.ellipse(ox, oy, r, r * aspect, rotation, 0, Math.PI * 2);
+    ctx.stroke();
+  }
+
+  // solid center dot
+  ctx.beginPath();
+  ctx.arc(fx, fy, 8, 0, Math.PI * 2);
+  ctx.fillStyle = '#000';
+  ctx.fill();
+})();
+</script>
+
+<script>
+(function () {
+  const canvas = document.getElementById('spiral-bg-2');
+  const ctx    = canvas.getContext('2d');
+  const SIZE   = 1120;
+  canvas.width = canvas.height = SIZE;
+
+  // Position: center of canvas at (x=0, y=hero_bottom)
+  function positionCanvas() {
+    const hero = document.querySelector('.hero');
+    const heroBottom = hero.offsetTop + hero.offsetHeight;
+    canvas.style.left = (-SIZE / 2) + 'px';
+    canvas.style.top  = (heroBottom - SIZE / 2) + 'px';
+  }
+  positionCanvas();
+  window.addEventListener('resize', positionCanvas);
+
+  const cx = SIZE * 0.50;
+  const cy = SIZE * 0.50;
+  const RINGS  = 52;
+  const MAX_R  = SIZE * 0.45;
+  const FREQ   = 7;
+
+  ctx.strokeStyle = '#000';
+  ctx.lineWidth   = 1.5;
+
+  for (let i = 1; i <= RINGS; i++) {
+    const t        = i / RINGS;
+    const baseR    = MAX_R * Math.pow(t, 0.72);
+    const amp      = baseR * 0.11 * (1 - t * 0.45);
+    const phaseOff = t * Math.PI * 3;
+
+    ctx.beginPath();
+    const STEPS = 360;
+    for (let s = 0; s <= STEPS; s++) {
+      const a = (s / STEPS) * Math.PI * 2;
+      const r = baseR + Math.sin(a * FREQ + phaseOff) * amp;
+      const x = cx + Math.cos(a) * r;
+      const y = cy + Math.sin(a) * r;
+      s === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.stroke();
+  }
+})();
+</script>
+<script>
+(function () {
+  const canvas = document.getElementById('spiral-bg-3');
+  const ctx    = canvas.getContext('2d');
+  const SIZE   = 1120;
+  canvas.width = canvas.height = SIZE;
+
+  function positionCanvas() {
+    const footer = document.querySelector('footer');
+    canvas.style.left = (-SIZE * 0.30) + 'px';
+    canvas.style.top  = (footer.offsetTop - SIZE * 0.9) + 'px';
+  }
+  positionCanvas();
+  window.addEventListener('resize', positionCanvas);
+
+  const cx = SIZE * 0.50;
+  const cy = SIZE * 0.50;
+  const K       = 3;      // rose with 3 petals
+  const MAX_R   = SIZE * 0.44;
+  const LAYERS  = 9;
+
+  ctx.strokeStyle = '#FF7D2A';
+  ctx.lineWidth   = 1.2;
+
+  for (let layer = 1; layer <= LAYERS; layer++) {
+    const scale = layer / LAYERS;
+    ctx.beginPath();
+    const STEPS = 720;
+    for (let s = 0; s <= STEPS; s++) {
+      const a = (s / STEPS) * Math.PI * 2;
+      const r = MAX_R * scale * Math.cos(K * a);
+      const x = cx + Math.cos(a) * r;
+      const y = cy + Math.sin(a) * r;
+      s === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+    }
+    ctx.closePath();
+    ctx.stroke();
+  }
+
+  // center dot
+  ctx.beginPath();
+  ctx.arc(cx, cy, 5, 0, Math.PI * 2);
+  ctx.fillStyle = '#FF7D2A';
+  ctx.fill();
+})();
+</script>
+</body>
+</html>

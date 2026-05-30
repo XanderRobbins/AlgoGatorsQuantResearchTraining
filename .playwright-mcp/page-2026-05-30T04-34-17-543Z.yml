@@ -1,0 +1,228 @@
+- generic [ref=e3]:
+  - region "top of page"
+  - generic [ref=e10]:
+    - banner [ref=e11]:
+      - generic [ref=e20]:
+        - generic:
+          - generic:
+            - navigation "Site" [ref=e25]:
+              - list [ref=e26]:
+                - listitem [ref=e27] [cursor=pointer]:
+                  - link "Home" [ref=e28]:
+                    - /url: https://www.algogators.com
+                    - paragraph [ref=e31]: Home
+                - listitem [ref=e32] [cursor=pointer]:
+                  - link "Who We Are" [ref=e33]:
+                    - /url: https://www.algogators.com/who-we-are
+                    - paragraph [ref=e36]: Who We Are
+                - listitem [ref=e37] [cursor=pointer]:
+                  - link "What We Do" [ref=e38]:
+                    - /url: https://www.algogators.com/what-we-do
+                    - paragraph [ref=e41]: What We Do
+                - listitem [ref=e42] [cursor=pointer]:
+                  - link "How We Train" [ref=e43]:
+                    - /url: https://www.algogators.com/how-we-train
+                    - paragraph [ref=e46]: How We Train
+                - listitem [ref=e47] [cursor=pointer]:
+                  - link "Research" [ref=e48]:
+                    - /url: https://www.algogators.com/copy-of-macro-reports
+                    - paragraph [ref=e51]: Research
+                - listitem [ref=e52] [cursor=pointer]:
+                  - link "Apply Now" [ref=e53]:
+                    - /url: https://www.algogators.com/apply-now
+                    - paragraph [ref=e56]: Apply Now
+                - listitem [ref=e57] [cursor=pointer]:
+                  - link "AlgoLens" [ref=e58]:
+                    - /url: https://algolens.algogators.com
+                    - paragraph [ref=e61]: AlgoLens
+            - heading "AlgoGators Investment Fund" [level=2] [ref=e62]:
+              - link "AlgoGators Investment Fund" [ref=e63] [cursor=pointer]:
+                - /url: https://www.algogators.com
+                - generic [ref=e65]: AlgoGators Investment Fund
+            - generic "A_edited.jpg" [ref=e66] [cursor=pointer]:
+              - link "AlgoGators Brand Mark" [ref=e67]:
+                - /url: https://www.algogators.com
+                - img "AlgoGators Brand Mark" [ref=e68]
+    - main [ref=e69]:
+      - generic [ref=e74]:
+        - generic:
+          - generic:
+            - generic:
+              - generic [ref=e79]:
+                - generic:
+                  - generic:
+                    - heading "AlgoGators" [level=1] [ref=e81]:
+                      - generic [ref=e84]: AlgoGators
+                    - paragraph [ref=e85]:
+                      - generic [ref=e89]: Investment Fund
+              - generic [ref=e90]:
+                - generic:
+                  - generic:
+                    - img "Screenshot 2024-03-19 at 8.37.40 PM.png" [ref=e96]
+                    - heading "Data Driven, Student Run." [level=1] [ref=e97]:
+                      - generic [ref=e100]: Data Driven, Student Run.
+              - generic [ref=e101]:
+                - generic:
+                  - generic:
+                    - paragraph [ref=e109]:
+                      - generic [ref=e112]:
+                        - generic [ref=e113]: $500K
+                        - generic [ref=e114]: AUM
+                    - paragraph [ref=e115]:
+                      - generic [ref=e117]: Real capital deployed through disciplined, systematic macro strategies.
+              - generic [ref=e118]:
+                - generic:
+                  - generic:
+                    - heading "Optimizing Finance" [level=1] [ref=e122]:
+                      - generic [ref=e126]:
+                        - text: Optimizing
+                        - text: Finance
+                    - paragraph [ref=e127]:
+                      - generic [ref=e129]: Our strategic focus lies in creating portfolios built to capture uncorrelated returns by targeting diversified risk premia. We harness innovative analytics to deliver distinct, risk-adjusted performance through advanced algorithms.
+                    - generic [ref=e134]:
+                      - generic [ref=e135]:
+                        - generic:
+                          - generic:
+                            - heading "Experience" [level=2] [ref=e140]:
+                              - generic [ref=e142]: Experience
+                            - paragraph [ref=e143]:
+                              - generic [ref=e146]: Direct involvement with live trading
+                            - paragraph [ref=e147]:
+                              - generic [ref=e150]: Develop and deploy algorithms
+                            - paragraph [ref=e151]:
+                              - generic [ref=e154]: Valuable, tangible experience
+                      - generic [ref=e155]:
+                        - generic:
+                          - generic:
+                            - heading "Exploration" [level=2] [ref=e159]:
+                              - generic [ref=e161]: Exploration
+                            - paragraph [ref=e162]:
+                              - generic [ref=e165]: Insight into careers in Quant Finance
+                            - generic:
+                              - paragraph [ref=e166]:
+                                - generic [ref=e169]: Direct mentorship from
+                              - paragraph [ref=e170]:
+                                - generic [ref=e173]: industry experts
+                            - paragraph [ref=e174]:
+                              - generic [ref=e177]: Guidance on navigating financial tech landscape
+                      - generic [ref=e178]:
+                        - generic:
+                          - generic:
+                            - heading "Network" [level=2] [ref=e183]:
+                              - generic [ref=e185]: Network
+                            - paragraph [ref=e186]:
+                              - generic [ref=e189]: Interact with finance professionals
+                            - paragraph [ref=e190]:
+                              - generic [ref=e193]: Forge connections with leading financial firms
+                            - paragraph [ref=e194]:
+                              - generic [ref=e197]: Access to exclusive networking events
+                      - generic [ref=e198]:
+                        - generic:
+                          - generic:
+                            - heading "Connection" [level=2] [ref=e202]:
+                              - generic [ref=e204]: Connection
+                            - paragraph [ref=e205]:
+                              - generic [ref=e208]: Collaborate with peers and mentors
+                            - paragraph [ref=e209]:
+                              - generic [ref=e212]: Join a community of forward
+                              - generic [ref=e215]: thinking students
+                            - paragraph [ref=e216]:
+                              - generic [ref=e219]: Participate in team projects and competitions
+              - generic [ref=e220]:
+                - generic:
+                  - generic:
+                    - generic "bebea4_72754f63ae1944819978fe02c4fbe71c~mv2.png" [ref=e226]:
+                      - img "5.png" [ref=e228]
+                    - generic [ref=e229]:
+                      - generic:
+                        - generic:
+                          - heading "Get Involved" [level=1] [ref=e231]:
+                            - generic [ref=e234]: Get Involved
+                          - generic:
+                            - paragraph [ref=e235]:
+                              - generic [ref=e237]: Want to know more about what we do?
+                            - paragraph [ref=e238]:
+                              - generic [ref=e240]: Our team hosts public meetings every other Friday, open to anyone interested in quantitative finance. These meetings feature guest lectures and discussions on a variety of topics in the field. If you're considering a career in quant or a position at AlgoGators, come connect with our team.
+              - generic [ref=e241]:
+                - generic:
+                  - generic:
+                    - region "Paginated grid gallery" [ref=e245]:
+                      - generic [ref=e246]:
+                        - img [ref=e248]:
+                          - img "Screen Shot 2025-03-06 at 11_edited" [ref=e252]
+                        - img [ref=e255]:
+                          - img "IMG_1785_edited" [ref=e259]
+                        - img [ref=e262]:
+                          - img "IMG_1777_edited" [ref=e266]
+                        - img [ref=e269]:
+                          - img "IMG_1767_edited_edited" [ref=e273]
+                        - img [ref=e276]:
+                          - img "IMG_1779_edited" [ref=e280]
+                        - img [ref=e283]:
+                          - img "IMG_1772_edited" [ref=e287]
+                        - img [ref=e290]:
+                          - img "IMG_1812_edited" [ref=e294]
+                        - img [ref=e297]:
+                          - img "Screen Shot 2025-03-06 at 11_edited" [ref=e301]
+                        - img [ref=e304]:
+                          - img "IMG_1742_edited_edited_edited" [ref=e308]
+                      - generic [ref=e310]: 1/1
+                    - generic [ref=e312]:
+                      - generic:
+                        - generic:
+                          - heading "Interested in learning more? Reach out with any questions." [level=2] [ref=e313]:
+                            - generic [ref=e317]: Interested in learning more?
+                            - generic [ref=e321]: Reach out with any questions.
+                          - generic [ref=e322]:
+                            - generic [ref=e323]: First name *
+                            - textbox "First name *" [ref=e325]:
+                              - /placeholder: " "
+                          - generic [ref=e326]:
+                            - generic [ref=e327]: Last name *
+                            - textbox "Last name *" [ref=e329]:
+                              - /placeholder: " "
+                          - generic [ref=e330]:
+                            - generic [ref=e331]: Email *
+                            - textbox "Email *" [ref=e333]:
+                              - /placeholder: " "
+                          - generic [ref=e334]:
+                            - generic [ref=e335]: Write a message *
+                            - textbox "Write a message *" [ref=e336]:
+                              - /placeholder: " "
+                          - button "Submit" [ref=e338] [cursor=pointer]:
+                            - generic [ref=e339]: Submit
+    - contentinfo [ref=e340]:
+      - generic [ref=e354]:
+        - generic:
+          - generic:
+            - navigation "Site" [ref=e358]:
+              - list [ref=e359]:
+                - listitem [ref=e360]:
+                  - link "Home" [ref=e363] [cursor=pointer]:
+                    - /url: https://www.algogators.com
+                - listitem [ref=e364]:
+                  - link "Who We Are" [ref=e367] [cursor=pointer]:
+                    - /url: https://www.algogators.com/who-we-are
+                - listitem [ref=e368]:
+                  - link "What We Do" [ref=e371] [cursor=pointer]:
+                    - /url: https://www.algogators.com/what-we-do
+                - listitem [ref=e372]:
+                  - link "How We Train" [ref=e375] [cursor=pointer]:
+                    - /url: https://www.algogators.com/how-we-train
+                - listitem [ref=e376]:
+                  - link "Apply Now" [ref=e379] [cursor=pointer]:
+                    - /url: https://www.algogators.com/apply-now
+                - listitem [ref=e380]:
+                  - link "Research_old" [ref=e383] [cursor=pointer]:
+                    - /url: https://www.algogators.com/research
+                - listitem [ref=e384]:
+                  - link "Macro Reports" [ref=e387] [cursor=pointer]:
+                    - /url: https://www.algogators.com/macro-reports
+                - listitem [ref=e388]:
+                  - link "Research" [ref=e391] [cursor=pointer]:
+                    - /url: https://www.algogators.com/copy-of-macro-reports
+            - paragraph [ref=e392]: The content provided on this website is for informational purposes only and does not constitute an offer to sell, a solicitation to buy, or a recommendation for any security; nor does it constitute an offer to provide investment advisory or other services by AlgoGators Investment Fund. No reference to any specific security constitutes a recommendation to buy, sell, or hold that security or any other security. Nothing on this website shall be considered a solicitation or offer to buy or sell any financial instrument or to offer or provide any investment advice or service to any person in any jurisdiction. Information on this site is intended only for informational and educational purposes and is not guaranteed to be accurate or complete. Investing involves risk, including the possible loss of principal. The AlgoGators Investment Fund is not responsible for any losses incurred from investment decisions made based on information provided on this website.
+            - link "AlgoGators" [ref=e394] [cursor=pointer]:
+              - /url: https://www.algogators.com
+              - img "AlgoGators" [ref=e395]
+  - region "bottom of page"

@@ -1,0 +1,117 @@
+- generic [active] [ref=e1]:
+  - generic [ref=e2]:
+    - img
+    - generic:
+      - generic:
+        - generic:
+          - generic: Xander Robbins
+          - generic: Quant Finance · UF · AlgoGators
+      - generic:
+        - generic [ref=e5]:
+          - generic [ref=e6]: 01 ——
+          - generic [ref=e7]:
+            - text: Trading
+            - text: Strategies
+          - generic [ref=e8]: Monte Carlo Pricing, volatility surfaces, arbitrage models built at AlgoGators.
+          - generic [ref=e9]: ↗
+        - link "Resume Resume preview ↗" [ref=e10]:
+          - /url: Alexander Robbins Resume.pdf
+          - generic [ref=e11]: Resume
+          - img "Resume preview" [ref=e12]
+          - generic [ref=e13]: ↗
+        - generic [ref=e14]:
+          - generic [ref=e15]: 02 ——
+          - generic [ref=e16]: Accomplishments
+          - generic [ref=e17]: Hackathons, academic honors, and competitive achievements across math & finance.
+          - generic [ref=e18]: ↗
+        - generic [ref=e19]:
+          - generic [ref=e20]: 03 ——
+          - generic [ref=e21]: Research & Projects
+          - generic [ref=e22]: Monte Carlo options pricing, variance reduction, ASVR algorithms
+          - generic [ref=e23]: ↗
+      - link "About Me ↓" [ref=e24]:
+        - /url: "#about"
+        - generic [ref=e25]: About Me
+        - generic [ref=e26]: ↓
+  - generic [ref=e27]:
+    - generic [ref=e29]:
+      - generic [ref=e30]: 00 — About
+      - heading "Do what others won't, until you do what they can’t." [level=2] [ref=e31]:
+        - text: Do what others won't,
+        - emphasis [ref=e32]: until you do what they can’t.
+      - generic [ref=e33]:
+        - paragraph [ref=e34]: I'm a double major in Mathematics and Economics with a minor in Computer Science at the University of Florida, graduating December 2026 @ 19 years old. I've been on an accelerated timeline after exhausting the available upper-division coursework. My focus sits at the intersection of financial theory and computational methods.
+        - paragraph [ref=e35]: At AlgoGators — The only student-run quant fund in the US — I serve as the head of Quantitative Research, leading 20 QR analysts on developing cutting-edge quantitative models and strategies. I also teach as a Senior Lecturer at QuantED, where I lecture over Options, Futures and Other Derivatives. I simultanously work for UF as the head TA for Discrete Structures & Mathematics.
+      - generic [ref=e36]:
+        - generic [ref=e37]:
+          - generic [ref=e38]: "4.0"
+          - generic [ref=e39]: Upper-div GPA
+        - generic [ref=e41]:
+          - generic [ref=e42]: "19"
+          - generic [ref=e43]: years Old
+        - generic [ref=e45]:
+          - generic [ref=e46]: Dec '26
+          - generic [ref=e47]: Graduating
+        - generic [ref=e49]:
+          - generic [ref=e50]: UF
+          - generic [ref=e51]: University
+        - generic [ref=e53]:
+          - generic [ref=e54]: NYC
+          - generic [ref=e55]: Target
+    - generic [ref=e57]:
+      - heading "Life Timeline" [level=3] [ref=e58]
+      - generic [ref=e59]:
+        - generic [ref=e60]:
+          - generic [ref=e62]: May 2024
+          - generic [ref=e63]: Graduated High School Early
+          - generic [ref=e64]: Gradauted with 73 College Credits
+          - button "+" [ref=e65] [cursor=pointer]
+          - generic:
+            - generic [ref=e66]: 4.00 Unweighted GPA
+            - generic [ref=e67]: Class President
+            - generic [ref=e68]: 9.32 Weighted GPA
+            - generic [ref=e69]: Valedictorian
+        - generic [ref=e70]:
+          - generic [ref=e72]: Aug. 2024
+          - generic [ref=e73]: Started UF
+          - generic [ref=e74]: Double major Math & Economics
+          - button "+" [ref=e75] [cursor=pointer]
+          - generic:
+            - generic [ref=e76]: Completed Finance Prof. Development Program
+            - generic [ref=e77]: Joined Kappa Phi Epsilon
+            - generic [ref=e78]: learned Python and C++
+        - generic [ref=e79]:
+          - generic [ref=e81]: Jan. 2025
+          - generic [ref=e82]: AlgoGators
+          - generic [ref=e83]: Senior Macro Analyst
+          - button "+" [ref=e84] [cursor=pointer]
+          - generic:
+            - generic [ref=e85]: Finished Analyst training
+            - generic [ref=e86]: began first research project
+            - generic [ref=e87]: Competed and Won first Hackathon
+        - generic [ref=e88]:
+          - generic [ref=e90]: Dec. 2025
+          - generic [ref=e91]: Quant-ED Lecturer
+          - generic [ref=e92]: Teaching Options, Futures and Other Derivatives from John C. Hull
+          - button "+" [ref=e93] [cursor=pointer]
+          - generic:
+            - generic [ref=e94]: 200+ students taught
+            - generic [ref=e95]: 4.9/5 course rating
+        - generic [ref=e96]:
+          - generic [ref=e98]: Mar.2026
+          - generic [ref=e99]: Director of Quant Research
+          - generic [ref=e100]: Leading research initiatives and mentoring junior analysts
+          - button "+" [ref=e101] [cursor=pointer]
+          - generic:
+            - generic [ref=e102]: Completed 4 research projects
+            - generic [ref=e103]: Manage $500,000 live trading
+            - generic [ref=e104]: "Goal: MCQMC 2026 paper accepted"
+        - generic [ref=e105]:
+          - generic [ref=e107]: Dec. 2026
+          - generic [ref=e108]: Graduation
+          - generic [ref=e109]: At 19 years old
+          - button "+" [ref=e110] [cursor=pointer]
+          - generic:
+            - generic [ref=e111]: Double major completed
+            - generic [ref=e112]: Coming Soon!
+  - generic: Scroll Right →
