@@ -1,0 +1,154 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AlgoLens — Senior Analyst Hub</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="sa-styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="Delta.png">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">Senior Analyst Hub</span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html">← Exit</a>
+    <a href="senior-analyst.html">Hub</a>
+    <a href="sa-ip.html">IP's</a>
+    <a href="sa-research.html">Research</a>
+    <a href="sa-prior.html">Prior IPs</a>
+    <a href="sa-performance.html" class="active">AlgoLens</a>
+    <a href="sa-resources.html">Resources</a>
+    <a href="sa-hierarchy.html">Hierarchy</a>
+    <a href="sa-outreach.html">Outreach</a>
+    <a href="sa-prep.html">Prep</a>
+    <a href="sa-legal.html">Legal</a>
+    <a href="sa-plan.html">Plan</a>
+  </div>
+</nav>
+
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="sa-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Section 04 &mdash; Fund Performance</div>
+    <h1>AlgoLens</h1>
+    <div class="week-hero-pill">Real-Time Portfolio Analytics via AlgoLens</div>
+    <p class="week-hero-objective">Live P&amp;L, strategy performance attribution, drawdown metrics, and risk analytics — all on AlgoLens.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="section">
+    <h2 class="section-title">AlgoLens</h2>
+
+    <div class="algolens-hero">
+      <h2>AlgoLens</h2>
+      <p>Our live portfolio analytics platform. Real-time position tracking, strategy performance attribution, drawdown metrics, and risk analytics — all in one place.</p>
+      <a href="https://algolens.algogators.com" target="_blank" class="btn-primary">Open AlgoLens →</a>
+    </div>
+
+  </div>
+
+  <div class="week-nav">
+    <a href="sa-prior.html" class="week-nav-button">← Prior IPs</a>
+    <a href="sa-resources.html" class="week-nav-button">Resources →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — Senior Analyst Hub // Internal Use Only
+</footer>
+
+<script src="cursor.js"></script>
+<script>
+/* SA-Performance — self-drawing NAV equity curve with high-water mark */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('sa-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  const N = 400;
+  let curve, hw, progress = 0;
+  const SPEED = 0.00042;
+
+  function genCurve() {
+    curve = new Float32Array(N);
+    hw    = new Float32Array(N);
+    let y = 0.60, peak = y;
+    curve[0] = y; hw[0] = y;
+    for (let i = 1; i < N; i++) {
+      y = Math.max(0.10, Math.min(0.90, y + (Math.random() - 0.472) * 0.020));
+      if (y > peak) peak = y;
+      curve[i] = y; hw[i] = peak;
+    }
+  }
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+  }
+
+  function px(i) { return (i / (N - 1)) * W; }
+  function py(v) { return (1 - v) * H * 0.78 + H * 0.11; }
+
+  let lastTs = null;
+
+  function frame(ts) {
+    if (lastTs === null) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    progress = Math.min(1, progress + SPEED * dt);
+    if (progress >= 1) { progress = 0; genCurve(); }
+
+    const vis = Math.max(2, Math.floor(progress * N));
+    ctx.clearRect(0, 0, W, H);
+
+    // Drawdown shading
+    ctx.beginPath();
+    ctx.moveTo(px(0), py(hw[0]));
+    for (let i = 1; i < vis; i++) ctx.lineTo(px(i), py(hw[i]));
+    for (let i = vis - 1; i >= 0; i--) ctx.lineTo(px(i), py(curve[i]));
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(192,57,43,0.08)';
+    ctx.fill();
+
+    // High-water mark (dashed)
+    ctx.beginPath();
+    ctx.moveTo(px(0), py(hw[0]));
+    for (let i = 1; i < vis; i++) ctx.lineTo(px(i), py(hw[i]));
+    ctx.strokeStyle = 'rgba(255,238,215,0.22)';
+    ctx.lineWidth   = 1;
+    ctx.setLineDash([4, 6]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    // NAV equity curve
+    ctx.beginPath();
+    ctx.moveTo(px(0), py(curve[0]));
+    for (let i = 1; i < vis; i++) ctx.lineTo(px(i), py(curve[i]));
+    ctx.strokeStyle = 'rgba(255,125,42,0.72)';
+    ctx.lineWidth   = 1.8;
+    ctx.stroke();
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  genCurve();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

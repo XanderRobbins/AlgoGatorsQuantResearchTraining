@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Resources — Senior Analyst Hub</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="sa-styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="Delta.png">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">Senior Analyst Hub</span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html">← Exit</a>
+    <a href="senior-analyst.html">Hub</a>
+    <a href="sa-ip.html">IP's</a>
+    <a href="sa-research.html">Research</a>
+    <a href="sa-prior.html">Prior IPs</a>
+    <a href="sa-performance.html">AlgoLens</a>
+    <a href="sa-resources.html" class="active">Resources</a>
+    <a href="sa-hierarchy.html">Hierarchy</a>
+    <a href="sa-outreach.html">Outreach</a>
+    <a href="sa-prep.html">Prep</a>
+    <a href="sa-legal.html">Legal</a>
+    <a href="sa-plan.html">Plan</a>
+  </div>
+</nav>
+
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="sa-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Section 05 &mdash; Resource Library</div>
+    <h1>Resources</h1>
+    <div class="week-hero-pill">Tools, Reading & Career Materials</div>
+    <p class="week-hero-objective">Internal tools, essential reading, career materials, and external references — everything in one place.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="section">
+    <h2 class="section-title">Internal Tools</h2>
+
+    <div class="grid grid-2">
+      <a href="https://algolens.algogators.com" target="_blank" class="res-card">
+        <span class="res-cat">Internal Tool</span>
+        <div class="res-title">AlgoLens</div>
+        <div class="res-desc">Live portfolio analytics platform. Performance attribution, risk metrics, position tracking. Updated in near-real-time during market hours.</div>
+      </a>
+      <div class="res-card">
+        <span class="res-cat">Internal Tool</span>
+        <div class="res-title">trade-ngin</div>
+        <div class="res-desc">AlgoGators' backtesting and signal execution engine. Used for all IP strategy testing and live signal generation.</div>
+      </div>
+      <div class="res-card">
+        <span class="res-cat">Internal Tool</span>
+        <div class="res-title">data-ngin</div>
+        <div class="res-desc">Data pipeline and storage system. Handles fetching, cleaning, and storing market data via Databento into TimescaleDB/PostgreSQL.</div>
+      </div>
+      <div class="res-card">
+        <span class="res-cat">Internal Tool</span>
+        <div class="res-title">OneDrive</div>
+        <div class="res-desc">Shared file system for all fund documents, prior IP reports, handbooks, and research archives. Keep your work organized here.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Essential Reading</h2>
+
+    <div class="grid grid-2">
+      <a href="https://www.amazon.com/Active-Portfolio-Management-Quantitative-Controlling/dp/0070248826" target="_blank" class="res-card">
+        <span class="res-cat">Textbook</span>
+        <div class="res-title">Active Portfolio Management</div>
+        <div class="res-desc">Grinold & Kahn. The foundational text for systematic factor-based investing. Essential for understanding alpha, information ratio, and the fundamental law of active management.</div>
+      </a>
+      <a href="https://www.amazon.com/Advances-Active-Portfolio-Management-Econometrics/dp/1260453715" target="_blank" class="res-card">
+        <span class="res-cat">Textbook</span>
+        <div class="res-title">Advances in Active Portfolio Management</div>
+        <div class="res-desc">Grinold & Kahn (sequel). More recent treatment of factor models, risk models, and portfolio construction. Extends the original work with modern applications.</div>
+      </a>
+      <a href="https://www.amazon.com/Options-Futures-Other-Derivatives-11th/dp/B0B9JS99C2" target="_blank" class="res-card">
+        <span class="res-cat">Textbook</span>
+        <div class="res-title">Options, Futures, and Other Derivatives</div>
+        <div class="res-desc">John C. Hull. Standard reference for derivatives pricing, hedging, and risk management. Every QR member should know chapters on futures pricing and Greeks.</div>
+      </a>
+      <a href="https://www.amazon.com/Systematic-Trading-designing-trading-investing/dp/0857194453" target="_blank" class="res-card">
+        <span class="res-cat">Book</span>
+        <div class="res-title">Systematic Trading</div>
+        <div class="res-desc">Robert Carver. Practical guide to building and managing systematic trading strategies. Directly applicable to our trend-following and portfolio construction work.</div>
+      </a>
+      <a href="https://www.amazon.com/Man-All-Markets-Street-Dealer/dp/1400067960" target="_blank" class="res-card">
+        <span class="res-cat">Book</span>
+        <div class="res-title">A Man for All Markets</div>
+        <div class="res-desc">Ed Thorp. Pioneer of quantitative finance. Essential perspective on risk management, expected value thinking, and the edge-seeking mindset.</div>
+      </a>
+      <a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2089463" target="_blank" class="res-card">
+        <span class="res-cat">Paper</span>
+        <div class="res-title">Time Series Momentum (Moskowitz et al.)</div>
+        <div class="res-desc">Foundational academic paper behind trend-following strategies. Essential reading for understanding the economic rationale behind our Trend Following IP.</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Career Resources</h2>
+
+    <div class="grid grid-2">
+      <div class="res-card">
+        <span class="res-cat">Career</span>
+        <div class="res-title">Resume Templates</div>
+        <div class="res-desc">AlgoGators-reviewed resume formats tailored for quant finance roles. Available in OneDrive under Career Resources.</div>
+      </div>
+      <div class="res-card">
+        <span class="res-cat">Career</span>
+        <div class="res-title">LinkedIn Best Practices</div>
+        <div class="res-desc">How to frame your AlgoGators experience for quant intern and FT applications. Include fund AUM context, strategy details, and technical skills.</div>
+      </div>
+      <div class="res-card">
+        <span class="res-cat">Career</span>
+        <div class="res-title">Interview Prep</div>
+        <div class="res-desc">See the Quant Prep section for mental math, probability, and brain teasers. Practice 80-in-8 daily.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">External Technical References</h2>
+
+    <div class="grid grid-2">
+      <a href="https://databento.com/docs" target="_blank" class="res-card">
+        <span class="res-cat">Data</span>
+        <div class="res-title">Databento Docs</div>
+        <div class="res-desc">API documentation for our primary market data provider. Covers historical and real-time data schemas, rate limits, and symbology.</div>
+      </a>
+      <a href="https://docs.timescale.com/" target="_blank" class="res-card">
+        <span class="res-cat">Infrastructure</span>
+        <div class="res-title">TimescaleDB</div>
+        <div class="res-desc">Time-series extension for PostgreSQL used in our data stack. Official docs cover hypertables, continuous aggregates, and compression.</div>
+      </a>
+      <a href="https://www.postgresql.org/docs/" target="_blank" class="res-card">
+        <span class="res-cat">Infrastructure</span>
+        <div class="res-title">PostgreSQL Docs</div>
+        <div class="res-desc">Official PostgreSQL reference. Useful for query optimization, indexing strategies, and understanding our database architecture.</div>
+      </a>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <a href="sa-performance.html" class="week-nav-button">← Fund Performance</a>
+    <a href="sa-hierarchy.html" class="week-nav-button">Fund Hierarchy →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — Senior Analyst Hub // Internal Use Only
+</footer>
+
+<script src="cursor.js"></script>
+<script>
+/* SA-Resources — hub-and-spoke tool network with pulsing data flows */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('sa-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H, nodes = [], pulses = [];
+
+  const TOOLS = ['AlgoLens', 'trade-ngin', 'data-ngin', 'Databento', 'GitHub', 'Notion'];
+
+  function buildLayout() {
+    const cx = W * 0.50, cy = H * 0.50;
+    const R  = Math.min(W, H) * 0.30;
+    nodes = [{ x: cx, y: cy, label: 'SA', hub: true }];
+    for (let i = 0; i < TOOLS.length; i++) {
+      const a = (i / TOOLS.length) * Math.PI * 2 - Math.PI / 2;
+      nodes.push({ x: cx + Math.cos(a) * R, y: cy + Math.sin(a) * R, label: TOOLS[i], hub: false });
+    }
+    pulses = [];
+  }
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+    buildLayout();
+  }
+
+  let lastTs = null, cooldown = 0;
+
+  function frame(ts) {
+    if (lastTs === null) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Spoke lines
+    for (let i = 1; i < nodes.length; i++) {
+      ctx.beginPath();
+      ctx.moveTo(nodes[0].x, nodes[0].y);
+      ctx.lineTo(nodes[i].x, nodes[i].y);
+      ctx.strokeStyle = 'rgba(255,238,215,0.07)';
+      ctx.lineWidth   = 1;
+      ctx.stroke();
+    }
+
+    // Spawn pulses
+    cooldown -= dt;
+    if (cooldown <= 0 && nodes.length > 1) {
+      const to = nodes[1 + Math.floor(Math.random() * (nodes.length - 1))];
+      pulses.push({ from: nodes[0], to, t: 0 });
+      cooldown = 180 + Math.random() * 380;
+    }
+
+    for (let i = pulses.length - 1; i >= 0; i--) {
+      const p = pulses[i];
+      p.t += dt * 0.0016;
+      if (p.t >= 1) { pulses.splice(i, 1); continue; }
+      const x = p.from.x + (p.to.x - p.from.x) * p.t;
+      const y = p.from.y + (p.to.y - p.from.y) * p.t;
+      ctx.beginPath();
+      ctx.arc(x, y, 3, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(255,125,42,${(0.70 * (1 - p.t)).toFixed(2)})`;
+      ctx.fill();
+    }
+
+    // Draw nodes
+    for (const n of nodes) {
+      const r = n.hub ? 9 : 5;
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, r, 0, Math.PI * 2);
+      ctx.fillStyle = n.hub ? 'rgba(255,125,42,0.65)' : 'rgba(255,125,42,0.35)';
+      ctx.fill();
+      if (!n.hub) {
+        ctx.font      = "10px 'IBM Plex Mono', monospace";
+        ctx.fillStyle = 'rgba(255,238,215,0.42)';
+        ctx.textAlign = 'center';
+        ctx.textBaseline = 'top';
+        ctx.fillText(n.label, n.x, n.y + 8);
+      }
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

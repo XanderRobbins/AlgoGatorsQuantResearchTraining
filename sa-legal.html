@@ -1,0 +1,236 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Legal Framework — Senior Analyst Hub</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="sa-styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="Delta.png">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">Senior Analyst Hub</span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html">← Exit</a>
+    <a href="senior-analyst.html">Hub</a>
+    <a href="sa-ip.html">IP's</a>
+    <a href="sa-research.html">Research</a>
+    <a href="sa-prior.html">Prior IPs</a>
+    <a href="sa-performance.html">AlgoLens</a>
+    <a href="sa-resources.html">Resources</a>
+    <a href="sa-hierarchy.html">Hierarchy</a>
+    <a href="sa-outreach.html">Outreach</a>
+    <a href="sa-prep.html">Prep</a>
+    <a href="sa-legal.html" class="active">Legal</a>
+    <a href="sa-plan.html">Plan</a>
+  </div>
+</nav>
+
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="sa-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Section 09 &mdash; Legal & Compliance</div>
+    <h1>Legal Framework</h1>
+    <div class="week-hero-pill">Structure · Agreements · Compliance</div>
+    <p class="week-hero-objective">AlgoGators is structured to protect its members while maintaining operational flexibility. Every member must understand and comply with these principles.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="section">
+    <h2 class="section-title">Core Disclaimer</h2>
+
+    <div class="callout callout-danger">
+      <div class="callout-title">Always Apply — No Exceptions</div>
+      <p>AlgoGators' activities are for <strong>educational purposes only</strong> and do not constitute investment advice. Do not represent our signals or research as investment recommendations to any external party.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Legal Structure</h2>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h3 style="margin-top: 0;">Non-Profit Corporation</h3>
+        <p style="color: var(--text-secondary); font-size: 0.92rem;">AlgoGators is incorporated as a <strong>non-profit corporation at the state level</strong>. We do not hold federal non-profit (501c3) status. This structure allows focus on our educational mission while maintaining organizational independence from the university.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">Liability Protection</h3>
+        <p style="color: var(--text-secondary); font-size: 0.92rem;">The non-profit corporate structure shields individual members from personal liability for fund-related risks and losses. You are a member of an incorporated entity — not personally liable for fund operations, provided you act within your defined role.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">Board of Directors</h3>
+        <p style="color: var(--text-secondary); font-size: 0.92rem;">Governance is overseen by the Board of Directors, which currently includes <strong>Dustin Hebrank</strong> and <strong>Patrick Bott</strong>. The Board provides strategic guidance, reviews major decisions, and ensures adherence to the fund's mission.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">Operational Focus</h3>
+        <p style="color: var(--text-secondary); font-size: 0.92rem;">All fund activities and resources must align with our educational objectives. Decisions that stray from the educational mission require Board approval.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Participation Agreement</h2>
+
+    <p>Every member of AlgoGators is required to sign a <strong>Participation Agreement</strong> before accessing fund systems, data, or strategies. The agreement covers:</p>
+
+    <ul class="styled">
+      <li>Member roles and responsibilities within the fund</li>
+      <li>Intellectual property assignment — all research, strategies, and code developed as part of AlgoGators are IP of the fund</li>
+      <li>Confidentiality obligations — live strategy parameters and portfolio positions are confidential</li>
+      <li>Compliance with the fund's educational mission and non-investment-advice policy</li>
+      <li>Data usage restrictions — market data provided by Databento may only be used for AlgoGators research purposes</li>
+    </ul>
+
+    <div class="callout">
+      <div class="callout-title">Where to Sign</div>
+      <p>Participation Agreements are administered by the President at onboarding. If you have not signed, contact the President immediately. You should not have access to live systems without a signed agreement on file.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Open-Source Commitment</h2>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">GNU General Public License v3 (GPL v3)</h3>
+      <p style="color: var(--text-secondary); font-size: 0.92rem;">All tools, systems, and code developed by AlgoGators — including trade-ngin, data-ngin, and AlgoLens — are released under <strong>GPL v3</strong>. This means:</p>
+      <ul style="color: var(--text-secondary); font-size: 0.92rem; margin-left: 1.2rem; margin-top: 0.8rem;">
+        <li><strong style="color: var(--success);">Users may:</strong> freely use, modify, and distribute the software.</li>
+        <li><strong style="color: var(--text-primary);">Required:</strong> any derivative works must also be open-source under GPL v3.</li>
+        <li><strong style="color: var(--text-primary);">Purpose:</strong> to democratize quantitative finance tooling and contribute to the academic/open-source community.</li>
+      </ul>
+      <p style="color: var(--text-secondary); font-size: 0.92rem; margin-bottom: 0; margin-top: 0.8rem;">Strategy logic (the signals themselves) may be kept confidential as proprietary research, separate from the infrastructure code that is open-sourced.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Compliance Rules</h2>
+
+    <ul class="styled">
+      <li>Never represent AlgoGators signals or research as investment advice to any external party</li>
+      <li>Do not share live position data or strategy parameters outside of authorized members</li>
+      <li>Do not use fund data sources (Databento etc.) for personal trading or non-fund research</li>
+      <li>All external communications representing the fund must be approved by the President or ER Lead</li>
+      <li>If you are uncertain whether something complies, ask the President before proceeding</li>
+      <li>Any potential legal issues must be escalated to the Board immediately</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Long-Term Sustainability</h2>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h3 style="margin-top: 0;">Endowment Goal</h3>
+        <p style="color: var(--text-secondary); font-size: 0.92rem;">AlgoGators aims to establish a financial reserve (endowment) to support operational expenses, infrastructure, and scholarships. Subscription revenue and donor contributions are the primary paths to endowment growth.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">Governance Review</h3>
+        <p style="color: var(--text-secondary); font-size: 0.92rem;">Legal documentation and governance policies are reviewed periodically by the Board. Members should raise concerns about policy gaps through the President. The handbook is updated annually at minimum.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <a href="sa-prep.html" class="week-nav-button">← Quant Prep</a>
+    <a href="sa-plan.html" class="week-nav-button">The Plan →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — Senior Analyst Hub // Internal Use Only
+</footer>
+
+<script src="cursor.js"></script>
+<script>
+/* SA-Legal — structured document lines building left to right, then fading */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('sa-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H, lines = [];
+
+  const INDENTS = [0, 0.06, 0.06, 0.12, 0.06, 0.12, 0.06, 0, 0.06, 0.06, 0.12, 0.06];
+  const WIDTHS  = [0.85, 0.70, 0.55, 0.40, 0.65, 0.45, 0.30, 0.80, 0.62, 0.48, 0.35, 0.55];
+
+  function reset() {
+    lines = INDENTS.map((ind, i) => ({
+      y: H * (0.12 + (i / (INDENTS.length - 1)) * 0.76),
+      indent: ind, width: WIDTHS[i],
+      alpha: 0, progress: 0,
+      delay: i * 195, phase: 'waiting',
+    }));
+  }
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+    reset();
+  }
+
+  let lastTs = null;
+
+  function frame(ts) {
+    if (lastTs === null) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    ctx.clearRect(0, 0, W, H);
+
+    let allDone = true;
+    for (const l of lines) {
+      if (l.phase === 'waiting')  { l.delay -= dt; if (l.delay <= 0) l.phase = 'drawing'; allDone = false; }
+      if (l.phase === 'drawing')  {
+        l.alpha    = Math.min(0.28, l.alpha + dt * 0.0017);
+        l.progress = Math.min(1, l.progress + dt * 0.0013);
+        if (l.progress >= 1 && l.alpha >= 0.27) l.phase = 'hold';
+        else allDone = false;
+      }
+      if (l.phase === 'hold')     { /* stay visible */ }
+      if (l.alpha <= 0)           continue;
+
+      const sx    = W * l.indent;
+      const ex    = sx + W * l.width * l.progress;
+      const thick = l.indent < 0.05 ? 1.5 : l.indent < 0.10 ? 1.2 : 0.9;
+
+      ctx.beginPath();
+      ctx.moveTo(sx, l.y); ctx.lineTo(ex, l.y);
+      ctx.strokeStyle = `rgba(255,238,215,${l.alpha.toFixed(3)})`;
+      ctx.lineWidth   = thick;
+      ctx.stroke();
+
+      if (l.indent > 0.04 && l.progress > 0.12) {
+        ctx.beginPath();
+        ctx.arc(sx - 6, l.y, 2, 0, Math.PI * 2);
+        ctx.fillStyle = `rgba(255,125,42,${Math.min(0.55, l.alpha * 2.2).toFixed(3)})`;
+        ctx.fill();
+      }
+    }
+
+    if (allDone) {
+      // Fade out then loop
+      let anyVisible = false;
+      for (const l of lines) { l.alpha -= dt * 0.00045; if (l.alpha > 0) anyVisible = true; }
+      if (!anyVisible) reset();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

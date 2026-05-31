@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Prior IPs — Senior Analyst Hub</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="sa-styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="Delta.png">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">Senior Analyst Hub</span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html">← Exit</a>
+    <a href="senior-analyst.html">Hub</a>
+    <a href="sa-ip.html">IP's</a>
+    <a href="sa-research.html">Research</a>
+    <a href="sa-prior.html" class="active">Prior IPs</a>
+    <a href="sa-performance.html">AlgoLens</a>
+    <a href="sa-resources.html">Resources</a>
+    <a href="sa-hierarchy.html">Hierarchy</a>
+    <a href="sa-outreach.html">Outreach</a>
+    <a href="sa-prep.html">Prep</a>
+    <a href="sa-legal.html">Legal</a>
+    <a href="sa-plan.html">Plan</a>
+  </div>
+</nav>
+
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="sa-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Section 03 &mdash; Spare Parts</div>
+    <h1>Prior IPs</h1>
+    <div class="week-hero-pill">Rejected, Shelved & Paused Strategies</div>
+    <p class="week-hero-objective">Don't let prior work go to waste. Take apart failed IPs for signals, methods, and lessons.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="section">
+    <h2 class="section-title">The Rule</h2>
+
+    <div class="callout callout-danger">
+      <div class="callout-title">Do Not Re-Submit Unchanged Failures</div>
+      <p>Do not re-submit an unchanged failed IP. If you want to revive a shelved strategy, document what materially changed and why it addresses the original rejection reasons. Come prepared to explain the delta.</p>
+    </div>
+
+    <p>Rejected and shelved IPs are a resource — not just a record of failure. Before starting a new IP, review prior work in the same asset class or strategy family. You may find signal construction logic, data pipelines, or test frameworks that save significant time.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Strategy Graveyard</h2>
+    <p style="color: var(--text-secondary);">All prior IP reports and codebases are archived in OneDrive under <code style="color: var(--accent); font-family: 'IBM Plex Mono', monospace; font-size: 0.85rem;">AlgoGators / Research / Prior IPs /</code>. Review before starting a new IP to avoid duplicating prior work.</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Strategy Name</th>
+          <th>Semester</th>
+          <th>Status</th>
+          <th>Rejection Reason</th>
+          <th>What's Salvageable</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>[Strategy Name]</td>
+          <td>[Semester]</td>
+          <td><span class="badge badge-red">Rejected</span></td>
+          <td>Sharpe below minimum; excessive parameter sensitivity in the signal lookback.</td>
+          <td>Signal construction logic, data cleaning pipeline for this asset class.</td>
+        </tr>
+        <tr>
+          <td>[Strategy Name]</td>
+          <td>[Semester]</td>
+          <td><span class="badge badge-amber">Shelved</span></td>
+          <td>Data source too expensive / unreliable to maintain in production.</td>
+          <td>The mean-reversion model itself; could be re-applied with alternative data.</td>
+        </tr>
+        <tr>
+          <td>[Strategy Name]</td>
+          <td>[Semester]</td>
+          <td><span class="badge badge-red">Rejected</span></td>
+          <td>No economic rationale; pure in-sample curve fit, collapsed out-of-sample.</td>
+          <td>Walk-forward testing framework written for this IP can be reused.</td>
+        </tr>
+        <tr>
+          <td>[Strategy Name]</td>
+          <td>[Semester]</td>
+          <td><span class="badge badge-gray">Paused</span></td>
+          <td>Member graduated before completing incubation. Promising concept not fully tested.</td>
+          <td>Full codebase and report available in OneDrive. Worth revisiting.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">How to Revive a Shelved IP</h2>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h3 style="margin-top: 0;">What You Must Document</h3>
+        <ul style="color: var(--text-secondary); font-size: 0.92rem; margin-left: 1.2rem;">
+          <li>Original rejection reason (verbatim from the prior review)</li>
+          <li>What materially changed in your revised proposal</li>
+          <li>Why those changes address the specific failure mode</li>
+          <li>New data or methodology that wasn't available before</li>
+        </ul>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">What Doesn't Count as Material Change</h3>
+        <ul style="color: var(--text-secondary); font-size: 0.92rem; margin-left: 1.2rem;">
+          <li>Tweaking parameters until the backtest looks better</li>
+          <li>Extending the backtest window to include a favorable period</li>
+          <li>Changing the asset class without changing the signal logic</li>
+          <li>"We have a better understanding now" without specific evidence</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <a href="sa-research.html" class="week-nav-button">← Research Hub</a>
+    <a href="sa-performance.html" class="week-nav-button">Fund Performance →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — Senior Analyst Hub // Internal Use Only
+</footer>
+
+<script src="cursor.js"></script>
+<script>
+/* SA-Prior — equity curves that rise, peak, then fade (archived strategies) */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('sa-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  const N = 500;
+
+  function makeCurve(delay) {
+    const pts    = new Float32Array(N);
+    const peakAt = Math.floor(N * (0.35 + Math.random() * 0.30));
+    let y = 0.50 + (Math.random() - 0.5) * 0.15;
+    pts[0] = y;
+    for (let i = 1; i < N; i++) {
+      const bias = i < peakAt ? 0.0028 : -0.0035;
+      y = Math.max(0.05, Math.min(0.95, y + (Math.random() - 0.5 + bias) * 0.018));
+      pts[i] = y;
+    }
+    return { pts, progress: 0, alpha: 0, phase: 'waiting', delay, speed: 0.00028 + Math.random() * 0.00014, maxAlpha: 0.28 + Math.random() * 0.14 };
+  }
+
+  let curves = [];
+
+  function init() {
+    curves = [];
+    for (let i = 0; i < 6; i++) curves.push(makeCurve(i * 900));
+  }
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+    init();
+  }
+
+  let lastTs = null;
+
+  function frame(ts) {
+    if (lastTs === null) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    ctx.clearRect(0, 0, W, H);
+
+    for (const c of curves) {
+      if (c.phase === 'waiting') { c.delay -= dt; if (c.delay <= 0) c.phase = 'drawing'; }
+      if (c.phase === 'drawing') {
+        c.alpha    = Math.min(c.maxAlpha, c.alpha + dt * 0.0018);
+        c.progress = Math.min(1, c.progress + c.speed * dt);
+        if (c.progress >= 1) c.phase = 'fading';
+      }
+      if (c.phase === 'fading') {
+        c.alpha -= dt * 0.00075;
+        if (c.alpha <= 0) Object.assign(c, makeCurve(400 + Math.random() * 1800));
+      }
+      if (c.alpha <= 0 || c.progress < 0.01) continue;
+
+      const vis = Math.max(2, Math.floor(c.progress * W));
+      ctx.beginPath();
+      ctx.lineWidth   = 1.2;
+      ctx.strokeStyle = `rgba(255,238,215,${c.alpha.toFixed(3)})`;
+      for (let i = 0; i < vis; i++) {
+        const x  = (i / (W - 1)) * W;
+        const yi = Math.floor((i / (W - 1)) * (N - 1));
+        i === 0 ? ctx.moveTo(x, c.pts[yi] * H) : ctx.lineTo(x, c.pts[yi] * H);
+      }
+      ctx.stroke();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

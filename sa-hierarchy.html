@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fund Hierarchy — Senior Analyst Hub</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="sa-styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="Delta.png">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">Senior Analyst Hub</span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html">← Exit</a>
+    <a href="senior-analyst.html">Hub</a>
+    <a href="sa-ip.html">IP's</a>
+    <a href="sa-research.html">Research</a>
+    <a href="sa-prior.html">Prior IPs</a>
+    <a href="sa-performance.html">AlgoLens</a>
+    <a href="sa-resources.html">Resources</a>
+    <a href="sa-hierarchy.html" class="active">Hierarchy</a>
+    <a href="sa-outreach.html">Outreach</a>
+    <a href="sa-prep.html">Prep</a>
+    <a href="sa-legal.html">Legal</a>
+    <a href="sa-plan.html">Plan</a>
+  </div>
+</nav>
+
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="sa-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Section 06 &mdash; Team Directory</div>
+    <h1>Fund Hierarchy</h1>
+    <div class="week-hero-pill">Org Chart, Roles & Contact Directory</div>
+    <p class="week-hero-objective">Update this at the start of every semester. QR Lead is responsible for all QR entries.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="section">
+    <h2 class="section-title">Organizational Chart</h2>
+
+    <div class="org-chart">
+      <div class="org-row">
+        <div class="org-box top">Board of Directors<br><span style="font-size: 0.7rem; font-weight: 400;">Dustin Hebrank &nbsp;·&nbsp; Patrick Bott</span></div>
+      </div>
+      <div class="org-connector"></div>
+      <div class="org-row">
+        <div class="org-box top">President</div>
+      </div>
+      <div class="org-connector"></div>
+      <div class="org-row">
+        <div class="org-box">Vice President</div>
+      </div>
+      <div class="org-connector"></div>
+      <div class="org-leads-wrap">
+        <div class="org-lead-col">
+          <div class="org-lead-stem"></div>
+          <div class="org-box">QR Lead</div>
+          <div class="org-connector" style="height:14px;"></div>
+          <div class="org-analyst-stub">Analysts</div>
+        </div>
+        <div class="org-lead-col">
+          <div class="org-lead-stem"></div>
+          <div class="org-box">QT Lead</div>
+          <div class="org-connector" style="height:14px;"></div>
+          <div class="org-analyst-stub">Analysts</div>
+        </div>
+        <div class="org-lead-col">
+          <div class="org-lead-stem"></div>
+          <div class="org-box">QD Lead</div>
+          <div class="org-connector" style="height:14px;"></div>
+          <div class="org-analyst-stub">Analysts</div>
+        </div>
+        <div class="org-lead-col">
+          <div class="org-lead-stem"></div>
+          <div class="org-box">IR Lead</div>
+          <div class="org-connector" style="height:14px;"></div>
+          <div class="org-analyst-stub">Analysts</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Role Descriptions</h2>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); margin-bottom: 0.5rem;">President</div>
+        <p style="color: var(--text-secondary); font-size: 0.92rem; margin: 0;">Strategic oversight and external representation. Coordinates across all teams. Final decision-maker on fund direction and strategy approvals.</p>
+      </div>
+      <div class="card">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); margin-bottom: 0.5rem;">Vice President</div>
+        <p style="color: var(--text-secondary); font-size: 0.92rem; margin: 0;">Assists the President with micro-level management — oversees IPs, Capstones, and Deliverables. Acts as President in their absence.</p>
+      </div>
+      <div class="card">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); margin-bottom: 0.5rem;">Team Leads (QR / QT / QD / IR)</div>
+        <p style="color: var(--text-secondary); font-size: 0.92rem; margin: 0;">Manage and coordinate their respective teams. Provide mentorship, ensure team deliverables are met, and report to leadership weekly.</p>
+      </div>
+      <div class="card">
+        <div style="font-family: 'IBM Plex Mono', monospace; font-size: 0.68rem; text-transform: uppercase; letter-spacing: 0.12em; color: var(--accent); margin-bottom: 0.5rem;">Analysts</div>
+        <p style="color: var(--text-secondary); font-size: 0.92rem; margin: 0;">Lead focused projects within their team. Coordinate small groups of general members and report directly to Team Leads.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Contact Directory</h2>
+
+    <div class="callout">
+      <div class="callout-title">Update Required Each Semester</div>
+      <p>Each Team Lead is responsible for their section. Email and LinkedIn columns are especially important for alumni network continuity.</p>
+    </div>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Role</th>
+          <th>Name</th>
+          <th>Team</th>
+          <th>Email</th>
+          <th>LinkedIn</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>Board — Advisor</td><td>Dustin Hebrank</td><td>Board</td><td>[email]</td><td>[linkedin]</td></tr>
+        <tr><td>Board — Advisor</td><td>Patrick Bott</td><td>Board</td><td>[email]</td><td>[linkedin]</td></tr>
+        <tr><td>President</td><td>[Name]</td><td>Leadership</td><td>[email]</td><td>[linkedin]</td></tr>
+        <tr><td>Vice President</td><td>[Name]</td><td>Leadership</td><td>[email]</td><td>[linkedin]</td></tr>
+        <tr><td>QR Lead</td><td>[Name]</td><td>Quant Research</td><td>[email]</td><td>[linkedin]</td></tr>
+        <tr><td>QT Lead</td><td>[Name]</td><td>Quant Trading</td><td>[email]</td><td>[linkedin]</td></tr>
+        <tr><td>QD Lead</td><td>[Name]</td><td>Quant Development</td><td>[email]</td><td>[linkedin]</td></tr>
+        <tr><td>IR Lead</td><td>[Name]</td><td>Investor Relations</td><td>[email]</td><td>[linkedin]</td></tr>
+        <tr><td>Analyst</td><td>[Name]</td><td>[Team]</td><td>[email]</td><td>[linkedin]</td></tr>
+        <tr><td>Analyst</td><td>[Name]</td><td>[Team]</td><td>[email]</td><td>[linkedin]</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="week-nav">
+    <a href="sa-resources.html" class="week-nav-button">← Resources</a>
+    <a href="sa-outreach.html" class="week-nav-button">Outreach & IR →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — Senior Analyst Hub // Internal Use Only
+</footer>
+
+<script src="cursor.js"></script>
+<script>
+/* SA-Hierarchy — Voronoi territories: 4 team regions drifting slowly */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('sa-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  const TEAMS = [
+    { label: 'QR', color: [255, 125, 42],  vx:  0.018, vy:  0.012 },
+    { label: 'QT', color: [255, 175, 90],  vx: -0.014, vy:  0.020 },
+    { label: 'QD', color: [210, 85,  20],  vx:  0.022, vy: -0.016 },
+    { label: 'IR', color: [255, 210, 140], vx: -0.020, vy: -0.010 },
+  ];
+
+  const seeds = TEAMS.map((t, i) => ({
+    ...t,
+    x: 0, y: 0,
+    ox: [0.28, 0.72, 0.28, 0.72][i],
+    oy: [0.32, 0.32, 0.68, 0.68][i],
+  }));
+
+  const CELL = 10;
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+    for (const s of seeds) { s.x = W * s.ox; s.y = H * s.oy; }
+  }
+
+  function nearest(px, py) {
+    let best = 0, bestD = Infinity;
+    for (let i = 0; i < seeds.length; i++) {
+      const dx = px - seeds[i].x, dy = py - seeds[i].y;
+      const d = dx * dx + dy * dy;
+      if (d < bestD) { bestD = d; best = i; }
+    }
+    return best;
+  }
+
+  let lastTs = null;
+
+  function frame(ts) {
+    if (lastTs === null) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    for (const s of seeds) {
+      s.x += s.vx * dt;
+      s.y += s.vy * dt;
+      const pad = 0.12;
+      if (s.x < W * pad)       { s.vx =  Math.abs(s.vx); }
+      if (s.x > W * (1 - pad)) { s.vx = -Math.abs(s.vx); }
+      if (s.y < H * pad)       { s.vy =  Math.abs(s.vy); }
+      if (s.y > H * (1 - pad)) { s.vy = -Math.abs(s.vy); }
+    }
+
+    ctx.clearRect(0, 0, W, H);
+
+    const cols = Math.ceil(W / CELL);
+    const rows = Math.ceil(H / CELL);
+
+    // Filled regions
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const n = nearest(c * CELL + CELL / 2, r * CELL + CELL / 2);
+        const [R, G, B] = seeds[n].color;
+        ctx.fillStyle = `rgba(${R},${G},${B},0.06)`;
+        ctx.fillRect(c * CELL, r * CELL, CELL, CELL);
+      }
+    }
+
+    // Boundary edges (vertical)
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols - 1; c++) {
+        const cy = r * CELL + CELL / 2;
+        if (nearest(c * CELL + CELL / 2, cy) !== nearest((c + 1) * CELL + CELL / 2, cy)) {
+          ctx.beginPath();
+          ctx.moveTo((c + 1) * CELL, r * CELL);
+          ctx.lineTo((c + 1) * CELL, (r + 1) * CELL);
+          ctx.strokeStyle = 'rgba(255,125,42,0.20)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Boundary edges (horizontal)
+    for (let r = 0; r < rows - 1; r++) {
+      for (let c = 0; c < cols; c++) {
+        const cx = c * CELL + CELL / 2;
+        if (nearest(cx, r * CELL + CELL / 2) !== nearest(cx, (r + 1) * CELL + CELL / 2)) {
+          ctx.beginPath();
+          ctx.moveTo(c * CELL, (r + 1) * CELL);
+          ctx.lineTo((c + 1) * CELL, (r + 1) * CELL);
+          ctx.strokeStyle = 'rgba(255,125,42,0.20)';
+          ctx.lineWidth = 1;
+          ctx.stroke();
+        }
+      }
+    }
+
+    // Seed points + labels
+    for (const s of seeds) {
+      ctx.beginPath();
+      ctx.arc(s.x, s.y, 3.5, 0, Math.PI * 2);
+      ctx.fillStyle = `rgba(${s.color[0]},${s.color[1]},${s.color[2]},0.55)`;
+      ctx.fill();
+
+      ctx.font         = "bold 9px 'IBM Plex Mono', monospace";
+      ctx.fillStyle    = 'rgba(255,238,215,0.45)';
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(s.label, s.x, s.y - 6);
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
+</body>
+</html>

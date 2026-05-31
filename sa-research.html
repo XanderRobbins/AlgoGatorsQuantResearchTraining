@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Research Hub — Senior Analyst Hub</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="sa-styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="Delta.png">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">Senior Analyst Hub</span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html">← Exit</a>
+    <a href="senior-analyst.html">Hub</a>
+    <a href="sa-ip.html">IP's</a>
+    <a href="sa-research.html" class="active">Research</a>
+    <a href="sa-prior.html">Prior IPs</a>
+    <a href="sa-performance.html">AlgoLens</a>
+    <a href="sa-resources.html">Resources</a>
+    <a href="sa-hierarchy.html">Hierarchy</a>
+    <a href="sa-outreach.html">Outreach</a>
+    <a href="sa-prep.html">Prep</a>
+    <a href="sa-legal.html">Legal</a>
+    <a href="sa-plan.html">Plan</a>
+  </div>
+</nav>
+
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="sa-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Section 02 &mdash; Current Research</div>
+    <h1>Research Hub</h1>
+    <div class="week-hero-pill">Live Strategies & Active IPs</div>
+    <p class="week-hero-objective"></p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="week-nav">
+    <a href="sa-ip.html" class="week-nav-button">← IP Expectations</a>
+    <a href="sa-prior.html" class="week-nav-button">Prior IPs →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — Senior Analyst Hub // Internal Use Only
+</footer>
+
+<script src="cursor.js"></script>
+<script>
+/* SA-Research — 4 live strategy equity curves scrolling right */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('sa-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  const N      = 700;
+  const DRIFTS = [0.003, 0.0015, 0.0022, 0.001];
+  const ALPHAS = [0.55,  0.38,   0.45,   0.30 ];
+  const WIDTHS = [1.8,   1.1,    1.5,    0.9  ];
+  const curves = [];
+
+  function makeCurve(idx) {
+    const pts = new Float32Array(N);
+    let y = 0.35 + (Math.random() - 0.5) * 0.2;
+    pts[0] = y;
+    for (let i = 1; i < N; i++) {
+      y = Math.max(0.08, Math.min(0.92, y + (Math.random() - 0.5 + DRIFTS[idx]) * 0.016));
+      pts[i] = y;
+    }
+    return { pts, progress: 0, alpha: 0, maxAlpha: ALPHAS[idx], speed: 0.00032 + Math.random() * 0.00018, lw: WIDTHS[idx], idx };
+  }
+
+  function initCurves() {
+    curves.length = 0;
+    for (let i = 0; i < 4; i++) {
+      const c = makeCurve(i);
+      c.progress = 0.15 + i * 0.22;
+      c.alpha    = ALPHAS[i];
+      curves.push(c);
+    }
+  }
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+    initCurves();
+  }
+
+  let lastTs = null;
+
+  function frame(ts) {
+    if (lastTs === null) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    ctx.clearRect(0, 0, W, H);
+
+    for (const c of curves) {
+      c.progress = Math.min(1, c.progress + c.speed * dt);
+      if (c.progress >= 1) {
+        const nc    = makeCurve(c.idx);
+        nc.alpha    = c.maxAlpha;
+        nc.lw       = c.lw;
+        nc.idx      = c.idx;
+        Object.assign(c, nc);
+      }
+      const vis = Math.max(2, Math.floor(c.progress * W));
+      ctx.beginPath();
+      ctx.lineWidth   = c.lw;
+      ctx.strokeStyle = `rgba(255,125,42,${c.alpha.toFixed(2)})`;
+      for (let i = 0; i < vis; i++) {
+        const x  = (i / (W - 1)) * W;
+        const yi = Math.floor((i / (W - 1)) * (N - 1));
+        i === 0 ? ctx.moveTo(x, c.pts[yi] * H) : ctx.lineTo(x, c.pts[yi] * H);
+      }
+      ctx.stroke();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>

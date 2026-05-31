@@ -1,0 +1,726 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quant Prep — Senior Analyst Hub</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="sa-styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="Delta.png">
+  <style>
+    /* ── shared overlay ── */
+    .exam-overlay{display:none;position:fixed;inset:0;background:#0a0a0a;z-index:1000;overflow-y:auto;}
+    .exam-overlay.active{display:flex;flex-direction:column;}
+
+    /* ── 80-in-8 drill ── */
+    .drill-shell{display:flex;flex-direction:column;min-height:100vh;max-width:600px;margin:0 auto;padding:0 1.5rem;}
+    .drill-topbar{display:flex;align-items:center;gap:1rem;padding:1.25rem 0;border-bottom:1px solid rgba(255,255,255,0.07);margin-bottom:0;}
+    .drill-label{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;font-weight:700;color:rgba(255,125,42,0.8);text-transform:uppercase;letter-spacing:0.14em;flex:1;}
+    .drill-counter{font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:rgba(255,255,255,0.35);}
+    .drill-score-live{font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:rgba(255,255,255,0.35);}
+    .drill-timer{font-family:'IBM Plex Mono',monospace;font-size:1.5rem;font-weight:700;color:#fff;letter-spacing:0.04em;min-width:3.8rem;text-align:right;}
+    .drill-timer.warn{color:#ff4040;animation:blink 1s infinite;}
+    @keyframes blink{0%,100%{opacity:1}50%{opacity:0.4}}
+    .drill-bar{height:2px;background:rgba(255,255,255,0.06);}
+    .drill-bar-fill{height:100%;background:rgba(255,125,42,0.5);transition:width .1s linear;}
+    .drill-body{flex:1;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2.5rem;padding:3rem 0;}
+    .drill-qtext{font-family:'IBM Plex Mono',monospace;font-size:clamp(2rem,6vw,3.2rem);font-weight:700;color:#fff;text-align:center;letter-spacing:0.02em;}
+    .drill-choices{display:grid;grid-template-columns:1fr 1fr;gap:0.65rem;width:100%;max-width:420px;}
+    .drill-choice{background:rgba(255,255,255,0.04);border:1px solid rgba(255,255,255,0.1);border-radius:6px;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:1.05rem;padding:0.9rem 1.1rem;cursor:pointer;transition:background .1s,border-color .1s;display:flex;align-items:center;gap:0.7rem;text-align:left;}
+    .drill-choice:hover:not([disabled]){background:rgba(255,125,42,0.1);border-color:rgba(255,125,42,0.4);}
+    .drill-choice[disabled]{cursor:default;}
+    .drill-choice .key{font-size:0.65rem;font-weight:700;color:rgba(255,125,42,0.7);min-width:0.8rem;}
+    .drill-choice.flash-correct{background:rgba(0,210,90,0.14);border-color:rgba(0,210,90,0.45);}
+    .drill-choice.flash-wrong{background:rgba(255,50,50,0.14);border-color:rgba(255,50,50,0.45);}
+    .drill-hint{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;color:rgba(255,255,255,0.18);text-align:center;}
+    .drill-result{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:1rem;text-align:center;padding:2rem;}
+    .drill-result-score{font-family:'IBM Plex Mono',monospace;font-size:5rem;font-weight:700;color:var(--accent,#ff7d2a);line-height:1;}
+    .drill-result-sub{font-family:'IBM Plex Mono',monospace;font-size:0.82rem;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.1em;}
+    .drill-result-detail{font-size:0.9rem;color:rgba(255,255,255,0.5);margin:0.5rem 0 1.5rem;}
+    .drill-result-actions{display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:center;}
+
+    /* ── shared buttons + launch strip ── */
+    .exam-btn{background:var(--accent,#ff7d2a);color:#000;border:none;border-radius:4px;padding:0.55rem 1.25rem;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:0.78rem;cursor:pointer;text-transform:uppercase;letter-spacing:0.08em;transition:opacity .15s;}
+    .exam-btn:hover{opacity:0.85;}
+    .exam-btn.secondary{background:transparent;color:var(--accent,#ff7d2a);border:1px solid rgba(255,125,42,0.4);}
+    .drill-launch{display:flex;align-items:center;justify-content:space-between;background:rgba(255,125,42,0.05);border:1px solid rgba(255,125,42,0.18);border-radius:8px;padding:1.1rem 1.4rem;margin-top:1rem;gap:1rem;flex-wrap:wrap;}
+    .drill-stats{display:flex;gap:1.75rem;color:rgba(255,255,255,0.5);font-size:0.88rem;flex-wrap:wrap;}
+    .drill-stats strong{color:var(--accent,#ff7d2a);font-family:'IBM Plex Mono',monospace;}
+    .launch-btn{background:var(--accent,#ff7d2a);color:#000;border:none;border-radius:4px;padding:0.55rem 1.25rem;font-family:'IBM Plex Mono',monospace;font-weight:700;font-size:0.78rem;cursor:pointer;text-transform:uppercase;letter-spacing:0.08em;white-space:nowrap;transition:opacity .15s;}
+    .launch-btn:hover{opacity:0.85;}
+
+    /* ── sequences exam ── */
+    .seq-shell{display:flex;flex-direction:column;min-height:100vh;max-width:600px;margin:0 auto;padding:0 1.5rem;}
+    .seq-topbar{display:flex;align-items:center;gap:1rem;padding:1.25rem 0;border-bottom:1px solid rgba(255,255,255,0.07);}
+    .seq-label{font-family:'IBM Plex Mono',monospace;font-size:0.68rem;font-weight:700;color:rgba(255,125,42,0.8);text-transform:uppercase;letter-spacing:0.14em;flex:1;}
+    .seq-counter{font-family:'IBM Plex Mono',monospace;font-size:0.78rem;color:rgba(255,255,255,0.35);}
+    .seq-bar{height:2px;background:rgba(255,255,255,0.06);}
+    .seq-bar-fill{height:100%;background:rgba(255,125,42,0.5);transition:width .3s;}
+    .seq-body{flex:1;display:flex;flex-direction:column;justify-content:center;padding:3rem 0;gap:1.5rem;}
+    .seq-question-text{font-family:'IBM Plex Mono',monospace;font-size:clamp(1.1rem,4vw,1.5rem);color:#fff;line-height:1.7;letter-spacing:0.04em;}
+    .seq-inputs{display:flex;gap:0.75rem;align-items:center;flex-wrap:wrap;}
+    .seq-inputs label{color:rgba(255,255,255,0.35);font-size:0.72rem;font-family:'IBM Plex Mono',monospace;}
+    .seq-inputs input{width:5.5rem;background:rgba(255,255,255,0.06);border:1px solid rgba(255,255,255,0.15);border-radius:4px;color:#fff;font-family:'IBM Plex Mono',monospace;font-size:1rem;padding:0.45rem 0.65rem;text-align:center;}
+    .seq-inputs input:focus{outline:none;border-color:var(--accent,#ff7d2a);}
+    .seq-feedback{font-family:'IBM Plex Mono',monospace;font-size:0.85rem;padding:0.7rem 0.9rem;border-radius:4px;display:none;}
+    .seq-feedback.correct{background:rgba(0,200,100,0.08);border:1px solid rgba(0,200,100,0.22);color:#00c864;}
+    .seq-feedback.wrong{background:rgba(255,50,50,0.08);border:1px solid rgba(255,50,50,0.22);color:#ff5555;}
+    .seq-rule{color:rgba(255,255,255,0.4);font-size:0.78rem;margin-top:0.35rem;}
+    .seq-actions{display:flex;gap:0.65rem;}
+    .seq-result{display:flex;flex-direction:column;align-items:center;justify-content:center;min-height:100vh;gap:1rem;text-align:center;padding:2rem;}
+    .seq-result-score{font-family:'IBM Plex Mono',monospace;font-size:5rem;font-weight:700;color:var(--accent,#ff7d2a);line-height:1;}
+    .seq-result-sub{font-family:'IBM Plex Mono',monospace;font-size:0.82rem;color:rgba(255,255,255,0.35);text-transform:uppercase;letter-spacing:0.1em;}
+    .seq-result-label{font-size:0.9rem;color:rgba(255,255,255,0.5);margin:0.5rem 0 1.5rem;}
+    .seq-result-actions{display:flex;gap:0.75rem;flex-wrap:wrap;justify-content:center;}
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">Senior Analyst Hub</span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html">← Exit</a>
+    <a href="senior-analyst.html">Hub</a>
+    <a href="sa-ip.html">IP's</a>
+    <a href="sa-research.html">Research</a>
+    <a href="sa-prior.html">Prior IPs</a>
+    <a href="sa-performance.html">AlgoLens</a>
+    <a href="sa-resources.html">Resources</a>
+    <a href="sa-hierarchy.html">Hierarchy</a>
+    <a href="sa-outreach.html">Outreach</a>
+    <a href="sa-prep.html" class="active">Prep</a>
+    <a href="sa-legal.html">Legal</a>
+    <a href="sa-plan.html">Plan</a>
+  </div>
+</nav>
+
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="sa-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Section 08 &mdash; Interview Prep</div>
+    <h1>Quant Prep</h1>
+    <div class="week-hero-pill">80-in-8 · Probability · Brain Teasers</div>
+    <p class="week-hero-objective">Drill these daily. The firms that matter hire on speed and precision — not just knowledge.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="section">
+    <h2 class="section-title">80 in 8 — Mental Math Speed Drill</h2>
+
+    <div class="callout">
+      <div class="callout-title">What It Is</div>
+      <p>80 arithmetic/quant questions in 8 minutes. Used by Jane Street, Citadel, and most prop shops as a screening tool. Target: 70+ correct. Practice until you can do basic arithmetic without hesitation.</p>
+    </div>
+
+    <div class="drill-launch">
+      <div class="drill-stats">
+        <span><strong>80</strong> questions</span>
+        <span><strong>8</strong> minutes</span>
+        <span>Target: <strong>70+</strong> correct</span>
+        <span>New set every time</span>
+      </div>
+      <button class="launch-btn" onclick="launchDrill()">Launch Drill &rarr;</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Probability Classics</h2>
+    <p style="color: var(--text-secondary);">These questions appear constantly. Know the setups cold — not just the answers but the reasoning chain.</p>
+
+    <details>
+      <summary>The Monty Hall Problem — You pick door 1. Host opens door 3 (goat). Switch or stay?</summary>
+      <div class="answer"><strong>Switch.</strong> Staying wins 1/3 of the time. Switching wins 2/3 of the time. The host's action is not random — he always opens a goat door, which concentrates the remaining 2/3 probability onto the other door. Intuition fails here; condition on the host's strategy.</div>
+    </details>
+
+    <details>
+      <summary>Birthday Problem — How many people needed for &gt;50% chance two share a birthday?</summary>
+      <div class="answer"><strong>23 people.</strong> P(all different) = 365/365 × 364/365 × 363/365 × ... After 23 terms, this product drops below 0.5. The counterintuitive answer comes from the quadratic number of pairs: 23 people = 253 pairs, each with a ~0.27% collision chance.</div>
+    </details>
+
+    <details>
+      <summary>Dice: Roll two fair dice. Given the sum is at least 7, what's the probability the sum is exactly 7?</summary>
+      <div class="answer"><strong>6/21.</strong> P(sum ≥ 7) = 21/36. P(sum = 7) = 6/36. Conditional probability: (6/36)/(21/36) = 6/21 ≈ 28.6%.</div>
+    </details>
+
+    <details>
+      <summary>Bayes: A test is 99% accurate. Disease prevalence is 0.1%. You test positive. What's P(disease)?</summary>
+      <div class="answer"><strong>≈ 9%.</strong> P(disease|positive) = P(positive|disease)·P(disease) / P(positive). Numerator: 0.99 × 0.001 = 0.00099. Denominator: 0.99×0.001 + 0.01×0.999 ≈ 0.01098. Result: 0.00099/0.01098 ≈ 9%. Base rate matters enormously — this is the core lesson for risk management too.</div>
+    </details>
+
+    <details>
+      <summary>Expected Value: A fair coin. Win $2 on heads, lose $1 on tails. What's the EV per flip?</summary>
+      <div class="answer"><strong>$0.50.</strong> EV = 0.5 × $2 + 0.5 × (−$1) = $1 − $0.50 = $0.50. Simple, but interview pressure causes mistakes. Always write out the full formula.</div>
+    </details>
+
+    <details>
+      <summary>Conditional: You draw 2 cards without replacement. Given the first is an Ace, P(second is Ace)?</summary>
+      <div class="answer"><strong>3/51 = 1/17.</strong> After drawing one Ace, 3 Aces remain among 51 cards. Conditional probability on the observed event (first is Ace).</div>
+    </details>
+
+    <details>
+      <summary>Random Walk: A drunk man starts at 0. Each step ±1 with equal probability. E[steps to reach ±N]?</summary>
+      <div class="answer"><strong>N².</strong> The expected first passage time from 0 to ±N is N². This is the optional stopping theorem result for symmetric random walks. Key insight for understanding how long drawdowns can persist in mean-zero strategies.</div>
+    </details>
+
+    <details>
+      <summary>St. Petersburg Paradox: A game pays $2ⁿ where n = flips until heads. Fair price to play?</summary>
+      <div class="answer"><strong>EV is infinite, but no rational person pays more than ~$20.</strong> EV = Σ (1/2ⁿ)·2ⁿ = Σ 1 = ∞. The resolution is utility — logarithmic utility makes the game worth a finite price. This underpins Kelly criterion and why we use log utility in position sizing.</div>
+    </details>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Sequences & Patterns</h2>
+    <p style="color: var(--text-secondary);">Pattern recognition under time pressure. Find the next two terms and identify the rule.</p>
+
+    <div class="drill-launch">
+      <div class="drill-stats">
+        <span><strong>10</strong> sequences</span>
+        <span>Find next <strong>2</strong> terms</span>
+        <span>New questions every time</span>
+      </div>
+      <button class="launch-btn" onclick="launchSeq()">Launch Exam &rarr;</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Brain Teasers</h2>
+
+    <details>
+      <summary>12 balls, one is heavier or lighter. Find the odd ball in 3 weighings.</summary>
+      <div class="answer"><strong>Divide into groups of 4.</strong> Weigh 4 vs 4. If balanced, odd ball is in the remaining 4. If unbalanced, it's in one of the weighed groups (and you know whether it's heavier or lighter). Use remaining weighings to binary search within the suspect group. Key insight: each weighing gives 3 outcomes, so 3 weighings = 3³ = 27 distinguishable outcomes — enough for 24 possibilities (12 balls × 2 directions).</div>
+    </details>
+    <details>
+      <summary>How many piano tuners are in Chicago?</summary>
+      <div class="answer"><strong>~100–200.</strong> Fermi estimation: Chicago pop ~2.7M → ~1M households → ~150k have pianos. Pianos need tuning ~1x/year. A tuner does ~4 pianos/day × 250 days = 1,000/year. 150k ÷ 1,000 ≈ 150 tuners. The method matters more than the number — show your decomposition chain clearly.</div>
+    </details>
+    <details>
+      <summary>100 socks: 50 red, 50 blue. Minimum picks to guarantee a matching pair?</summary>
+      <div class="answer"><strong>3.</strong> With 3 picks, by pigeonhole principle, at least two must be the same color. (Worst case: first two are one of each color; third must match one.)</div>
+    </details>
+    <details>
+      <summary>A lily pad doubles daily. It takes 100 days to cover the pond. When was it half-covered?</summary>
+      <div class="answer"><strong>Day 99.</strong> If it doubles daily and covers the full pond on day 100, it covered half the pond the day before. Exponential growth — the answer is always one step back from the end.</div>
+    </details>
+    <details>
+      <summary>3-gallon and 5-gallon jug. How do you measure exactly 4 gallons?</summary>
+      <div class="answer"><strong>Fill 5-gal. Pour into 3-gal until full. 5-gal now has 2 gal. Empty 3-gal. Pour 2 gal from 5-gal into 3-gal. Fill 5-gal again. Pour from 5-gal into 3-gal (needs 1 more). 5-gal now has exactly 4 gal.</strong> Classic water-pouring puzzle. Tests systematic thinking.</div>
+    </details>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Market Microstructure Essentials</h2>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h3 style="margin-top: 0;">Bid-Ask Spread</h3>
+        <p style="color: var(--text-secondary); font-size: 0.92rem;">The spread is the market maker's compensation for providing liquidity and bearing inventory risk. Spread = 2 × (adverse selection cost + inventory cost + operational cost). Wider spreads on illiquid, high-volatility instruments.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">Market Impact</h3>
+        <p style="color: var(--text-secondary); font-size: 0.92rem;">Large orders move price against you. Impact ≈ σ × √(Q/ADV) where Q is order size, ADV is average daily volume. Square-root law: doubling order size doesn't double impact — it increases by √2. Critical for position sizing at scale.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">Adverse Selection</h3>
+        <p style="color: var(--text-secondary); font-size: 0.92rem;">Informed traders systematically trade against market makers. The spread compensates for the risk of trading with someone who knows more. Kyle's Lambda measures price impact per unit of order flow. High Lambda = high information asymmetry.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">TWAP vs VWAP Execution</h3>
+        <p style="color: var(--text-secondary); font-size: 0.92rem;">TWAP slices orders evenly over time. VWAP weights execution by expected volume profile. VWAP reduces market impact on average but creates tracking error risk. Most institutional desks target VWAP.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Recommended Resources</h2>
+
+    <div class="grid grid-2">
+      <div class="res-card">
+        <span class="res-cat">Book</span>
+        <div class="res-title">A Practical Guide to Quant Finance Interviews</div>
+        <div class="res-desc">Xinfeng Zhou (Green Book). The definitive interview prep resource. Covers math, probability, statistics, and finance questions from top firms.</div>
+      </div>
+      <div class="res-card">
+        <span class="res-cat">Book</span>
+        <div class="res-title">Heard on the Street</div>
+        <div class="res-desc">Timothy Falcon Crack. Classic quantitative finance interview questions with full solutions. Great supplement to the Green Book.</div>
+      </div>
+      <div class="res-card">
+        <span class="res-cat">Online</span>
+        <div class="res-title">Jane Street Primers</div>
+        <div class="res-desc">Jane Street publishes free mathematical primers on probability, expected value, and market concepts. Highly recommended for understanding the thinking style of top firms.</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <a href="sa-outreach.html" class="week-nav-button">← Outreach & IR</a>
+    <a href="sa-legal.html" class="week-nav-button">Legal Framework →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — Senior Analyst Hub // Internal Use Only
+</footer>
+
+<!-- 80-in-8 Drill Modal -->
+<div id="drill-overlay" class="exam-overlay">
+  <div class="drill-shell" id="drill-shell">
+    <div class="drill-topbar">
+      <span class="drill-label">80 in 8 &mdash; Optiver Format</span>
+      <span class="drill-counter" id="drill-counter">1 / 80</span>
+      <span class="drill-score-live" id="drill-score-live">Score: 0</span>
+      <span class="drill-timer" id="drill-timer">8:00</span>
+    </div>
+    <div class="drill-bar"><div class="drill-bar-fill" id="drill-bar-fill" style="width:0%"></div></div>
+    <div class="drill-body" id="drill-body">
+      <div class="drill-qtext" id="drill-qtext"></div>
+      <div class="drill-choices" id="drill-choices"></div>
+      <div class="drill-hint">Press A &nbsp;B &nbsp;C &nbsp;D to answer</div>
+    </div>
+  </div>
+</div>
+
+<!-- Sequences Exam Modal -->
+<div id="seq-overlay" class="exam-overlay">
+  <div class="seq-shell" id="seq-panel">
+    <div class="seq-topbar">
+      <span class="seq-label">Sequences &amp; Patterns</span>
+      <span class="seq-counter" id="seq-counter">1 / 10</span>
+      <button class="exam-btn secondary" onclick="closeSeq()" style="padding:0.3rem 0.7rem;font-size:0.7rem;">Close</button>
+    </div>
+    <div class="seq-bar"><div class="seq-bar-fill" id="seq-bar-fill" style="width:0%"></div></div>
+    <div class="seq-body">
+      <div class="seq-question-text" id="seq-question-text"></div>
+      <div class="seq-inputs">
+        <label>7th term</label>
+        <input type="number" step="any" id="seq-a1" placeholder="?" autocomplete="off">
+        <label>8th term</label>
+        <input type="number" step="any" id="seq-a2" placeholder="?" autocomplete="off">
+      </div>
+      <div class="seq-feedback" id="seq-feedback"></div>
+      <div class="seq-actions">
+        <button class="exam-btn" id="seq-check-btn" onclick="checkSeq()">Check</button>
+        <button class="exam-btn secondary" id="seq-next-btn" style="display:none" onclick="nextSeq()">Next &rarr;</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="cursor.js"></script>
+<script>
+/* SA-Prep — morphing Gaussian probability distributions */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('sa-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  const dists = [
+    { mu: 0.35, muT: 0.50, sig: 0.10, sigT: 0.08, alpha: 0.40, spd: 0.0009 },
+    { mu: 0.55, muT: 0.38, sig: 0.14, sigT: 0.10, alpha: 0.28, spd: 0.0006 },
+    { mu: 0.68, muT: 0.72, sig: 0.07, sigT: 0.09, alpha: 0.22, spd: 0.0013 },
+  ];
+
+  function gauss(x, mu, sig) {
+    return Math.exp(-0.5 * ((x - mu) / sig) ** 2) / (sig * Math.sqrt(2 * Math.PI));
+  }
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+  }
+
+  let lastTs = null;
+
+  function frame(ts) {
+    if (lastTs === null) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    ctx.clearRect(0, 0, W, H);
+
+    const baseY  = H * 0.74;
+    const maxH   = H * 0.55;
+
+    for (const d of dists) {
+      d.mu  += (d.muT  - d.mu)  * d.spd * dt;
+      d.sig += (d.sigT - d.sig) * d.spd * dt;
+      if (Math.abs(d.mu  - d.muT)  < 0.003) d.muT  = 0.18 + Math.random() * 0.64;
+      if (Math.abs(d.sig - d.sigT) < 0.001) d.sigT = 0.05  + Math.random() * 0.14;
+
+      const peak = gauss(d.mu, d.mu, d.sig);
+
+      // Fill
+      ctx.beginPath();
+      for (let px = 0; px <= W; px++) {
+        const v = gauss(px / W, d.mu, d.sig) / peak * maxH;
+        const y = baseY - v;
+        px === 0 ? ctx.moveTo(px, y) : ctx.lineTo(px, y);
+      }
+      ctx.lineTo(W, baseY); ctx.lineTo(0, baseY); ctx.closePath();
+      ctx.fillStyle = `rgba(255,125,42,${(d.alpha * 0.22).toFixed(3)})`; ctx.fill();
+
+      // Stroke
+      ctx.beginPath();
+      for (let px = 0; px <= W; px++) {
+        const v = gauss(px / W, d.mu, d.sig) / peak * maxH;
+        px === 0 ? ctx.moveTo(px, baseY - v) : ctx.lineTo(px, baseY - v);
+      }
+      ctx.strokeStyle = `rgba(255,125,42,${d.alpha.toFixed(2)})`;
+      ctx.lineWidth   = 1.4;
+      ctx.stroke();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
+<script>
+// ===== SHARED =====
+function ri(min, max) { return Math.floor(Math.random() * (max - min + 1)) + min; }
+function shuffle(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random()*(i+1)); [a[i],a[j]]=[a[j],a[i]]; }
+  return a;
+}
+
+// ===== 80-IN-8 DRILL (Optiver format) =====
+// One question at a time, 4 multiple-choice options, +1 correct / -1 wrong, no going back.
+
+let drillQs = [], drillIdx = 0, drillScore = 0, drillTimer = null, drillSec = 480, drillLocked = false;
+
+function fmtNum(n) {
+  // Return a display string: integers as-is, decimals to 2dp
+  return Number.isInteger(n) ? String(n) : n.toFixed(2);
+}
+
+function makeChoices(correct) {
+  // Generate 3 plausible distractors, then shuffle all 4
+  const isInt = Number.isInteger(correct);
+  const set = new Set([correct]);
+  const abs = Math.abs(correct);
+
+  const candidates = [];
+  if (isInt) {
+    // ± small offsets, ± percentage steps
+    const steps = [
+      Math.round(abs * 0.08) || 1,
+      Math.round(abs * 0.12) || 2,
+      Math.round(abs * 0.05) || 1,
+      Math.round(abs * 0.15) || 3,
+    ];
+    for (const s of steps) {
+      candidates.push(correct + s, correct - s);
+    }
+    // Also add a "wrong digit" variant: shift by a power of 10
+    const mag = Math.pow(10, Math.floor(Math.log10(abs)) - 1) || 1;
+    candidates.push(correct + mag, correct - mag, correct + mag*2, correct - mag*2);
+  } else {
+    // decimal: nearby values at 2dp
+    for (let i = 1; i <= 6; i++) {
+      candidates.push(Math.round((correct + i*0.01)*100)/100);
+      candidates.push(Math.round((correct - i*0.01)*100)/100);
+    }
+  }
+
+  shuffle(candidates);
+  for (const c of candidates) {
+    if (!set.has(c) && c > 0 && set.size < 4) set.add(isInt ? c : Math.round(c*100)/100);
+  }
+  // fallback
+  let fb = correct + (isInt ? 1 : 0.01);
+  while (set.size < 4) { if (!set.has(fb)) set.add(fb); fb += isInt ? 1 : 0.01; }
+
+  return shuffle([...set]);
+}
+
+function gen80Qs() {
+  const qs = [];
+
+  // Multiplication: 3-digit × 1-digit (20)
+  for (let i = 0; i < 20; i++) {
+    const a = ri(102, 998), b = ri(2, 9);
+    qs.push({ q: `${a} × ${b}`, a: a * b });
+  }
+  // Multiplication: 2-digit × 2-digit (15)
+  for (let i = 0; i < 15; i++) {
+    const a = ri(12, 99), b = ri(12, 99);
+    qs.push({ q: `${a} × ${b}`, a: a * b });
+  }
+  // Division: guaranteed clean integer result (15)
+  for (let i = 0; i < 15; i++) {
+    const b = ri(2, 15), ans = ri(10, 200);
+    qs.push({ q: `${b * ans} ÷ ${b}`, a: ans });
+  }
+  // Percentages: x% of y — values chosen so answer is clean (20)
+  const pctPool = [
+    [5, ri(2,40)*20], [10, ri(1,100)*10], [15, ri(2,20)*20],
+    [20, ri(1,50)*10], [25, ri(1,40)*4], [30, ri(1,30)*10],
+    [35, ri(2,20)*20], [40, ri(1,20)*5], [45, ri(2,20)*20],
+    [50, ri(1,100)*2], [60, ri(1,20)*5], [70, ri(1,20)*10],
+    [75, ri(1,20)*4], [80, ri(1,20)*5], [90, ri(1,20)*10],
+    [12.5, ri(2,20)*8], [17.5, ri(2,20)*8], [22.5, ri(2,20)*8],
+    [37.5, ri(2,20)*8], [62.5, ri(2,8)*8],
+  ];
+  for (const [p, v] of shuffle(pctPool).slice(0, 20)) {
+    qs.push({ q: `${p}% of ${v}`, a: Math.round(p * v) / 100 });
+  }
+  // Decimal division: e.g. 4.5 ÷ 0.5 (10)
+  const decPool = [];
+  for (let i = 0; i < 20; i++) {
+    const denom = [0.5, 0.25, 0.2, 0.1, 2.5][ri(0,4)];
+    const ans = ri(2, 80);
+    const num = Math.round(denom * ans * 100) / 100;
+    decPool.push({ q: `${num} ÷ ${denom}`, a: ans });
+  }
+  qs.push(...shuffle(decPool).slice(0, 10));
+
+  return shuffle(qs).slice(0, 80);
+}
+
+function renderDrillQ() {
+  const q = drillQs[drillIdx];
+  const choices = makeChoices(q.a);
+  const labels = ['A','B','C','D'];
+
+  document.getElementById('drill-counter').textContent = `${drillIdx + 1} / 80`;
+  document.getElementById('drill-score-live').textContent = `Score: ${drillScore}`;
+  document.getElementById('drill-bar-fill').style.width = `${(drillIdx / 80) * 100}%`;
+  document.getElementById('drill-qtext').textContent = q.q;
+
+  const box = document.getElementById('drill-choices');
+  box.innerHTML = '';
+  choices.forEach((c, i) => {
+    const btn = document.createElement('button');
+    btn.className = 'drill-choice';
+    btn.innerHTML = `<span class="key">${labels[i]}</span>${fmtNum(c)}`;
+    btn.dataset.val = c;
+    btn.addEventListener('click', () => pickChoice(btn, c, q.a));
+    box.appendChild(btn);
+  });
+
+  drillLocked = false;
+}
+
+function pickChoice(btn, chosen, correct) {
+  if (drillLocked) return;
+  drillLocked = true;
+
+  const ok = Math.abs(chosen - correct) < 0.001;
+  if (ok) drillScore++; else drillScore--;
+
+  // Flash color briefly, then advance
+  btn.classList.add(ok ? 'flash-correct' : 'flash-wrong');
+  document.querySelectorAll('.drill-choice').forEach(b => b.disabled = true);
+
+  setTimeout(() => {
+    drillIdx++;
+    if (drillIdx >= 80 || drillSec <= 0) { endDrill(); } else { renderDrillQ(); }
+  }, 280);
+}
+
+function launchDrill() {
+  drillQs = gen80Qs();
+  drillIdx = 0; drillScore = 0; drillSec = 480; drillLocked = false;
+
+  // Reset to question view (in case results were showing)
+  document.getElementById('drill-shell').innerHTML = `
+    <div class="drill-topbar">
+      <span class="drill-label">80 in 8 &mdash; Optiver Format</span>
+      <span class="drill-counter" id="drill-counter">1 / 80</span>
+      <span class="drill-score-live" id="drill-score-live">Score: 0</span>
+      <span class="drill-timer" id="drill-timer">8:00</span>
+    </div>
+    <div class="drill-bar"><div class="drill-bar-fill" id="drill-bar-fill" style="width:0%"></div></div>
+    <div class="drill-body">
+      <div class="drill-qtext" id="drill-qtext"></div>
+      <div class="drill-choices" id="drill-choices"></div>
+      <div class="drill-hint">Press A &nbsp;B &nbsp;C &nbsp;D &nbsp;&bull;&nbsp; +1 correct &nbsp;&minus;1 wrong</div>
+    </div>`;
+
+  clearInterval(drillTimer);
+  drillTimer = setInterval(() => {
+    drillSec--;
+    const el = document.getElementById('drill-timer');
+    if (!el) { clearInterval(drillTimer); return; }
+    const m = Math.floor(drillSec / 60), s = drillSec % 60;
+    el.textContent = `${m}:${s.toString().padStart(2,'0')}`;
+    el.classList.toggle('warn', drillSec <= 60);
+    if (drillSec <= 0) { clearInterval(drillTimer); endDrill(); }
+  }, 1000);
+
+  document.getElementById('drill-overlay').classList.add('active');
+  document.body.style.overflow = 'hidden';
+  renderDrillQ();
+}
+
+function endDrill() {
+  clearInterval(drillTimer);
+  const answered = drillIdx;
+  const possible = 80;
+  const grade = drillScore >= 70 ? 'Target met (70+)' : drillScore >= 55 ? 'Getting there' : 'Keep drilling';
+  document.getElementById('drill-shell').innerHTML = `
+    <div class="drill-result">
+      <div class="drill-result-sub">Final Score</div>
+      <div class="drill-result-score">${drillScore}</div>
+      <div class="drill-result-detail">${answered} of ${possible} answered &bull; ${grade}</div>
+      <div class="drill-result-detail" style="font-size:0.8rem;color:rgba(255,255,255,0.3);">Scoring: +1 correct / &minus;1 wrong</div>
+      <div class="drill-result-actions">
+        <button class="exam-btn" onclick="launchDrill()">New Set</button>
+        <button class="exam-btn secondary" onclick="closeDrill()">Close</button>
+      </div>
+    </div>`;
+}
+
+function closeDrill() {
+  clearInterval(drillTimer);
+  document.getElementById('drill-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+
+// Keyboard shortcuts A/B/C/D for drill
+document.addEventListener('keydown', e => {
+  if (!document.getElementById('drill-overlay').classList.contains('active')) return;
+  const map = { a: 0, b: 1, c: 2, d: 3 };
+  const idx = map[e.key.toLowerCase()];
+  if (idx === undefined) return;
+  const btns = document.querySelectorAll('.drill-choice');
+  if (btns[idx]) btns[idx].click();
+});
+
+// ===== SEQUENCES EXAM =====
+let seqQs = [], seqIdx = 0, seqScore = 0, seqAnswered = false;
+
+function genSeqQs(n) {
+  const gens = [
+    () => { const a=ri(1,20),d=ri(2,15); return { terms:Array.from({length:8},(_,i)=>a+i*d), rule:`Arithmetic: start ${a}, difference +${d}` }; },
+    () => { const a=ri(1,5),r=[2,3,4][ri(0,2)]; return { terms:Array.from({length:7},(_,i)=>a*Math.pow(r,i)), rule:`Geometric: ratio \u00d7${r}` }; },
+    () => { const s=ri(1,6); return { terms:Array.from({length:8},(_,i)=>(s+i)**2), rule:`Squares starting from ${s}\u00b2` }; },
+    () => { const a=ri(1,5),b=ri(2,10); const t=[a,b]; for(let i=2;i<8;i++) t.push(t[i-1]+t[i-2]); return { terms:t, rule:'Each term = sum of previous two (Fibonacci-like)' }; },
+    () => { const s=ri(1,5); return { terms:Array.from({length:8},(_,i)=>(s+i)*(s+i+1)), rule:'Pronic numbers: n\u00d7(n+1)' }; },
+    () => { const c=ri(2,15),s=ri(1,5); return { terms:Array.from({length:8},(_,i)=>(s+i)**2+c), rule:`n\u00b2 + ${c}` }; },
+    () => ({ terms:Array.from({length:8},(_,i)=>(i+1)*(i+2)/2), rule:'Triangular numbers: n(n+1)/2' }),
+    () => { const s=ri(1,4); return { terms:Array.from({length:7},(_,i)=>(s+i)**3), rule:'Cubes: n\u00b3' }; },
+    () => { const base=[2,3,4,5][ri(0,3)]; return { terms:Array.from({length:7},(_,i)=>base**(i+1)), rule:`Powers of ${base}` }; },
+    () => { const a=ri(5,20),d=ri(2,8); return { terms:Array.from({length:8},(_,i)=>(a+i*d)*(i%2===0?1:-1)), rule:`Alternating signs, difference +${d}` }; },
+    () => { const s=ri(2,6); return { terms:Array.from({length:8},(_,i)=>(s+i)**2-(s+i)), rule:'n\u00b2 \u2212 n = n(n\u22121)' }; },
+    () => { const a=ri(3,30),d=[7,11,13,17,19][ri(0,4)]; return { terms:Array.from({length:8},(_,i)=>a+i*d), rule:`Arithmetic: difference +${d}` }; },
+    () => { const a=ri(1,10); return { terms:Array.from({length:8},(_,i)=>a*(i+1)), rule:`Multiples of ${a}` }; },
+    () => { const s=ri(1,5); return { terms:Array.from({length:8},(_,i)=>(s+i)**2-(s+i-1)**2), rule:'Differences of consecutive squares (odd numbers)' }; },
+  ];
+  return shuffle(gens).slice(0,n).map(gen => {
+    const {terms,rule} = gen();
+    return { shown:terms.slice(0,6), answers:terms.slice(6,8), rule };
+  });
+}
+
+function launchSeq() {
+  seqQs = genSeqQs(10);
+  seqIdx = 0; seqScore = 0;
+  const overlay = document.getElementById('seq-overlay');
+  overlay.innerHTML = `
+    <div class="seq-shell" id="seq-panel">
+      <div class="seq-topbar">
+        <span class="seq-label">Sequences &amp; Patterns</span>
+        <span class="seq-counter" id="seq-counter">1 / 10</span>
+        <button class="exam-btn secondary" onclick="closeSeq()" style="padding:0.3rem 0.7rem;font-size:0.7rem;">Close</button>
+      </div>
+      <div class="seq-bar"><div class="seq-bar-fill" id="seq-bar-fill" style="width:0%"></div></div>
+      <div class="seq-body">
+        <div class="seq-question-text" id="seq-question-text"></div>
+        <div class="seq-inputs">
+          <label>7th term</label>
+          <input type="number" step="any" id="seq-a1" placeholder="?" autocomplete="off">
+          <label>8th term</label>
+          <input type="number" step="any" id="seq-a2" placeholder="?" autocomplete="off">
+        </div>
+        <div class="seq-feedback" id="seq-feedback"></div>
+        <div class="seq-actions">
+          <button class="exam-btn" id="seq-check-btn" onclick="checkSeq()">Check</button>
+          <button class="exam-btn secondary" id="seq-next-btn" style="display:none" onclick="nextSeq()">Next \u2192</button>
+        </div>
+      </div>
+    </div>`;
+  overlay.querySelectorAll('input').forEach(inp => {
+    inp.addEventListener('keydown', e => { if (e.key==='Enter') { if (!seqAnswered) checkSeq(); else nextSeq(); } });
+  });
+  overlay.classList.add('active');
+  document.body.style.overflow = 'hidden';
+  renderSeqQ();
+}
+
+function renderSeqQ() {
+  seqAnswered = false;
+  const q = seqQs[seqIdx];
+  document.getElementById('seq-counter').textContent = `${seqIdx+1} / ${seqQs.length}`;
+  document.getElementById('seq-bar-fill').style.width = `${(seqIdx/seqQs.length)*100}%`;
+  document.getElementById('seq-question-text').textContent = q.shown.join(',  ') + ',  ____,  ____';
+  document.getElementById('seq-a1').value = '';
+  document.getElementById('seq-a2').value = '';
+  const fb = document.getElementById('seq-feedback');
+  fb.style.display = 'none'; fb.className = 'seq-feedback';
+  document.getElementById('seq-check-btn').style.display = 'inline-block';
+  document.getElementById('seq-next-btn').style.display = 'none';
+  document.getElementById('seq-a1').focus();
+}
+
+function checkSeq() {
+  if (seqAnswered) return;
+  seqAnswered = true;
+  const q = seqQs[seqIdx];
+  const v1 = parseFloat(document.getElementById('seq-a1').value);
+  const v2 = parseFloat(document.getElementById('seq-a2').value);
+  const ok = !isNaN(v1) && !isNaN(v2) && Math.abs(v1-q.answers[0])<0.5 && Math.abs(v2-q.answers[1])<0.5;
+  if (ok) seqScore++;
+  const fb = document.getElementById('seq-feedback');
+  fb.style.display = 'block';
+  fb.className = `seq-feedback ${ok ? 'correct' : 'wrong'}`;
+  fb.innerHTML = ok
+    ? `Correct. <div class="seq-rule">${q.rule}</div>`
+    : `Incorrect. Next terms: <strong>${q.answers[0]}, ${q.answers[1]}</strong><div class="seq-rule">${q.rule}</div>`;
+  document.getElementById('seq-check-btn').style.display = 'none';
+  const nb = document.getElementById('seq-next-btn');
+  nb.textContent = seqIdx >= seqQs.length-1 ? 'See Results' : 'Next \u2192';
+  nb.style.display = 'inline-block';
+}
+
+function nextSeq() {
+  seqIdx++;
+  if (seqIdx >= seqQs.length) { showSeqResults(); return; }
+  renderSeqQ();
+}
+
+function showSeqResults() {
+  const grade = seqScore >= 9 ? 'Excellent' : seqScore >= 7 ? 'Good \u2014 keep drilling' : 'Review sequence types and retry';
+  document.getElementById('seq-panel').innerHTML = `
+    <div class="seq-result">
+      <div class="seq-result-sub">Final Score</div>
+      <div class="seq-result-score">${seqScore}/${seqQs.length}</div>
+      <div class="seq-result-label">${grade}</div>
+      <div class="seq-result-actions">
+        <button class="exam-btn" onclick="launchSeq()">New Set</button>
+        <button class="exam-btn secondary" onclick="closeSeq()">Close</button>
+      </div>
+    </div>`;
+}
+
+function closeSeq() {
+  document.getElementById('seq-overlay').classList.remove('active');
+  document.body.style.overflow = '';
+}
+</script>
+</body>
+</html>

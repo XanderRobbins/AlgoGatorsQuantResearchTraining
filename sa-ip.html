@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>IP Expectations — Senior Analyst Hub</title>
+  <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="sa-styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="Delta.png">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">Senior Analyst Hub</span>
+  </div>
+  <div class="nav-links">
+    <a href="index.html">← Exit</a>
+    <a href="senior-analyst.html">Hub</a>
+    <a href="sa-ip.html" class="active">IP</a>
+    <a href="sa-research.html">Research</a>
+    <a href="sa-prior.html">Prior IPs</a>
+    <a href="sa-performance.html">AlgoLens</a>
+    <a href="sa-resources.html">Resources</a>
+    <a href="sa-hierarchy.html">Hierarchy</a>
+    <a href="sa-outreach.html">Outreach</a>
+    <a href="sa-prep.html">Prep</a>
+    <a href="sa-legal.html">Legal</a>
+    <a href="sa-plan.html">Plan</a>
+  </div>
+</nav>
+
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="sa-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Section 01 &mdash; Research Process</div>
+    <h1>IP Expectations</h1>
+    <div class="week-hero-pill">Investment Proposal Standards</div>
+    <p class="week-hero-objective">The IP process is the core research cycle for every QR member — from concept to deployment.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="section">
+    <h2 class="section-title">What an IP Is</h2>
+    <p>An Investment Proposal is the formal research deliverable every QR analyst produces. It documents a complete quantitative strategy from economic rationale to backtest results. It is not code — QR writes the IP, QD implements it. The IP is the source of truth that QD builds from and QT evaluates for portfolio fit.</p>
+    <p>The document has four sections, each with specific required content. You cannot skip ahead: Section 2b (the QD approval gate) must be completed and signed off before any backtest work begins.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">The Four IP Sections</h2>
+
+    <div class="phase-flow">
+      <div class="phase-step">
+        <div class="phase-num">Section 1</div>
+        <div class="phase-name">Hypothesis</div>
+        <div class="phase-note">Economic mechanism, predicted signal-return relationship (direction, asset, horizon), and a specific quantitative falsifiability condition. Hypothesis must be specified <em>before</em> any data analysis.</div>
+      </div>
+      <div class="phase-step">
+        <div class="phase-num">Section 2</div>
+        <div class="phase-name">Data</div>
+        <div class="phase-note"><strong>2a:</strong> Data source, frequency, date range, cleaning steps, feature formulas, and descriptive statistics. <strong>2b:</strong> Written QD approval — data availability, ingestibility, and licensing confirmed by the Head of Data Engineering. This is a hard gate. No backtest until 2b is signed.</div>
+      </div>
+      <div class="phase-step">
+        <div class="phase-num">Section 3</div>
+        <div class="phase-name">Methodology</div>
+        <div class="phase-note"><strong>3a:</strong> Signal formula with all parameters defined, entry/exit rules, position sizing. <strong>3b:</strong> All model assumptions tested and reported — normality (Jarque-Bera/Shapiro-Wilk), stationarity (ADF/KPSS), autocorrelation (Ljung-Box), heteroscedasticity (Breusch-Pagan), multicollinearity (VIF).</div>
+      </div>
+      <div class="phase-step">
+        <div class="phase-num">Section 4</div>
+        <div class="phase-name">Results</div>
+        <div class="phase-note">Sharpe ratio, annualized return, win rate, profit factor — all net of transaction costs (5 bps round-trip minimum). Equity curve and drawdown analysis. Walk-forward or hold-out OOS validation. Information Coefficient over time. Major dislocation stress tests (2008, 2020).</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">The Two Hard Gates</h2>
+    <p>These are not suggestions. An IP fails at submission if either gate was not cleared.</p>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <div style="font-family: 'IBM Plex Mono', monospace; color: var(--accent); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.5rem;">Gate 1 — Section 2b</div>
+        <h3 style="margin-top: 0;">QD Approval</h3>
+        <p style="color: var(--text-secondary); font-size: 0.92rem;">Before any backtest, the analyst must have written confirmation from the Head of Data Engineering that the required data is available, ingestible into TimescaleDB, and (if alternative data) properly licensed. No sign-off = no backtest. No exceptions.</p>
+        <p style="color: var(--text-secondary); font-size: 0.92rem; margin-bottom: 0;">What the sign-off must confirm: exact asset/frequency/date range available, ingest pipeline feasibility, and any licensing cleared.</p>
+      </div>
+      <div class="card">
+        <div style="font-family: 'IBM Plex Mono', monospace; color: var(--accent); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.5rem;">Gate 2 — Leadership Review</div>
+        <h3 style="margin-top: 0;">Leadership Review</h3>
+        <p style="color: var(--text-secondary); font-size: 0.92rem;">The completed IP is reviewed by QR leadership and QT. Evaluated on economic rationale, rigor, portfolio fit, and creativity. Approved strategies move to incubation. Rejected IPs may be resubmitted with substantial changes only.</p>
+        <p style="color: var(--text-secondary); font-size: 0.92rem; margin-bottom: 0;">No IP reaches this stage without Section 2b signed off. Both gates must be cleared.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">What Gets Evaluated at Leadership Review</h2>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h3 style="margin-top: 0;">Economic Rationale</h3>
+        <p style="color: var(--text-secondary); font-size: 0.92rem;">The hypothesis must explain <em>why</em> the edge exists — behavioral bias, structural constraint, or risk premium — not just that it appeared in the data. The mechanism must explain why it will persist, not just that it did historically.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">Rigor &amp; Methodology</h3>
+        <p style="color: var(--text-secondary); font-size: 0.92rem;">Proper out-of-sample or walk-forward validation. Realistic slippage and commission assumptions. No look-ahead bias anywhere in the data pipeline. Results must hold under parameter perturbation — sensitivity analysis required.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">Portfolio Fit</h3>
+        <p style="color: var(--text-secondary); font-size: 0.92rem;">Correlation analysis against existing live strategies is required. A lower-Sharpe strategy can still be approved if it provides genuine diversification. A high-Sharpe strategy that doubles existing exposure may be rejected.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">Creativity &amp; Data Quality</h3>
+        <p style="color: var(--text-secondary); font-size: 0.92rem;">Novel data sources, unconventional signal construction, and rigorous data cleaning are valued. Incremental tweaks to existing strategies require strong justification. Alternative data must have confirmed licensing and sufficient lookback history (5+ years, ideally 10+).</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">IP Readiness Checklist</h2>
+    <p>Use this when reviewing an analyst's workshop readiness. All items must be checked before a workshop clears to submission.</p>
+
+    <div class="callout callout-danger">
+      <div class="callout-title">Automatic Rejection Conditions</div>
+      <p>Section 2b not completed or not signed by Head of Data Engineering. Look-ahead bias present in signal construction. Results reported gross of transaction costs. Strategy re-submitted without substantial changes after prior rejection. Backtest window cherry-picked to hide underperformance.</p>
+    </div>
+
+    <div class="grid grid-2" style="margin-top: 1.5rem;">
+      <div class="card">
+        <div style="font-family: 'IBM Plex Mono', monospace; color: var(--accent); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.75rem;">Section 1 — Hypothesis</div>
+        <ul class="styled" style="margin-bottom: 0;">
+          <li>Economic mechanism stated in one sentence</li>
+          <li>Predicted direction specified before any data analysis</li>
+          <li>Falsifiability condition is specific and quantitative</li>
+          <li>Behavioral vs. structural edge distinction made</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div style="font-family: 'IBM Plex Mono', monospace; color: var(--accent); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.75rem;">Section 2 — Data</div>
+        <ul class="styled" style="margin-bottom: 0;">
+          <li>Source, frequency, date range fully specified in 2a</li>
+          <li>Cleaning steps written with exact formulas</li>
+          <li>Lookback history &gt; 5 years (10+ preferred)</li>
+          <li>Section 2b signed off by Head of Data Engineering</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div style="font-family: 'IBM Plex Mono', monospace; color: var(--accent); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.75rem;">Section 3 — Methodology</div>
+        <ul class="styled" style="margin-bottom: 0;">
+          <li>Signal formula written with all parameters defined</li>
+          <li>Entry, exit, and sizing rules unambiguous</li>
+          <li>Normality, stationarity, autocorrelation, heteroscedasticity, multicollinearity all tested and reported in 3b</li>
+        </ul>
+      </div>
+      <div class="card">
+        <div style="font-family: 'IBM Plex Mono', monospace; color: var(--accent); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.75rem;">Section 4 — Results</div>
+        <ul class="styled" style="margin-bottom: 0;">
+          <li>Sharpe, annualized return, win rate, profit factor — net of costs</li>
+          <li>Equity curve and drawdown analysis included</li>
+          <li>Walk-forward or hold-out OOS validation used</li>
+          <li>Transaction costs at 5 bps round-trip minimum</li>
+          <li>2008 and 2020 dislocation stress tests run</li>
+          <li>IC reported over time (not just in-sample aggregate)</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Section Templates</h2>
+    <p>These are the templates analysts are given in the training program. Use them to calibrate what you expect to see.</p>
+
+    <div class="card" style="margin-bottom: 1.5rem;">
+      <div style="font-family: 'IBM Plex Mono', monospace; color: var(--accent); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.75rem;">Section 1 — Hypothesis Template</div>
+      <pre style="font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; color: var(--text-secondary); white-space: pre-wrap; margin: 0; line-height: 1.7;">Economic mechanism:
+Market participants systematically _____ because _____, which causes prices to _____.
+
+Predicted relationship:
+When [signal] is [high/low/rising/falling], [asset] returns are expected to be
+[positive/negative] over [horizon], because [mechanism above].
+
+Falsifiability:
+This hypothesis would be rejected if [specific quantitative condition — e.g.,
+IC &lt; 0.02, Sharpe &lt; 0.5 on hold-out, directional accuracy &lt; 55% OOS].</pre>
+    </div>
+
+    <div class="card">
+      <div style="font-family: 'IBM Plex Mono', monospace; color: var(--accent); font-size: 0.72rem; text-transform: uppercase; letter-spacing: 0.12em; margin-bottom: 0.75rem;">Section 2b — QD Approval Template</div>
+      <pre style="font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; color: var(--text-secondary); white-space: pre-wrap; margin: 0; line-height: 1.7;">Data sourcing: [Asset] [frequency] from [start] to [end] is available via [source].
+Historical archive confirmed via [link/reference].
+
+Ingestibility: [Frequency] data can be ingested into TimescaleDB within [timeframe]
+of [daily close / event]. [Pipeline status: existing / new work required].
+
+Alternative data: [None required / Licensed via ___ / Confirmed free and public].
+
+Head of Data Engineering approval (Name, email):
+"[Confirmation that data is available, ingestible, covers requested date range.
+Any caveats. Signed off.] — [Initials]"</pre>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <a href="senior-analyst.html" class="week-nav-button">← Back to Hub</a>
+    <a href="sa-research.html" class="week-nav-button">Research Hub →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — Senior Analyst Hub // Internal Use Only
+</footer>
+
+<script src="cursor.js"></script>
+<script>
+/* SA-IP — IP funnel: particles stream through 4 phase gates, most filter out */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('sa-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  const GATES     = 4;
+  const PASS_RATE = 0.48;
+  const particles = [];
+  let spawnCd = 0;
+
+  function gateX(i) { return W * (0.18 + i * 0.20); }
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+  }
+
+  function spawn() {
+    particles.push({
+      x: 0,
+      y: H * (0.12 + Math.random() * 0.76),
+      speed:    0.9 + Math.random() * 0.7,
+      alpha:    0.30 + Math.random() * 0.18,
+      nextGate: 0,
+      status:   'alive',
+    });
+  }
+
+  let lastTs = null;
+
+  function frame(ts) {
+    if (lastTs === null) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Gate lines + labels
+    for (let i = 0; i < GATES; i++) {
+      const gx = gateX(i);
+      ctx.beginPath();
+      ctx.moveTo(gx, H * 0.06);
+      ctx.lineTo(gx, H * 0.94);
+      ctx.strokeStyle = 'rgba(255,125,42,0.13)';
+      ctx.lineWidth   = 1;
+      ctx.setLineDash([3, 6]);
+      ctx.stroke();
+      ctx.setLineDash([]);
+
+      ctx.font         = "9px 'IBM Plex Mono', monospace";
+      ctx.fillStyle    = 'rgba(255,125,42,0.32)';
+      ctx.textAlign    = 'center';
+      ctx.textBaseline = 'bottom';
+      ctx.fillText(`Section ${i + 1}`, gx, H * 0.055);
+    }
+
+    // Spawn
+    spawnCd -= dt;
+    if (spawnCd <= 0) {
+      spawn();
+      if (Math.random() < 0.45) spawn();
+      spawnCd = 260 + Math.random() * 300;
+    }
+
+    // Update + draw
+    for (let i = particles.length - 1; i >= 0; i--) {
+      const p = particles[i];
+
+      if (p.status === 'failing') {
+        p.alpha -= dt * 0.0022;
+        if (p.alpha <= 0) { particles.splice(i, 1); continue; }
+      } else {
+        p.x += p.speed * (dt / 16);
+
+        if (p.status === 'alive' && p.nextGate < GATES && p.x >= gateX(p.nextGate)) {
+          if (Math.random() < PASS_RATE) {
+            p.nextGate++;
+            if (p.nextGate >= GATES) { p.status = 'passed'; p.alpha = 0.85; }
+          } else {
+            p.status = 'failing';
+          }
+        }
+
+        if (p.x > W + 12) { particles.splice(i, 1); continue; }
+      }
+
+      const passed = p.status === 'passed';
+
+      // Trail on passed particles
+      if (passed) {
+        const tLen = Math.min(p.x, 28);
+        const grad = ctx.createLinearGradient(p.x - tLen, 0, p.x, 0);
+        grad.addColorStop(0, 'rgba(255,125,42,0)');
+        grad.addColorStop(1, `rgba(255,125,42,${(p.alpha * 0.35).toFixed(2)})`);
+        ctx.beginPath();
+        ctx.moveTo(p.x - tLen, p.y);
+        ctx.lineTo(p.x, p.y);
+        ctx.strokeStyle = grad;
+        ctx.lineWidth   = 1;
+        ctx.stroke();
+      }
+
+      ctx.beginPath();
+      ctx.arc(p.x, p.y, passed ? 2.8 : 1.8, 0, Math.PI * 2);
+      ctx.fillStyle = passed
+        ? `rgba(255,125,42,${p.alpha.toFixed(2)})`
+        : `rgba(255,238,215,${p.alpha.toFixed(2)})`;
+      ctx.fill();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>
