@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 6: Fund Toolstack & Data Pipeline — QR Training</title>
+  <title>Week 6: Toolstack, Data Pipeline & Writing the Hypothesis — QR Training</title>
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="icon" type="image/png" href="Delta.png">
 </head>
 <body>
@@ -29,9 +30,6 @@
     <a href="week8.html">W8</a>
     <a href="week9.html">W9</a>
     <a href="week10.html">W10</a>
-    <a href="week11.html">W11</a>
-    <a href="week12.html">W12</a>
-    <a href="week13.html">W13</a>
   </div>
 </nav>
 
@@ -39,9 +37,9 @@
   <canvas class="week-hero-canvas" id="w6-canvas"></canvas>
   <div class="week-hero-inner">
     <div class="week-hero-badge">Week 06 &mdash; Phase 2: Tooling &amp; Hypothesis</div>
-    <h1>Fund Toolstack &amp;<br>Data Pipeline</h1>
-    <div class="week-hero-pill">Section 2 — Data &amp; QD Approval</div>
-    <p class="week-hero-objective">Understand the infrastructure that powers research at AlgoGators. Know what data exists before you write Section 2 of your IP.</p>
+    <h1>Toolstack &amp; Data Pipeline<br>+ Writing the Hypothesis</h1>
+    <div class="week-hero-pill">Sections 1 &amp; 2 &mdash; Hypothesis &amp; Data</div>
+    <p class="week-hero-objective">Understand the infrastructure powering research at AlgoGators, then learn to write a testable, falsifiable hypothesis for Section 1 of your IP.</p>
   </div>
 </div>
 
@@ -49,13 +47,21 @@
 
   <div class="ip-anchor">
     <span class="ip-anchor-label">IP Anchor</span>
-    <span class="ip-anchor-section">Section 2 — Data sourcing & QD approval</span>
-    <span class="ip-anchor-desc">The QD approval gate (Section 2b) exists because data is not free and pipelines have limits. Understand the infrastructure before writing your data section.</span>
+    <span class="ip-anchor-section">Section 2 — Data sourcing &amp; QD approval &nbsp;|&nbsp; Section 1 — Hypothesis</span>
+    <span class="ip-anchor-desc">Know the infrastructure before writing Section 2. Know how to write a falsifiable hypothesis before starting Section 1.</span>
   </div>
 
   <div class="section">
     <h2 class="section-title">What this week covers</h2>
-    <p>Every strategy runs on data. The data must exist, be accessible, be affordable, and be ingestible into our systems. This week walks through the AlgoGators data pipeline: what tools ingest data, where it lives, how it flows to strategies, and what the QD approval gate (Section 2b) is checking for.</p>
+    <p>Part one: the AlgoGators data pipeline — what tools ingest data, where it lives, how it flows to strategies, and what the QD approval gate (Section 2b) is checking for. Part two: how to write a strong, falsifiable hypothesis with an economic mechanism — which is Section 1 of your IP.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PART 1 — TOOLSTACK & DATA PIPELINE
+  ════════════════════════════════════════════════════════════ -->
+
+  <div class="section">
+    <h2 class="section-title" style="color: var(--accent); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; font-family: 'IBM Plex Sans', sans-serif;">Part 1 — Fund Toolstack &amp; Data Pipeline</h2>
   </div>
 
   <div class="section">
@@ -175,10 +181,129 @@ df['signal_entry'] = df['signal'] &lt; -entry_threshold
     </div>
   </div>
 
+  <!-- ═══════════════════════════════════════════════════════
+       PART 2 — WRITING THE HYPOTHESIS
+  ════════════════════════════════════════════════════════════ -->
+
+  <div class="section">
+    <h2 class="section-title" style="color: var(--accent); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; font-family: 'IBM Plex Sans', sans-serif;">Part 2 — Writing the Hypothesis (IP §1)</h2>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">The three components of a strong hypothesis</h2>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">1. Economic mechanism</h3>
+      <p>Why does this pattern exist? Not "I found it in the data." Why would market participants allow this inefficiency to persist?</p>
+      <p>Good mechanisms explain:</p>
+      <ul style="font-size: 0.95rem;">
+        <li><strong>Behavioral:</strong> What bias or constraint causes participants to misbehave? (anchoring, disposition effect, herding, underreaction)</li>
+        <li><strong>Structural:</strong> What market constraint forces suboptimal behavior? (hedging requirements, index rebalancing, roll yield, storage costs)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">2. Predicted relationship</h3>
+      <p>What signal predicts what return, in what direction, over what horizon?</p>
+      <p>Example: "When 30-day rolling soil moisture deviation is more than 1 standard deviation below the 20-year seasonal average, corn futures are expected to have negative returns over the next 5–10 trading days because low soil moisture predicts lower yields, which the market will reprice when USDA yield reports are released."</p>
+      <p>Specify:</p>
+      <ul style="font-size: 0.95rem;">
+        <li>The signal (soil moisture deviation)</li>
+        <li>The direction (negative / low moisture → lower returns)</li>
+        <li>The horizon (5–10 trading days)</li>
+        <li>The mechanism link (yields → prices)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">3. Falsifiability condition</h3>
+      <p>What result would convince you the hypothesis is <em>wrong</em>? If you can't answer this, you don't have a hypothesis.</p>
+      <p>Example: "This hypothesis is falsified if (a) the Information Coefficient between soil moisture deviation and forward corn returns is less than 0.02 (no predictive power), or (b) the backtest Sharpe on a 2023 hold-out period is less than 0.5 (results don't hold out-of-sample)."</p>
+      <p>Good falsifiability conditions are:</p>
+      <ul style="font-size: 0.95rem;">
+        <li><strong>Testable:</strong> You can calculate it from data</li>
+        <li><strong>Specific:</strong> Explicit number, not "seems promising"</li>
+        <li><strong>Fair:</strong> Not unreasonably high (Sharpe 5.0) or low (0.1)</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Hypothesis template</h2>
+    <p style="color: var(--text-secondary); margin-bottom: 1rem;">Copy this template into Section 1 of your IP. Fill in each section with your hypothesis.</p>
+
+    <div class="card" style="background: var(--bg-elevated); font-size: 0.9rem;">
+      <p style="font-weight: 600; color: var(--accent);">HYPOTHESIS TEMPLATE</p>
+
+      <p style="margin-top: 1.5rem;"><strong>Economic mechanism:</strong></p>
+      <p style="font-style: italic; color: var(--text-secondary);">[Market participants systematically _____ because _____, which causes prices to _____ .]</p>
+
+      <p style="margin-top: 1.5rem;"><strong>Predicted relationship:</strong></p>
+      <p style="font-style: italic; color: var(--text-secondary);">[When [signal] is [high/low/rising/falling], [asset] returns are expected to be [positive/negative] over [horizon], because [mechanism above].]</p>
+
+      <p style="margin-top: 1.5rem;"><strong>Falsifiability:</strong></p>
+      <p style="font-style: italic; color: var(--text-secondary);">[This hypothesis would be rejected if [specific quantitative condition — e.g., Information Coefficient &lt; 0.02, or Sharpe &lt; 0.5 on hold-out period, or directional accuracy &lt; 55% on out-of-sample data].]</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Hypothesis types with examples</h2>
+
+    <h3 style="margin-top: 1.5rem;">Type 1: Behavioral inefficiency</h3>
+    <div class="card">
+      <p><strong>Example: Post-earnings drift (momentum)</strong></p>
+      <p><strong>Economic mechanism:</strong> Investors systematically underreact to earnings news. The market reprices gradually over weeks or months, not immediately at announcement. Short-selling constraints and institutional limitations on volatility exposure prevent arbitrageurs from eliminating this drift immediately.</p>
+      <p><strong>Predicted relationship:</strong> When earnings surprise is large and positive (actual EPS &gt; consensus EPS by more than 1 standard deviation), the stock is expected to have positive abnormal returns for 3–6 months post-announcement.</p>
+      <p><strong>Falsifiability:</strong> This hypothesis is rejected if the average post-announcement drift is not significantly different from zero (t-stat &lt; 1.96) over a 3-month hold period, or if the drift reverses (negative returns) in the first week after announcement.</p>
+    </div>
+
+    <h3 style="margin-top: 1.5rem;">Type 2: Structural inefficiency</h3>
+    <div class="card">
+      <p><strong>Example: Commodity roll yield (contango/backwardation)</strong></p>
+      <p><strong>Economic mechanism:</strong> Commodity futures contracts are rolled before expiry. When the term structure is in backwardation (near-month contract trading at a premium to far-month), rolling captures positive yield. This is not an arbitrage — it reflects the physical convenience value of holding inventory. Hedgers (producers and consumers) are willing to pay this premium because holding physical commodity has value. The premium is persistent because the underlying convenience value doesn't disappear.</p>
+      <p><strong>Predicted relationship:</strong> When the front/second-month spread is in backwardation (front price &gt; second-month price), a rolling long position in the front-month contract is expected to earn positive roll yield equal to the spread minus the cost of financing. Expected return is positive.</p>
+      <p><strong>Falsifiability:</strong> This hypothesis is rejected if average roll yield is zero or negative over a 5-year period, or if roll yield does not persist after transaction costs.</p>
+    </div>
+
+    <h3 style="margin-top: 1.5rem;">Type 3: Alternative data (information latency)</h3>
+    <div class="card">
+      <p><strong>Example: Satellite weather data predicting crop yields</strong></p>
+      <p><strong>Economic mechanism:</strong> NASA satellite data provides daily measurements of soil moisture and temperature at the field level. These measurements predict crop yields. The market prices crops based on USDA forecasts, which are survey-based and release once per month. There is an information gap: satellite data predicts yields before USDA reports them. The market does not instantaneously incorporate satellite data because (a) the data is not in standard market feeds, (b) processing it requires domain expertise, (c) few market participants have access or motivation to use it.</p>
+      <p><strong>Predicted relationship:</strong> When growing-season soil moisture anomalies (satellite GDD deviation from 20-year seasonal average) are large and negative, corn prices are expected to decline in the 5–10 days preceding the next USDA yield report, capturing the market's repricing as the report data becomes known.</p>
+      <p><strong>Falsifiability:</strong> This hypothesis is rejected if the Information Coefficient between satellite moisture deviation and forward corn returns is &lt; 0.02, or if the strategy has negative Sharpe on a 2023 hold-out period.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Information Coefficient (IC)</h2>
+    <p>IC measures the correlation between your signal and forward returns. It's the core metric for evaluating whether your hypothesis has predictive power before you build the full backtest.</p>
+    \[ IC = \text{Corr}(\text{signal}_t,\ r_{t+h}) \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where signal_t is your signal at time t, r_{t+h} is the return from t to t+h (your chosen horizon).</p>
+
+    <p style="margin-top: 1.5rem;"><strong>Interpretation:</strong></p>
+    <ul>
+      <li>IC ≈ 0: No predictive power (noise)</li>
+      <li>IC = 0.05–0.10: Meaningful in quantitative finance. This is the zone for real edges.</li>
+      <li>IC = 0.20+: Exceptional (and suspicious — check for look-ahead bias)</li>
+    </ul>
+
+    <p style="margin-top: 1.5rem;"><strong>IC Information Ratio (ICIR):</strong></p>
+    \[ ICIR = \frac{\overline{IC}}{\sigma_{IC}} \]
+    <p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">Average IC divided by the standard deviation of IC. ICIR &gt; 0.5 suggests a consistently predictive signal.</p>
+
+    <div class="chart-container" style="margin-top: 1.5rem;">
+      <canvas id="icChart"></canvas>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       COMBINED COMMON MISTAKES
+  ════════════════════════════════════════════════════════════ -->
+
   <div class="section">
     <h2 class="section-title">Common mistakes</h2>
     <div class="mistakes-list">
-      <h4 style="margin-top: 0;">Five data pipeline failures</h4>
+      <h4 style="margin-top: 0;">Data pipeline failures</h4>
       <ul>
         <li><strong>Skipping Section 2b and assuming data availability.</strong> You need written confirmation from QD. Email counts; attachment or reply-all to your IP draft counts. Verbal is not enough.</li>
         <li><strong>Requesting data at the wrong frequency.</strong> You want daily but need intraday? Requesting daily won't work. Be precise: "daily close at 4:00 PM ET" not "daily data."</li>
@@ -187,11 +312,22 @@ df['signal_entry'] = df['signal'] &lt; -entry_threshold
         <li><strong>Assuming alternative data is cheap.</strong> Satellite data, web scraping, proprietary sources cost money. Get pricing in Section 2b before committing 10 weeks to research that costs $50k/month to run.</li>
       </ul>
     </div>
+
+    <div class="mistakes-list" style="margin-top: 1.5rem;">
+      <h4 style="margin-top: 0;">Hypothesis failures</h4>
+      <ul>
+        <li><strong>Writing the hypothesis as a tautology.</strong> "When momentum is positive, the stock continues to have positive momentum." This is circular — of course it's true. A real hypothesis explains WHY.</li>
+        <li><strong>No falsifiability condition.</strong> If you can't state what result would make you reject the hypothesis, you don't have a hypothesis. Add a specific quantitative threshold.</li>
+        <li><strong>Economic mechanism stated too vaguely.</strong> "The market is inefficient" doesn't distinguish from data mining. "Investors underreact to earnings by an average of 6 weeks due to limited attention" is specific enough to test.</li>
+        <li><strong>Signal direction not specified before testing.</strong> "I'll look at momentum and see if it predicts returns." Wrong. "High momentum predicts positive returns over 1-month horizon" specified before you test.</li>
+        <li><strong>Hypothesis changed after seeing the data.</strong> If you test 10 signal variants and then form a hypothesis around the best one, you're p-hacking. The hypothesis must come before the backtest.</li>
+      </ul>
+    </div>
   </div>
 
   <div class="week-nav">
     <a href="week5.html" class="week-nav-button">← Week 5: Statistics</a>
-    <a href="week7.html" class="week-nav-button">Week 7: The Hypothesis →</a>
+    <a href="week7.html" class="week-nav-button">Week 7: Data Sourcing →</a>
   </div>
 
 </div>
@@ -199,6 +335,64 @@ df['signal_entry'] = df['signal'] &lt; -entry_threshold
 <footer>
   AlgoGators Investment Fund — QR Training Program // Internal Use Only
 </footer>
+
+<script>
+  const ctx = document.getElementById('icChart').getContext('2d');
+
+  const periods = Array.from({length: 60}, (_, i) => i + 1);
+  const goodSignalIC = periods.map(() => 0.08 + (Math.random() - 0.5) * 0.05);
+  const noiseSignalIC = periods.map(() => (Math.random() - 0.5) * 0.08);
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: periods,
+      datasets: [
+        {
+          label: 'Good Signal (mean IC ≈ 0.08)',
+          data: goodSignalIC,
+          borderColor: '#FF9500',
+          backgroundColor: 'rgba(255, 149, 0, 0.1)',
+          borderWidth: 2,
+          pointRadius: 2,
+          fill: true,
+          tension: 0.3
+        },
+        {
+          label: 'Noise Signal (mean IC ≈ 0)',
+          data: noiseSignalIC,
+          borderColor: '#d97757',
+          backgroundColor: 'rgba(217, 119, 87, 0.1)',
+          borderWidth: 2,
+          pointRadius: 2,
+          fill: true,
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: { color: '#888888', font: { family: "'IBM Plex Mono'" } }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#888888' },
+          grid: { color: '#1f1f1f' },
+          title: { display: true, text: 'Period', color: '#888' }
+        },
+        y: {
+          grid: { color: '#1f1f1f' },
+          ticks: { color: '#888888' },
+          title: { display: true, text: 'Information Coefficient', color: '#888' }
+        }
+      }
+    }
+  });
+</script>
 
 <script>
 /* Week 6 — data pipeline DAG with flowing particles */

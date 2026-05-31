@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 10: Model Assumptions (IP §3b) — QR Training</title>
+  <title>Week 10: Backtest Results & Performance (IP §4) — QR Training</title>
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="icon" type="image/png" href="Delta.png">
 </head>
 <body>
@@ -29,9 +30,6 @@
     <a href="week8.html">W8</a>
     <a href="week9.html">W9</a>
     <a href="week10.html" class="active">W10</a>
-    <a href="week11.html">W11</a>
-    <a href="week12.html">W12</a>
-    <a href="week13.html">W13</a>
   </div>
 </nav>
 
@@ -39,9 +37,9 @@
   <canvas class="week-hero-canvas" id="w10-canvas"></canvas>
   <div class="week-hero-inner">
     <div class="week-hero-badge">Week 10 &mdash; Phase 3: Research Execution</div>
-    <h1>Model Assumptions<br>(IP §3b)</h1>
-    <div class="week-hero-pill">Section 3b — Model Assumptions</div>
-    <p class="week-hero-objective">Test and document every model assumption. This IS Section 3b of your IP. The most critical section for QT risk management.</p>
+    <h1>Backtest Results &amp;<br>Performance (IP §4)</h1>
+    <div class="week-hero-pill">Section 4 — Backtest Results</div>
+    <p class="week-hero-objective">Run backtests correctly, interpret results honestly, and document your out-of-sample validation. This IS Section 4 of your IP.</p>
   </div>
 </div>
 
@@ -49,210 +47,170 @@
 
   <div class="ip-anchor">
     <span class="ip-anchor-label">IP Anchor</span>
-    <span class="ip-anchor-section">Section 3b — Model assumptions</span>
-    <span class="ip-anchor-desc">Mandatory every time you use a model. QT uses this section to adjust risk management. Document everything.</span>
+    <span class="ip-anchor-section">Section 4 — Backtest results</span>
+    <span class="ip-anchor-desc">The final section. Every metric must be reported: Sharpe, return, win rate, profit factor, drawdown, and OOS validation. No hand-waving.</span>
   </div>
 
   <div class="section">
     <h2 class="section-title">What this week covers</h2>
-    <p>This is the most technically detailed week. Section 3b is a direct reference for completing the assumption-testing portion of every IP. You will learn to test five critical assumptions (covered in Week 5), plus the special case of cointegration for pairs trading. Every test, result, and implication goes in Section 3b.</p>
+    <p>This week teaches the four required metrics for any backtest (Sharpe, annual return, win rate, profit factor), how to interpret an equity curve, the critical distinction between in-sample and out-of-sample results, and the three backtest sins to avoid. Section 4 is where you report everything.</p>
   </div>
 
   <div class="section">
-    <h2 class="section-title">Section 3b checklist</h2>
-    <p>Copy this checklist into your IP. Complete every row. Report the test, the result, and what you'll do if it fails.</p>
+    <h2 class="section-title">The four required metrics</h2>
 
-    <table style="font-size: 0.9rem;">
-      <thead>
-        <tr>
-          <th>Assumption</th>
-          <th>Test</th>
-          <th>Python</th>
-          <th>Fail condition</th>
-          <th>If it fails</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td><strong>Normality of residuals</strong></td>
-          <td>Jarque-Bera, Shapiro-Wilk</td>
-          <td><code>scipy.stats.jarque_bera</code></td>
-          <td>p &lt; 0.05</td>
-          <td>Use robust methods; report fat-tail risk</td>
-        </tr>
-        <tr>
-          <td><strong>Stationarity</strong></td>
-          <td>ADF, KPSS</td>
-          <td><code>statsmodels.adfuller</code></td>
-          <td>ADF p &gt; 0.05</td>
-          <td>Difference series; use returns not prices</td>
-        </tr>
-        <tr>
-          <td><strong>No autocorrelation</strong></td>
-          <td>Ljung-Box</td>
-          <td><code>statsmodels.acorr_ljungbox</code></td>
-          <td>p &lt; 0.05</td>
-          <td>Use Newey-West HAC standard errors</td>
-        </tr>
-        <tr>
-          <td><strong>Homoscedasticity</strong></td>
-          <td>Breusch-Pagan</td>
-          <td><code>statsmodels.het_breuschpagan</code></td>
-          <td>p &lt; 0.05</td>
-          <td>Use HC3/HC4 robust SE or GARCH model</td>
-        </tr>
-        <tr>
-          <td><strong>No multicollinearity</strong></td>
-          <td>VIF</td>
-          <td><code>statsmodels.variance_inflation_factor</code></td>
-          <td>VIF &gt; 10</td>
-          <td>Drop or combine correlated features</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+    <h3 style="margin-top: 1.5rem;">1. Sharpe Ratio</h3>
+    \[ \text{Sharpe} = \frac{E[R_p] - R_f}{\sigma_p} \cdot \sqrt{252} \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Annualized return per unit of risk. Multiply by √252 for daily data.</p>
 
-  <div class="section">
-    <h2 class="section-title">Deep dive: Cointegration (pairs trading)</h2>
-
-    <p>For pairs strategies, you're not testing stationarity of individual series — you're testing stationarity of the spread (the linear combination).</p>
-
-    <h3 style="margin-top: 1.5rem;">Engle-Granger cointegration test</h3>
-    <p>Two series are cointegrated if a linear combination of them is stationary.</p>
-    <p style="margin-top: 1rem;"><strong>Method:</strong></p>
-    <ol style="font-size: 0.95rem;">
-      <li>Regress y on x: \(y_t = \alpha + \beta x_t + \varepsilon_t\)</li>
-      <li>Extract residuals ε</li>
-      <li>Test residuals for stationarity (ADF test)</li>
-      <li>If residuals are stationary, the pair is cointegrated</li>
-    </ol>
-
-    <p style="margin-top: 1.5rem;"><strong>Python:</strong></p>
-    <pre><code>from statsmodels.tsa.stattools import coint
-
-score, p_value, critical_values = coint(series_a, series_b)
-print(f"Cointegration test p-value: {p_value:.4f}")
-# p &lt; 0.05 → cointegrated at 5% significance
-</code></pre>
-
-    <h3 style="margin-top: 1.5rem;">Johansen test (multiple assets)</h3>
-    <p>For strategies with 3+ assets, use Johansen's cointegration test.</p>
-    <p>\[ \Delta \mathbf{y}_t = \Pi \mathbf{y}_{t-1} + \sum_{i=1}^{p-1} \Gamma_i \Delta \mathbf{y}_{t-i} + \varepsilon_t \]</p>
-
-    <p style="margin-top: 1rem;"><strong>Interpretation:</strong> The rank of Π determines the number of cointegrating relationships (linearly independent stationary combinations).</p>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Section 3b template with real example</h2>
-
-    <div class="card" style="background: var(--bg-elevated); font-size: 0.9rem;">
-      <p style="color: var(--accent); font-weight: 600;">SECTION 3B: MODEL ASSUMPTIONS — Ridge Regression Commodity Strategy</p>
-
-      <p style="margin-top: 1rem;"><strong>Strategy uses a ridge regression to predict corn returns from 3 factors:</strong></p>
-      <ul style="margin-left: 1.5rem; font-size: 0.9rem;">
-        <li>Factor 1: 30-day momentum</li>
-        <li>Factor 2: 60-day seasonality (deviation from 10-year average)</li>
-        <li>Factor 3: COT speculator positioning (normalized)</li>
+    <div class="card">
+      <p><strong>Interpretation:</strong></p>
+      <ul style="font-size: 0.95rem;">
+        <li>&lt; 0.5: Weak edge</li>
+        <li>0.5 – 1.0: Acceptable (borderline)</li>
+        <li>1.0 – 1.5: Strong edge</li>
+        <li>1.5 – 2.0: Very strong edge (check for overfitting)</li>
+        <li>&gt; 2.0: Almost certainly overfit</li>
       </ul>
+      <p style="margin-top: 1rem;"><strong>Critical caveat:</strong> In-sample Sharpe is always higher than live Sharpe. A backtest Sharpe of 1.5 means a live Sharpe of ~1.0–1.2. Assume 20–30% degradation.</p>
+    </div>
 
-      <p style="margin-top: 1rem;"><strong>3b.1 Normality of residuals</strong></p>
-      <p>Test: Jarque-Bera on regression residuals (2020–2023 in-sample)</p>
-      <p>Result: JB stat = 12.4, p-value = 0.002 → reject normality</p>
-      <p>Implication: Residuals have fat tails. Daily returns exhibit kurtosis = 4.2 (excess = 1.2). Documented.</p>
-      <p>Action: Report expected maximum drawdown assuming fat tails. Use robust standard errors (HC3).</p>
+    <h3 style="margin-top: 1.5rem;">2. Annualized Return</h3>
+    \[ R_{\text{ann}} = \left(\prod_{t=1}^{T}(1 + r_t)\right)^{252/T} - 1 \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Compound growth rate annualized. Report gross (before costs) and net (after transaction costs). If they differ by &gt; 1–2%, transaction costs are material.</p>
 
-      <p style="margin-top: 1rem;"><strong>3b.2 Stationarity of predictors</strong></p>
-      <p>Test: ADF on each factor</p>
-      <ul style="margin-left: 1.5rem; font-size: 0.85rem;">
-        <li>Momentum (30-day): ADF stat = -8.7, p &lt; 0.001 → stationary ✓</li>
-        <li>Seasonality (deviation): ADF stat = -9.2, p &lt; 0.001 → stationary ✓</li>
-        <li>COT positioning (normalized): ADF stat = -6.4, p &lt; 0.001 → stationary ✓</li>
+    <h3 style="margin-top: 1.5rem;">3. Win Rate & Profit Factor</h3>
+    <p><strong>Win Rate:</strong> Percentage of profitable trades.</p>
+    \[ \text{Win Rate} = \frac{\text{# winning trades}}{\text{# total trades}} \]
+
+    <p style="margin-top: 1rem;"><strong>Profit Factor:</strong> Ratio of gross profit to gross loss.</p>
+    \[ \text{Profit Factor} = \frac{\sum \text{winning P&L}}{\sum |\text{losing P&L}|} \]
+
+    <div class="card">
+      <p><strong>Why both matter:</strong> Win rate alone is meaningless. A strategy that wins 30% of the time can be profitable if winners are 3.5x the size of losers. A strategy that wins 70% of the time can lose money if losers are 2.5x the size of winners.</p>
+      <ul style="font-size: 0.95rem;">
+        <li>Profit Factor &gt; 1.0: Strategy is profitable</li>
+        <li>Profit Factor &gt; 1.5 + Win Rate &gt; 50%: Strong edge</li>
+        <li>Profit Factor &gt; 2.0 + Win Rate &gt; 40%: Very strong edge (check for overfitting)</li>
       </ul>
-      <p>All factors are stationary. No issues.</p>
+    </div>
 
-      <p style="margin-top: 1rem;"><strong>3b.3 No autocorrelation in residuals</strong></p>
-      <p>Test: Ljung-Box on residuals, lags 1–20</p>
-      <p>Result: All p-values &gt; 0.05. No significant autocorrelation detected. ✓</p>
+    <h3 style="margin-top: 1.5rem;">4. Equity Curve & Drawdown</h3>
+    <p>The equity curve is the cumulative P&L over time. It shows HOW you got to the final return, not just that you did. Look for:</p>
+    <ul style="font-size: 0.95rem;">
+      <li><strong>Consistency:</strong> Steady upward slope or choppy? (Smooth = good. Choppy with long flat periods = risk of drawdown)</li>
+      <li><strong>Drawdown depth:</strong> Maximum peak-to-trough decline. Max drawdown -20% means at some point you were down 20% from peak.</li>
+      <li><strong>Drawdown duration:</strong> How long was the recovery? 6 months = manageable. 2 years = career risk.</li>
+      <li><strong>Regime changes:</strong> Did the strategy stop working at some point? If it was strong 2010–2015 and flat 2016–2024, the edge may have degraded.</li>
+    </ul>
 
-      <p style="margin-top: 1rem;"><strong>3b.4 Homoscedasticity</strong></p>
-      <p>Test: Breusch-Pagan heteroscedasticity test</p>
-      <p>Result: BP stat = 18.3, p = 0.0003 → heteroscedasticity present</p>
-      <p>Action: Volatility clusters (expected in commodity markets). Use HC3 robust standard errors for inference.</p>
-
-      <p style="margin-top: 1rem;"><strong>3b.5 No multicollinearity</strong></p>
-      <p>Test: Variance Inflation Factor on 3 factors</p>
-      <ul style="margin-left: 1.5rem; font-size: 0.85rem;">
-        <li>Momentum: VIF = 1.3</li>
-        <li>Seasonality: VIF = 1.1</li>
-        <li>COT: VIF = 1.2</li>
-      </ul>
-      <p>All VIF &lt; 2. No multicollinearity concerns. ✓</p>
-
-      <p style="margin-top: 1rem;"><strong>Summary:</strong> Ridge regression suitable. Primary concerns: fat-tail risk (documented), heteroscedasticity (robust SE applied). Model assumptions documented and acceptable for live trading.</p>
+    <div class="chart-container" style="margin-top: 1.5rem;">
+      <canvas id="equityChart"></canvas>
     </div>
   </div>
 
   <div class="section">
-    <h2 class="section-title">Assumption testing code patterns</h2>
+    <h2 class="section-title">In-sample vs. out-of-sample</h2>
 
-    <h3 style="margin-top: 1.5rem;">Normality (Jarque-Bera)</h3>
-    <pre><code>from scipy import stats
+    <p><strong>In-sample:</strong> Data used to develop the strategy (optimize parameters, train models).</p>
+    <p><strong>Out-of-sample:</strong> Data the researcher never saw before backtest.</p>
+    <p style="margin-top: 1.5rem;">In-sample Sharpe is almost always higher than OOS Sharpe. This is not a bug — it's mathematics. You optimized to the in-sample data.</p>
 
-jb_stat, jb_p = stats.jarque_bera(residuals)
-print(f"Jarque-Bera: stat={jb_stat:.4f}, p={jb_p:.4f}")
+    <h3 style="margin-top: 1.5rem;">Walk-forward validation (best practice)</h3>
+    <ol style="font-size: 0.95rem;">
+      <li><strong>Training period (first 60%):</strong> Optimize signal parameters, train model</li>
+      <li><strong>Validation period (next 20%):</strong> Test parameter robustness (tune if needed, but don't reopt to OOS data)</li>
+      <li><strong>Hold-out period (final 20%):</strong> Completely untouched until final evaluation. This is your OOS Sharpe.</li>
+    </ol>
 
-if jb_p &lt; 0.05:
-    print("Residuals are NOT normally distributed (fat tails likely)")
-else:
-    print("Residuals are consistent with normality")
+    <p style="margin-top: 1.5rem;"><strong>Report rule:</strong> Always report both IS and OOS metrics. If OOS &lt;&lt; IS, you overfit. Example: "In-sample Sharpe 1.45, hold-out Sharpe 0.92" suggests 36% degradation (normal). "In-sample Sharpe 2.1, hold-out Sharpe 0.3" suggests severe overfitting.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">The three backtest sins</h2>
+
+    <h3 style="margin-top: 1.5rem;">Sin 1: Look-ahead bias</h3>
+    <p>Using future data to generate signals for the past. The most common mistake.</p>
+    <div class="card">
+      <p><strong>Example:</strong> Using the month's final close on the 1st of the month to generate signals for trades on the 1st. You're using data from the future (end of month) to trade at the beginning.</p>
+      <p style="margin-top: 1rem;"><strong>How to avoid:</strong> Use only data available at decision time. If your signal fires on day T, use only data available on day T (market close or earlier).</p>
+    </div>
+
+    <h3 style="margin-top: 1.5rem;">Sin 2: Overfitting via parameter sweeps</h3>
+    <p>Testing 1,000 combinations of lookback window, threshold, and entry/exit logic. Reporting the best result. By chance, something will look great.</p>
+    <div class="card">
+      <p><strong>Math:</strong> If you test n parameter combinations, the expected maximum Sharpe by chance is roughly 0.5 + 0.1√log(n). For 100 combinations: ~0.9 expected by noise alone.</p>
+      <p style="margin-top: 1rem;"><strong>How to avoid:</strong> (1) Specify signal parameters in advance based on economic theory. (2) If you must do parameter search, test on walk-forward OOS data, not in-sample. (3) Report Deflated Sharpe Ratio: corrects for multiple testing.</p>
+    </div>
+
+    <h3 style="margin-top: 1.5rem;">Sin 3: Ignoring transaction costs</h3>
+    <p>Every fill has slippage. Every trade has commission. For high-frequency signals, costs can eliminate all alpha.</p>
+    <div class="card">
+      <pre><code>commission_bps = 2   # 2 basis points per side
+slippage_bps = 3     # 3 basis points estimated slippage
+total_cost_bps = commission_bps + slippage_bps
+
+# Round-trip cost (open and close): 2 × total_cost
+df['net_return'] = df['gross_return'] - (df['trade_flag'] * 2 * total_cost_bps / 10000)
 </code></pre>
+      <p style="margin-top: 1rem;"><strong>Rule of thumb:</strong> If your Sharpe drops by &gt; 20% after adding transaction costs, the edge is marginal.</p>
+    </div>
+  </div>
 
-    <h3 style="margin-top: 1.5rem;">Stationarity (ADF)</h3>
-    <pre><code>from statsmodels.tsa.stattools import adfuller
+  <div class="section">
+    <h2 class="section-title">Section 4 template</h2>
 
-result = adfuller(series, autolag='AIC')
-print(f"ADF stat: {result[0]:.4f}, p-value: {result[1]:.4f}")
+    <div class="card" style="background: var(--bg-elevated); font-size: 0.9rem;">
+      <p style="color: var(--accent); font-weight: 600;">SECTION 4: BACKTEST RESULTS — Corn Futures Strategy</p>
 
-if result[1] &lt; 0.05:
-    print("Series is stationary (reject unit root)")
-else:
-    print("Series is non-stationary (unit root present)")
-</code></pre>
+      <p style="margin-top: 1rem;"><strong>4.1 Performance Metrics (2010–2024 in-sample)</strong></p>
+      <ul style="margin-left: 1.5rem; font-size: 0.9rem;">
+        <li>Sharpe Ratio (gross): 1.07</li>
+        <li>Sharpe Ratio (net, 5bps round-trip): 0.98</li>
+        <li>Annualized Return (gross): 14.07%</li>
+        <li>Annualized Volatility: 13.17%</li>
+        <li>Maximum Drawdown: -16.37%</li>
+        <li>Sortino Ratio: 1.76</li>
+        <li>Calmar Ratio: 0.86</li>
+        <li>Win Rate: 54.35%</li>
+        <li>Profit Factor: 1.36</li>
+        <li>Total Trades: 487</li>
+      </ul>
 
-    <h3 style="margin-top: 1.5rem;">Multicollinearity (VIF)</h3>
-    <pre><code>from statsmodels.stats.outliers_influence import variance_inflation_factor
-import pandas as pd
+      <p style="margin-top: 1rem;"><strong>4.2 Out-of-Sample Validation</strong></p>
+      <p>Hold-out period: 2023–2024 (final 1/7 of dataset, untouched during development)</p>
+      <ul style="margin-left: 1.5rem; font-size: 0.9rem;">
+        <li>Sharpe Ratio (OOS): 0.87 (18% degradation from IS)</li>
+        <li>Annualized Return (OOS): 10.8%</li>
+        <li>Max Drawdown (OOS): -12.1%</li>
+        <li>Win Rate (OOS): 51.2%</li>
+      </ul>
+      <p style="margin-top: 1rem;">Degradation is normal and expected. The OOS Sharpe of 0.87 is solid.</p>
 
-vif_data = pd.DataFrame()
-vif_data["Feature"] = X.columns
-vif_data["VIF"] = [
-    variance_inflation_factor(X.values, i)
-    for i in range(X.shape[1])
-]
-print(vif_data)
+      <p style="margin-top: 1rem;"><strong>4.3 Risk Analysis</strong></p>
+      <p>Sortino (1.76) &gt; Sharpe (1.07) indicates downside volatility is well-managed — most volatility comes from upside swings. Calmar (0.86) suggests moderate drawdown recovery. Maximum single drawdown of -16.37% lasted approximately 4 months (recovery by month 5).</p>
 
-if (vif_data["VIF"] &gt; 10).any():
-    print("Multicollinearity detected. Consider dropping features.")
-</code></pre>
+      <p style="margin-top: 1rem;"><strong>4.4 Transaction Cost Sensitivity</strong></p>
+      <p>Assuming 5bps round-trip cost (commission + slippage), net Sharpe = 0.98. At 10bps cost, Sharpe drops to 0.88. Edge survives transaction costs.</p>
+    </div>
   </div>
 
   <div class="section">
     <h2 class="section-title">Common mistakes</h2>
     <div class="mistakes-list">
-      <h4 style="margin-top: 0;">Five assumption-testing failures</h4>
+      <h4 style="margin-top: 0;">Five backtest reporting failures</h4>
       <ul>
-        <li><strong>Skipping Section 3b entirely.</strong> It's mandatory. At minimum: test residuals for normality and autocorrelation, test series for stationarity. Report results.</li>
-        <li><strong>Running ADF but not reporting it in Section 3b.</strong> If you ran the test, report it. The p-value, the interpretation, what you'll do if it fails.</li>
-        <li><strong>Building a multi-factor model without checking VIF.</strong> Correlated factors will cancel each other out in live trading, even if they work in backtest. Check VIF before submitting.</li>
-        <li><strong>Ignoring fat tails.</strong> "Close enough to normal" is not a valid analysis. If Jarque-Bera p &lt; 0.05, document the deviation. Report expected extreme drawdown.</li>
-        <li><strong>Using price levels in regression.</strong> Prices are non-stationary. Test with ADF first. If non-stationary, use returns or cointegration.</li>
+        <li><strong>Reporting in-sample Sharpe as if it's out-of-sample.</strong> Always label it: "In-sample Sharpe 1.45, hold-out OOS Sharpe 0.92." Readers assume the better number unless told otherwise.</li>
+        <li><strong>Not showing the equity curve.</strong> A single Sharpe number hides everything: path to returns, drawdown recovery speed, regime changes. Always include the equity curve chart in Section 4.</li>
+        <li><strong>Optimizing to the hold-out period.</strong> If you tune parameters to 2023 data and report 2023 results as OOS, you haven't validated anything. OOS data must be truly untouched.</li>
+        <li><strong>Forgetting to annualize metrics.</strong> Daily Sharpe is ~16x lower than annualized. Always specify the basis.</li>
+        <li><strong>Ignoring transaction costs or using unrealistically low estimates.</strong> Use 5bps minimum for round-trip (commission + slippage + opportunity cost). For illiquid assets, add 10–20bps.</li>
       </ul>
     </div>
   </div>
 
   <div class="week-nav">
-    <a href="week9.html" class="week-nav-button">← Week 9: Signal Construction</a>
-    <a href="week11.html" class="week-nav-button">Week 11: Backtest Results →</a>
+    <a href="week9.html" class="week-nav-button">← Week 9: Model Assumptions</a>
   </div>
 
 </div>
@@ -262,97 +220,163 @@ if (vif_data["VIF"] &gt; 10).any():
 </footer>
 
 <script>
-/* Week 10 — morphing Gaussian distribution */
+  const ctx = document.getElementById('equityChart').getContext('2d');
+
+  const days = Array.from({length: 252*14}, (_, i) => i);
+  let equity = 100;
+  const equityPath = [equity];
+  const drawdownPath = [0];
+
+  let peak = 100;
+
+  for (let i = 1; i < days.length; i++) {
+    const dailyReturn = 0.14 / 252 + (Math.random() - 0.5) * 0.02;
+    equity = equity * (1 + dailyReturn);
+    equityPath.push(equity);
+
+    if (equity > peak) peak = equity;
+    drawdownPath.push((equity - peak) / peak);
+  }
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: days,
+      datasets: [
+        {
+          label: 'Equity Curve',
+          data: equityPath,
+          borderColor: '#FF9500',
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: false,
+          tension: 0.1
+        },
+        {
+          label: 'Drawdown (from peak)',
+          data: drawdownPath,
+          borderColor: '#d97757',
+          borderWidth: 1,
+          pointRadius: 0,
+          fill: true,
+          backgroundColor: 'rgba(217, 119, 87, 0.2)',
+          tension: 0.1,
+          yAxisID: 'y1'
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: { color: '#888888', font: { family: "'IBM Plex Mono'" } }
+        }
+      },
+      scales: {
+        x: { grid: { color: '#1f1f1f' }, ticks: { color: '#888888' } },
+        y: {
+          type: 'linear',
+          position: 'left',
+          grid: { color: '#1f1f1f' },
+          ticks: { color: '#888888' },
+          title: { display: true, text: 'Cumulative Value ($)', color: '#888' }
+        },
+        y1: {
+          type: 'linear',
+          position: 'right',
+          grid: { drawOnChartArea: false },
+          ticks: { color: '#888888' },
+          title: { display: true, text: 'Drawdown (%)', color: '#888' }
+        }
+      }
+    }
+  });
+</script>
+
+<script>
+/* Week 10 — equity curve drawing itself with drawdown shading */
 (function () {
   const hero   = document.querySelector('.week-hero');
   const canvas = document.getElementById('w10-canvas');
   const ctx    = canvas.getContext('2d');
   let W, H;
 
+  let curve = [], hw = [], progress = 0, done = false;
+
+  function genCurve() {
+    curve = [0.5]; hw = [0.5]; progress = 0; done = false;
+    for (let i = 1; i < 620; i++) {
+      const shock = Math.random() < 0.003 ? -(0.03 + Math.random() * 0.05) : 0;
+      const v = Math.max(0.10, Math.min(0.90, curve[i-1] + 0.00042 + (Math.random()-0.5)*0.017 + shock));
+      curve.push(v);
+      hw.push(Math.max(hw[i-1], v));
+    }
+  }
+
   function resize() {
     const r = hero.getBoundingClientRect();
     W = canvas.width  = Math.round(r.width);
     H = canvas.height = Math.round(r.height);
+    genCurve();
   }
 
-  function gauss(x, mu, sig) {
-    return Math.exp(-0.5 * ((x - mu) / sig) ** 2) / (sig * Math.sqrt(2 * Math.PI));
-  }
+  const pL=0.04, pR=0.04, pT=0.10, pB=0.10;
+  function px(i) { return (pL + (i/(curve.length-1))*(1-pL-pR)) * W; }
+  function py(v) { return (pT + (1-(v-0.10)/0.80)*(1-pT-pB)) * H; }
 
-  const STATES = [
-    { mu: 0.50, sig: 0.10 },
-    { mu: 0.58, sig: 0.13 },
-    { mu: 0.50, sig: 0.17 },
-    { mu: 0.50, sig: 0.07 },
-  ];
-  let sIdx = 0, sT = 0, lastTs = null;
-
-  function ease(t) { return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; }
-  function lerp(a, b, t) { return a + (b - a) * t; }
+  let lastTs = null;
 
   function frame(ts) {
     if (!lastTs) lastTs = ts;
     const dt = Math.min(ts - lastTs, 40);
     lastTs = ts;
 
-    sT += dt * 0.00042;
-    if (sT >= 1) { sT = 0; sIdx = (sIdx + 1) % STATES.length; }
-
-    const from = STATES[sIdx];
-    const to   = STATES[(sIdx + 1) % STATES.length];
-    const et   = ease(sT);
-    const mu   = lerp(from.mu, to.mu, et);
-    const sig  = lerp(from.sig, to.sig, et);
+    if (!done) progress = Math.min(1, progress + dt * 0.00038);
 
     ctx.clearRect(0, 0, W, H);
 
-    const peak  = gauss(mu, mu, sig);
-    const scY   = H * 0.72;
-    const baseY = H * 0.88;
+    const vis = Math.floor(progress * (curve.length - 1)) + 1;
+    if (vis < 2) { requestAnimationFrame(frame); return; }
 
-    /* fill */
+    /* drawdown fill */
     ctx.beginPath();
-    ctx.moveTo(0, baseY);
-    for (let i = 0; i <= W; i++) {
-      const v = gauss(i / W, mu, sig);
-      ctx.lineTo(i, baseY - (v / peak) * scY);
-    }
-    ctx.lineTo(W, baseY);
+    ctx.moveTo(px(0), py(hw[0]));
+    for (let i = 1; i < vis; i++) ctx.lineTo(px(i), py(hw[i]));
+    for (let i = vis-1; i >= 0; i--) ctx.lineTo(px(i), py(curve[i]));
     ctx.closePath();
-    ctx.fillStyle = 'rgba(255,125,42,0.055)';
+    ctx.fillStyle = 'rgba(192,57,43,0.10)';
     ctx.fill();
 
-    /* curve */
+    /* high-water line */
     ctx.beginPath();
-    for (let i = 0; i <= W; i++) {
-      const v = gauss(i / W, mu, sig);
-      const y = baseY - (v / peak) * scY;
-      i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
+    for (let i = 0; i < vis; i++) {
+      i === 0 ? ctx.moveTo(px(i), py(hw[i])) : ctx.lineTo(px(i), py(hw[i]));
     }
-    ctx.strokeStyle = 'rgba(255,125,42,0.48)';
-    ctx.lineWidth   = 1.8;
-    ctx.stroke();
-
-    /* mean line */
-    ctx.beginPath();
-    ctx.moveTo(mu * W, baseY);
-    ctx.lineTo(mu * W, baseY - scY * 1.06);
-    ctx.strokeStyle = 'rgba(255,125,42,0.16)';
+    ctx.strokeStyle = 'rgba(255,238,215,0.10)';
     ctx.lineWidth   = 1;
-    ctx.setLineDash([3, 6]);
+    ctx.setLineDash([3, 5]);
     ctx.stroke();
     ctx.setLineDash([]);
 
-    /* ±1σ ticks */
-    for (const s of [-1, 1]) {
-      const sx = (mu + s * sig) * W;
-      const sv = gauss(mu + s * sig, mu, sig);
-      ctx.beginPath();
-      ctx.moveTo(sx, baseY);
-      ctx.lineTo(sx, baseY - (sv / peak) * scY);
-      ctx.strokeStyle = 'rgba(255,238,215,0.10)';
-      ctx.lineWidth   = 1;
-      ctx.stroke();
+    /* equity curve */
+    ctx.beginPath();
+    for (let i = 0; i < vis; i++) {
+      i === 0 ? ctx.moveTo(px(i), py(curve[i])) : ctx.lineTo(px(i), py(curve[i]));
+    }
+    ctx.strokeStyle = 'rgba(255,125,42,0.55)';
+    ctx.lineWidth   = 1.8;
+    ctx.stroke();
+
+    /* leading dot */
+    ctx.beginPath();
+    ctx.arc(px(vis-1), py(curve[vis-1]), 3, 0, 6.283);
+    ctx.fillStyle = 'rgba(255,125,42,0.85)';
+    ctx.fill();
+
+    if (progress >= 1 && !done) {
+      done = true;
+      setTimeout(() => genCurve(), 2800);
     }
 
     requestAnimationFrame(frame);

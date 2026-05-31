@@ -3,11 +3,10 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 9: Signal Construction (IP §3a) — QR Training</title>
+  <title>Week 9: Model Assumptions (IP §3b) — QR Training</title>
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="icon" type="image/png" href="Delta.png">
 </head>
 <body>
@@ -30,9 +29,6 @@
     <a href="week8.html">W8</a>
     <a href="week9.html" class="active">W9</a>
     <a href="week10.html">W10</a>
-    <a href="week11.html">W11</a>
-    <a href="week12.html">W12</a>
-    <a href="week13.html">W13</a>
   </div>
 </nav>
 
@@ -40,9 +36,9 @@
   <canvas class="week-hero-canvas" id="w9-canvas"></canvas>
   <div class="week-hero-inner">
     <div class="week-hero-badge">Week 09 &mdash; Phase 3: Research Execution</div>
-    <h1>Signal Construction<br>(IP §3a)</h1>
-    <div class="week-hero-pill">Section 3a — Signal Rules</div>
-    <p class="week-hero-objective">Write unambiguous trading rules: entry, exit, and position sizing. This IS Section 3a of your IP.</p>
+    <h1>Model Assumptions<br>(IP §3b)</h1>
+    <div class="week-hero-pill">Section 3b — Model Assumptions</div>
+    <p class="week-hero-objective">Test and document every model assumption. This IS Section 3b of your IP. The most critical section for QT risk management.</p>
   </div>
 </div>
 
@@ -50,159 +46,210 @@
 
   <div class="ip-anchor">
     <span class="ip-anchor-label">IP Anchor</span>
-    <span class="ip-anchor-section">Section 3a — Signal rules</span>
-    <span class="ip-anchor-desc">Every parameter, threshold, and rule must be explicitly documented. No ambiguity. This is Section 3a.</span>
+    <span class="ip-anchor-section">Section 3b — Model assumptions</span>
+    <span class="ip-anchor-desc">Mandatory every time you use a model. QT uses this section to adjust risk management. Document everything.</span>
   </div>
 
   <div class="section">
     <h2 class="section-title">What this week covers</h2>
-    <p>A signal is not a hypothesis — it's the operational rule that generates buy/sell decisions. This week teaches three major signal types (z-score, momentum, regression), how to specify entry and exit rules without whipsawing, and how to size positions based on volatility and edge strength.</p>
+    <p>This is the most technically detailed week. Section 3b is a direct reference for completing the assumption-testing portion of every IP. You will learn to test five critical assumptions (covered in Week 5), plus the special case of cointegration for pairs trading. Every test, result, and implication goes in Section 3b.</p>
   </div>
 
   <div class="section">
-    <h2 class="section-title">What Section 3a must contain</h2>
+    <h2 class="section-title">Section 3b checklist</h2>
+    <p>Copy this checklist into your IP. Complete every row. Report the test, the result, and what you'll do if it fails.</p>
 
-    <div class="card">
-      <ul style="font-size: 0.95rem;">
-        <li><strong>Signal formula:</strong> Exact mathematical expression with all parameters defined. No vagueness like "use a momentum signal." Write: "5-day momentum = (close_t - close_t-5) / close_t-5"</li>
-        <li><strong>Entry rule:</strong> The condition under which you enter (signal threshold, crossover, etc.). Example: "Long when momentum &gt; 0.02 and volatility regime is positive."</li>
-        <li><strong>Exit rule:</strong> The condition under which you exit (signal reversal, stop loss, take profit, time-based). Example: "Exit long when momentum &lt; -0.01 OR position is held for 30 days, whichever comes first."</li>
-        <li><strong>Position sizing:</strong> How large a position as a function of signal strength and risk. Example: "Size = target_vol / realized_vol * capital"</li>
-      </ul>
-    </div>
+    <table style="font-size: 0.9rem;">
+      <thead>
+        <tr>
+          <th>Assumption</th>
+          <th>Test</th>
+          <th>Python</th>
+          <th>Fail condition</th>
+          <th>If it fails</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Normality of residuals</strong></td>
+          <td>Jarque-Bera, Shapiro-Wilk</td>
+          <td><code>scipy.stats.jarque_bera</code></td>
+          <td>p &lt; 0.05</td>
+          <td>Use robust methods; report fat-tail risk</td>
+        </tr>
+        <tr>
+          <td><strong>Stationarity</strong></td>
+          <td>ADF, KPSS</td>
+          <td><code>statsmodels.adfuller</code></td>
+          <td>ADF p &gt; 0.05</td>
+          <td>Difference series; use returns not prices</td>
+        </tr>
+        <tr>
+          <td><strong>No autocorrelation</strong></td>
+          <td>Ljung-Box</td>
+          <td><code>statsmodels.acorr_ljungbox</code></td>
+          <td>p &lt; 0.05</td>
+          <td>Use Newey-West HAC standard errors</td>
+        </tr>
+        <tr>
+          <td><strong>Homoscedasticity</strong></td>
+          <td>Breusch-Pagan</td>
+          <td><code>statsmodels.het_breuschpagan</code></td>
+          <td>p &lt; 0.05</td>
+          <td>Use HC3/HC4 robust SE or GARCH model</td>
+        </tr>
+        <tr>
+          <td><strong>No multicollinearity</strong></td>
+          <td>VIF</td>
+          <td><code>statsmodels.variance_inflation_factor</code></td>
+          <td>VIF &gt; 10</td>
+          <td>Drop or combine correlated features</td>
+        </tr>
+      </tbody>
+    </table>
   </div>
 
   <div class="section">
-    <h2 class="section-title">Three signal construction patterns</h2>
+    <h2 class="section-title">Deep dive: Cointegration (pairs trading)</h2>
 
-    <h3 style="margin-top: 1.5rem;">Pattern 1: Z-score signals (mean reversion)</h3>
-    <p>Z-score measures deviation from the rolling mean in standard deviations.</p>
-    \[ z_t = \frac{x_t - \mu_{t,w}}{\sigma_{t,w}} \]
-    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where x_t is price or returns, w is lookback window, μ and σ are rolling mean and std.</p>
+    <p>For pairs strategies, you're not testing stationarity of individual series — you're testing stationarity of the spread (the linear combination).</p>
 
-    <div class="card">
-      <p><strong>Entry rule:</strong> Long when z &lt; -2.0 (price is 2 std below average). Short when z &gt; +2.0.</p>
-      <p><strong>Exit rule:</strong> Exit when z crosses zero (price returns to mean). Or time-based: exit after 20 trading days if signal hasn't closed.</p>
-      <p><strong>Typical use:</strong> Pairs trading, commodity mean reversion, currency mean reversion.</p>
-      <p><strong>Advantage:</strong> Simple, easy to interpret. Disadvantage: whipsaws in trending markets.</p>
-    </div>
+    <h3 style="margin-top: 1.5rem;">Engle-Granger cointegration test</h3>
+    <p>Two series are cointegrated if a linear combination of them is stationary.</p>
+    <p style="margin-top: 1rem;"><strong>Method:</strong></p>
+    <ol style="font-size: 0.95rem;">
+      <li>Regress y on x: \(y_t = \alpha + \beta x_t + \varepsilon_t\)</li>
+      <li>Extract residuals ε</li>
+      <li>Test residuals for stationarity (ADF test)</li>
+      <li>If residuals are stationary, the pair is cointegrated</li>
+    </ol>
 
-    <h3 style="margin-top: 1.5rem;">Pattern 2: Momentum signals (trend-following)</h3>
-    <p>Momentum measures the rate of change in price. EWMAC (Exponentially Weighted Moving Average Convergence Divergence) is the most robust version.</p>
-    \[ \text{EWMAC}_{f,s} = \text{EWM}_{t,f} - \text{EWM}_{t,s} \]
-    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where EWM_f is fast (short lookback), EWM_s is slow (long lookback).</p>
+    <p style="margin-top: 1.5rem;"><strong>Python:</strong></p>
+    <pre><code>from statsmodels.tsa.stattools import coint
 
-    <div class="card">
-      <p><strong>Entry rule:</strong> Long when EWMAC &gt; 0 and positive regime filter. Short when EWMAC &lt; 0.</p>
-      <p><strong>Exit rule:</strong> Exit when EWMAC crosses zero. Or time-based: exit after 60 days.</p>
-      <p><strong>Parameters:</strong> Fast window (e.g., 8 days), slow window (e.g., 32 days). Use powers of 2 for efficiency.</p>
-      <p><strong>Typical use:</strong> Trend-following in commodities, equities, FX.</p>
-      <p><strong>Advantage:</strong> Captures trends, avoids mean-reversion whipsaws. Disadvantage: lags trend reversals.</p>
-    </div>
-
-    <h3 style="margin-top: 1.5rem;">Pattern 3: Regression-based signals</h3>
-    <p>Fit a regression model to predict forward returns. Use the fitted value as the signal.</p>
-    \[ \hat{r}_{t+h} = \alpha + \beta_1 x_{1,t} + \beta_2 x_{2,t} + \varepsilon \]
-    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where x_i are predictors (fundamental data, alternative data, technical factors).</p>
-
-    <div class="card">
-      <p><strong>Signal:</strong> Predicted return \(\hat{r}_{t+h}\). Positive = long, negative = short.</p>
-      <p><strong>Entry rule:</strong> Long when \(\hat{r} &gt; \text{threshold}\) (e.g., 0.5% expected return).</p>
-      <p><strong>Exit rule:</strong> Exit when \(\hat{r} &lt; 0\) (expected return turns negative) or after 20 days.</p>
-      <p><strong>Advantage:</strong> Can use multiple factors. Captures fundamental information.</p>
-      <p><strong>Disadvantage:</strong> More parameters, higher overfitting risk. Must test assumptions carefully (Section 3b).</p>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Position sizing</h2>
-
-    <h3 style="margin-top: 1.5rem;">Volatility-targeted sizing (preferred at AlgoGators)</h3>
-    <p>Scale position size inversely to volatility. High volatility → smaller position. Low volatility → larger position. Maintains constant risk contribution.</p>
-    \[ \text{position size} = \frac{\text{target vol}}{\sigma_t} \cdot \text{capital} \]
-
-    <div class="card">
-      <p><strong>Example:</strong></p>
-      <pre><code>target_vol = 0.10  # 10% annualized target volatility
-annual_factor = np.sqrt(252)
-
-realized_vol = returns.rolling(20).std() * annual_factor
-position_size = (target_vol / realized_vol) * capital
-
-# When realized_vol is high (20%), size down
-# When realized_vol is low (5%), size up
+score, p_value, critical_values = coint(series_a, series_b)
+print(f"Cointegration test p-value: {p_value:.4f}")
+# p &lt; 0.05 → cointegrated at 5% significance
 </code></pre>
-      <p style="margin-top: 1rem;"><strong>Advantage:</strong> Risk contribution is stable across time. Avoids overlevering in calm periods.</p>
-    </div>
 
-    <h3 style="margin-top: 1.5rem;">Kelly Criterion (rarely used in practice)</h3>
-    <p>Optimal fraction of capital to bet given win probability and payoff ratio.</p>
-    \[ f^* = \frac{p \cdot b - q}{b} \]
-    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where p = win probability, q = 1-p, b = win/loss ratio.</p>
+    <h3 style="margin-top: 1.5rem;">Johansen test (multiple assets)</h3>
+    <p>For strategies with 3+ assets, use Johansen's cointegration test.</p>
+    <p>\[ \Delta \mathbf{y}_t = \Pi \mathbf{y}_{t-1} + \sum_{i=1}^{p-1} \Gamma_i \Delta \mathbf{y}_{t-i} + \varepsilon_t \]</p>
 
-    <p style="margin-top: 1rem;">Full Kelly is too aggressive. Most funds use half-Kelly or quarter-Kelly.</p>
+    <p style="margin-top: 1rem;"><strong>Interpretation:</strong> The rank of Π determines the number of cointegrating relationships (linearly independent stationary combinations).</p>
   </div>
 
   <div class="section">
-    <h2 class="section-title">Regime filters</h2>
-    <p>A regime filter conditions signal execution on market state. Example: only trade momentum when in an uptrend.</p>
-
-    <div class="card">
-      <p><strong>Example:</strong> Trend filter</p>
-      \[ \text{regime}_t = \mathbb{1}\left[P_t &gt; \text{EMA}_{t,200}\right] \]
-      <p style="margin-top: 1rem;">Only execute momentum signals when price is above the 200-day exponential moving average. In downtrends, stay in cash.</p>
-      <p style="margin-top: 1rem;"><strong>Advantage:</strong> Reduces drawdowns by avoiding trades in bad regimes. <strong>Disadvantage:</strong> Misses opportunities at regime transitions.</p>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Chart: Signal timeline example</h2>
-    <div class="chart-container">
-      <canvas id="signalChart"></canvas>
-    </div>
-    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">Price (blue), z-score signal (orange), entry points (green dots = buy, red = sell). Notice the whipsaws: several short-lived entries and exits. This is mean reversion, not ideal in trends.</p>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Section 3a template</h2>
+    <h2 class="section-title">Section 3b template with real example</h2>
 
     <div class="card" style="background: var(--bg-elevated); font-size: 0.9rem;">
-      <p style="color: var(--accent); font-weight: 600;">SECTION 3A: SIGNAL CONSTRUCTION</p>
+      <p style="color: var(--accent); font-weight: 600;">SECTION 3B: MODEL ASSUMPTIONS — Ridge Regression Commodity Strategy</p>
 
-      <p style="margin-top: 1rem;"><strong>3a.1 Signal formula</strong></p>
-      <p style="font-style: italic;">z_t = (close_t - mean(close_t-20:t)) / std(close_t-20:t)</p>
+      <p style="margin-top: 1rem;"><strong>Strategy uses a ridge regression to predict corn returns from 3 factors:</strong></p>
+      <ul style="margin-left: 1.5rem; font-size: 0.9rem;">
+        <li>Factor 1: 30-day momentum</li>
+        <li>Factor 2: 60-day seasonality (deviation from 10-year average)</li>
+        <li>Factor 3: COT speculator positioning (normalized)</li>
+      </ul>
 
-      <p style="margin-top: 1rem;"><strong>3a.2 Entry rule</strong></p>
-      <p style="font-style: italic;">Long: z_t &lt; -1.5 AND regime_t = 1 (positive trend)</p>
-      <p style="font-style: italic;">regime_t = 1 if close_t &gt; EMA(close, 50), else 0</p>
+      <p style="margin-top: 1rem;"><strong>3b.1 Normality of residuals</strong></p>
+      <p>Test: Jarque-Bera on regression residuals (2020–2023 in-sample)</p>
+      <p>Result: JB stat = 12.4, p-value = 0.002 → reject normality</p>
+      <p>Implication: Residuals have fat tails. Daily returns exhibit kurtosis = 4.2 (excess = 1.2). Documented.</p>
+      <p>Action: Report expected maximum drawdown assuming fat tails. Use robust standard errors (HC3).</p>
 
-      <p style="margin-top: 1rem;"><strong>3a.3 Exit rule</strong></p>
-      <p style="font-style: italic;">Exit long if: z_t &gt; 0 OR position held for 30 days, whichever first</p>
+      <p style="margin-top: 1rem;"><strong>3b.2 Stationarity of predictors</strong></p>
+      <p>Test: ADF on each factor</p>
+      <ul style="margin-left: 1.5rem; font-size: 0.85rem;">
+        <li>Momentum (30-day): ADF stat = -8.7, p &lt; 0.001 → stationary ✓</li>
+        <li>Seasonality (deviation): ADF stat = -9.2, p &lt; 0.001 → stationary ✓</li>
+        <li>COT positioning (normalized): ADF stat = -6.4, p &lt; 0.001 → stationary ✓</li>
+      </ul>
+      <p>All factors are stationary. No issues.</p>
 
-      <p style="margin-top: 1rem;"><strong>3a.4 Position sizing</strong></p>
-      <p style="font-style: italic;">units = (target_vol / realized_vol) * capital / price</p>
-      <p style="font-style: italic;">target_vol = 0.10 (10% annual target)</p>
-      <p style="font-style: italic;">realized_vol = 20-day rolling volatility, annualized</p>
+      <p style="margin-top: 1rem;"><strong>3b.3 No autocorrelation in residuals</strong></p>
+      <p>Test: Ljung-Box on residuals, lags 1–20</p>
+      <p>Result: All p-values &gt; 0.05. No significant autocorrelation detected. ✓</p>
+
+      <p style="margin-top: 1rem;"><strong>3b.4 Homoscedasticity</strong></p>
+      <p>Test: Breusch-Pagan heteroscedasticity test</p>
+      <p>Result: BP stat = 18.3, p = 0.0003 → heteroscedasticity present</p>
+      <p>Action: Volatility clusters (expected in commodity markets). Use HC3 robust standard errors for inference.</p>
+
+      <p style="margin-top: 1rem;"><strong>3b.5 No multicollinearity</strong></p>
+      <p>Test: Variance Inflation Factor on 3 factors</p>
+      <ul style="margin-left: 1.5rem; font-size: 0.85rem;">
+        <li>Momentum: VIF = 1.3</li>
+        <li>Seasonality: VIF = 1.1</li>
+        <li>COT: VIF = 1.2</li>
+      </ul>
+      <p>All VIF &lt; 2. No multicollinearity concerns. ✓</p>
+
+      <p style="margin-top: 1rem;"><strong>Summary:</strong> Ridge regression suitable. Primary concerns: fat-tail risk (documented), heteroscedasticity (robust SE applied). Model assumptions documented and acceptable for live trading.</p>
     </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Assumption testing code patterns</h2>
+
+    <h3 style="margin-top: 1.5rem;">Normality (Jarque-Bera)</h3>
+    <pre><code>from scipy import stats
+
+jb_stat, jb_p = stats.jarque_bera(residuals)
+print(f"Jarque-Bera: stat={jb_stat:.4f}, p={jb_p:.4f}")
+
+if jb_p &lt; 0.05:
+    print("Residuals are NOT normally distributed (fat tails likely)")
+else:
+    print("Residuals are consistent with normality")
+</code></pre>
+
+    <h3 style="margin-top: 1.5rem;">Stationarity (ADF)</h3>
+    <pre><code>from statsmodels.tsa.stattools import adfuller
+
+result = adfuller(series, autolag='AIC')
+print(f"ADF stat: {result[0]:.4f}, p-value: {result[1]:.4f}")
+
+if result[1] &lt; 0.05:
+    print("Series is stationary (reject unit root)")
+else:
+    print("Series is non-stationary (unit root present)")
+</code></pre>
+
+    <h3 style="margin-top: 1.5rem;">Multicollinearity (VIF)</h3>
+    <pre><code>from statsmodels.stats.outliers_influence import variance_inflation_factor
+import pandas as pd
+
+vif_data = pd.DataFrame()
+vif_data["Feature"] = X.columns
+vif_data["VIF"] = [
+    variance_inflation_factor(X.values, i)
+    for i in range(X.shape[1])
+]
+print(vif_data)
+
+if (vif_data["VIF"] &gt; 10).any():
+    print("Multicollinearity detected. Consider dropping features.")
+</code></pre>
   </div>
 
   <div class="section">
     <h2 class="section-title">Common mistakes</h2>
     <div class="mistakes-list">
-      <h4 style="margin-top: 0;">Five signal construction failures</h4>
+      <h4 style="margin-top: 0;">Five assumption-testing failures</h4>
       <ul>
-        <li><strong>Entry and exit rules that create whipsawing.</strong> Entering and exiting every few days on noise. Use regime filters or time-holding requirements to stabilize.</li>
-        <li><strong>Not defining parameter values in Section 3a.</strong> "Use momentum" is vague. "5-day momentum = (close_t - close_t-5) / close_t-5 with entry at +2% threshold" is precise.</li>
-        <li><strong>Position sizing that doesn't account for volatility.</strong> 1 contract in calm markets vs. volatile markets = very different risk. Use vol-targeting.</li>
-        <li><strong>Stop losses at arbitrary round numbers.</strong> Stop at 10% loss instead of 2 std-dev move. Round numbers are often support/resistance where slippage is terrible.</li>
-        <li><strong>No exit rule.</strong> Every position must have an explicit exit condition. "Hold until I decide" creates uncontrolled risk and decision fatigue.</li>
+        <li><strong>Skipping Section 3b entirely.</strong> It's mandatory. At minimum: test residuals for normality and autocorrelation, test series for stationarity. Report results.</li>
+        <li><strong>Running ADF but not reporting it in Section 3b.</strong> If you ran the test, report it. The p-value, the interpretation, what you'll do if it fails.</li>
+        <li><strong>Building a multi-factor model without checking VIF.</strong> Correlated factors will cancel each other out in live trading, even if they work in backtest. Check VIF before submitting.</li>
+        <li><strong>Ignoring fat tails.</strong> "Close enough to normal" is not a valid analysis. If Jarque-Bera p &lt; 0.05, document the deviation. Report expected extreme drawdown.</li>
+        <li><strong>Using price levels in regression.</strong> Prices are non-stationary. Test with ADF first. If non-stationary, use returns or cointegration.</li>
       </ul>
     </div>
   </div>
 
   <div class="week-nav">
-    <a href="week8.html" class="week-nav-button">← Week 8: Data Sourcing</a>
-    <a href="week10.html" class="week-nav-button">Week 10: Model Assumptions →</a>
+    <a href="week8.html" class="week-nav-button">← Week 8: Signal Construction</a>
+    <a href="week10.html" class="week-nav-button">Week 10: Backtest Results →</a>
   </div>
 
 </div>
@@ -212,93 +259,7 @@ position_size = (target_vol / realized_vol) * capital
 </footer>
 
 <script>
-  const ctx = document.getElementById('signalChart').getContext('2d');
-
-  const days = Array.from({length: 100}, (_, i) => i);
-
-  // Generate prices with mean-reversion pattern
-  const prices = days.map((_, i) => {
-    const trend = 100 + i * 0.1;
-    const mean_rev = Math.sin(i / 10) * 5;
-    return trend + mean_rev + (Math.random() - 0.5) * 2;
-  });
-
-  // Compute z-score
-  const lookback = 20;
-  const zscores = days.map((_, i) => {
-    if (i < lookback) return 0;
-    const window_prices = prices.slice(i - lookback, i);
-    const mean = window_prices.reduce((a, b) => a + b) / lookback;
-    const variance = window_prices.reduce((a, b) => a + (b - mean)**2) / lookback;
-    const std = Math.sqrt(variance);
-    return (prices[i] - mean) / std;
-  });
-
-  // Entry signals: z < -1.5
-  const entries = zscores.map((z, i) => z < -1.5 && i > lookback ? prices[i] : null);
-
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: days,
-      datasets: [
-        {
-          label: 'Price',
-          data: prices,
-          borderColor: '#4a86e8',
-          borderWidth: 2,
-          pointRadius: 0,
-          yAxisID: 'y'
-        },
-        {
-          label: 'Z-Score Signal',
-          data: zscores,
-          borderColor: '#FF9500',
-          borderWidth: 2,
-          pointRadius: 0,
-          yAxisID: 'y1'
-        },
-        {
-          label: 'Entry Signals',
-          data: entries,
-          type: 'scatter',
-          pointBackgroundColor: '#2a9d5c',
-          pointRadius: 6,
-          yAxisID: 'y'
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          labels: { color: '#888888', font: { family: "'IBM Plex Mono'" } }
-        }
-      },
-      scales: {
-        x: { grid: { color: '#1f1f1f' }, ticks: { color: '#888888' } },
-        y: {
-          type: 'linear',
-          position: 'left',
-          grid: { color: '#1f1f1f' },
-          ticks: { color: '#888888' },
-          title: { display: true, text: 'Price', color: '#888' }
-        },
-        y1: {
-          type: 'linear',
-          position: 'right',
-          grid: { drawOnChartArea: false },
-          ticks: { color: '#888888' },
-          title: { display: true, text: 'Z-Score', color: '#888' }
-        }
-      }
-    }
-  });
-</script>
-
-<script>
-/* Week 9 — component waves combining into a composite signal */
+/* Week 10 — morphing Gaussian distribution */
 (function () {
   const hero   = document.querySelector('.week-hero');
   const canvas = document.getElementById('w9-canvas');
@@ -311,50 +272,85 @@ position_size = (target_vol / realized_vol) * capital
     H = canvas.height = Math.round(r.height);
   }
 
-  const WAVES = [
-    { freq: 1.6, amp: 0.075, phase: 0.0,  alpha: 0.11, speed: 0.00080 },
-    { freq: 3.3, amp: 0.048, phase: 1.2,  alpha: 0.09, speed: 0.00120 },
-    { freq: 0.8, amp: 0.095, phase: 2.5,  alpha: 0.10, speed: 0.00050 },
-    { freq: 5.2, amp: 0.028, phase: 0.8,  alpha: 0.07, speed: 0.00180 },
-  ];
+  function gauss(x, mu, sig) {
+    return Math.exp(-0.5 * ((x - mu) / sig) ** 2) / (sig * Math.sqrt(2 * Math.PI));
+  }
 
-  let t = 0, lastTs = null;
+  const STATES = [
+    { mu: 0.50, sig: 0.10 },
+    { mu: 0.58, sig: 0.13 },
+    { mu: 0.50, sig: 0.17 },
+    { mu: 0.50, sig: 0.07 },
+  ];
+  let sIdx = 0, sT = 0, lastTs = null;
+
+  function ease(t) { return t < 0.5 ? 2*t*t : -1+(4-2*t)*t; }
+  function lerp(a, b, t) { return a + (b - a) * t; }
 
   function frame(ts) {
     if (!lastTs) lastTs = ts;
     const dt = Math.min(ts - lastTs, 40);
     lastTs = ts;
-    t += dt;
+
+    sT += dt * 0.00042;
+    if (sT >= 1) { sT = 0; sIdx = (sIdx + 1) % STATES.length; }
+
+    const from = STATES[sIdx];
+    const to   = STATES[(sIdx + 1) % STATES.length];
+    const et   = ease(sT);
+    const mu   = lerp(from.mu, to.mu, et);
+    const sig  = lerp(from.sig, to.sig, et);
 
     ctx.clearRect(0, 0, W, H);
 
-    const cy = H * 0.5;
+    const peak  = gauss(mu, mu, sig);
+    const scY   = H * 0.72;
+    const baseY = H * 0.88;
 
-    /* component waves */
-    for (const w of WAVES) {
-      ctx.beginPath();
-      for (let i = 0; i <= W; i++) {
-        const px = (i / W) * Math.PI * 2 * w.freq;
-        const y  = cy + Math.sin(px + w.phase + t * w.speed) * w.amp * H;
-        i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
-      }
-      ctx.strokeStyle = `rgba(255,238,215,${w.alpha})`;
-      ctx.lineWidth   = 0.8;
-      ctx.stroke();
+    /* fill */
+    ctx.beginPath();
+    ctx.moveTo(0, baseY);
+    for (let i = 0; i <= W; i++) {
+      const v = gauss(i / W, mu, sig);
+      ctx.lineTo(i, baseY - (v / peak) * scY);
     }
+    ctx.lineTo(W, baseY);
+    ctx.closePath();
+    ctx.fillStyle = 'rgba(255,125,42,0.055)';
+    ctx.fill();
 
-    /* composite signal */
+    /* curve */
     ctx.beginPath();
     for (let i = 0; i <= W; i++) {
-      const px = (i / W) * Math.PI * 2;
-      let sum  = 0;
-      for (const w of WAVES) sum += Math.sin(px * w.freq + w.phase + t * w.speed) * w.amp;
-      const y = cy + sum * H;
+      const v = gauss(i / W, mu, sig);
+      const y = baseY - (v / peak) * scY;
       i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
     }
-    ctx.strokeStyle = 'rgba(255,125,42,0.55)';
+    ctx.strokeStyle = 'rgba(255,125,42,0.48)';
     ctx.lineWidth   = 1.8;
     ctx.stroke();
+
+    /* mean line */
+    ctx.beginPath();
+    ctx.moveTo(mu * W, baseY);
+    ctx.lineTo(mu * W, baseY - scY * 1.06);
+    ctx.strokeStyle = 'rgba(255,125,42,0.16)';
+    ctx.lineWidth   = 1;
+    ctx.setLineDash([3, 6]);
+    ctx.stroke();
+    ctx.setLineDash([]);
+
+    /* ±1σ ticks */
+    for (const s of [-1, 1]) {
+      const sx = (mu + s * sig) * W;
+      const sv = gauss(mu + s * sig, mu, sig);
+      ctx.beginPath();
+      ctx.moveTo(sx, baseY);
+      ctx.lineTo(sx, baseY - (sv / peak) * scY);
+      ctx.strokeStyle = 'rgba(255,238,215,0.10)';
+      ctx.lineWidth   = 1;
+      ctx.stroke();
+    }
 
     requestAnimationFrame(frame);
   }

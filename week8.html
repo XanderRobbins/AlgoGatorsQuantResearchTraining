@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 8: Data Sourcing & Cleaning (IP §2) — QR Training</title>
+  <title>Week 8: Signal Construction (IP §3a) — QR Training</title>
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
@@ -30,9 +30,6 @@
     <a href="week8.html" class="active">W8</a>
     <a href="week9.html">W9</a>
     <a href="week10.html">W10</a>
-    <a href="week11.html">W11</a>
-    <a href="week12.html">W12</a>
-    <a href="week13.html">W13</a>
   </div>
 </nav>
 
@@ -40,9 +37,9 @@
   <canvas class="week-hero-canvas" id="w8-canvas"></canvas>
   <div class="week-hero-inner">
     <div class="week-hero-badge">Week 08 &mdash; Phase 3: Research Execution</div>
-    <h1>Data Sourcing &amp;<br>Cleaning (IP §2)</h1>
-    <div class="week-hero-pill">Section 2 — Data Sourcing &amp; QD Approval</div>
-    <p class="week-hero-objective">Write Section 2 of your IP: precise data description and the QD approval gate. Understand the three major data biases and how to avoid them.</p>
+    <h1>Signal Construction<br>(IP §3a)</h1>
+    <div class="week-hero-pill">Section 3a — Signal Rules</div>
+    <p class="week-hero-objective">Write unambiguous trading rules: entry, exit, and position sizing. This IS Section 3a of your IP.</p>
   </div>
 </div>
 
@@ -50,176 +47,159 @@
 
   <div class="ip-anchor">
     <span class="ip-anchor-label">IP Anchor</span>
-    <span class="ip-anchor-section">Section 2 — Data sourcing & QD approval</span>
-    <span class="ip-anchor-desc">Section 2a is your data description. Section 2b is the QD gate: without it, your IP is incomplete. You can't proceed without both.</span>
+    <span class="ip-anchor-section">Section 3a — Signal rules</span>
+    <span class="ip-anchor-desc">Every parameter, threshold, and rule must be explicitly documented. No ambiguity. This is Section 3a.</span>
   </div>
 
   <div class="section">
     <h2 class="section-title">What this week covers</h2>
-    <p>Data quality determines backtest quality. This week teaches what belongs in Section 2a (detailed data sourcing and cleaning), the three major data biases (survivorship, look-ahead, and point-in-time), and why Section 2b (the QD approval gate) must be completed before you run any backtest.</p>
+    <p>A signal is not a hypothesis — it's the operational rule that generates buy/sell decisions. This week teaches three major signal types (z-score, momentum, regression), how to specify entry and exit rules without whipsawing, and how to size positions based on volatility and edge strength.</p>
   </div>
 
   <div class="section">
-    <h2 class="section-title">Section 2a: What to include</h2>
+    <h2 class="section-title">What Section 3a must contain</h2>
 
     <div class="card">
-      <p style="font-weight: 600; margin-bottom: 1rem;">Your data section should contain:</p>
       <ul style="font-size: 0.95rem;">
-        <li><strong>Data series:</strong> Asset name, exchange/source, frequency (daily/hourly/tick), date range, units</li>
-        <li><strong>Cleaning steps:</strong> Outlier treatment, missing value handling, corporate action adjustments with specific methods</li>
-        <li><strong>Feature construction:</strong> Derived variables, with exact formulas. Example: "5-day rolling z-score: (close_t - mean(close_t-5:t)) / std(close_t-5:t)"</li>
-        <li><strong>Descriptive statistics:</strong> Mean, std, skewness, kurtosis, lag-1 autocorrelation of primary series</li>
+        <li><strong>Signal formula:</strong> Exact mathematical expression with all parameters defined. No vagueness like "use a momentum signal." Write: "5-day momentum = (close_t - close_t-5) / close_t-5"</li>
+        <li><strong>Entry rule:</strong> The condition under which you enter (signal threshold, crossover, etc.). Example: "Long when momentum &gt; 0.02 and volatility regime is positive."</li>
+        <li><strong>Exit rule:</strong> The condition under which you exit (signal reversal, stop loss, take profit, time-based). Example: "Exit long when momentum &lt; -0.01 OR position is held for 30 days, whichever comes first."</li>
+        <li><strong>Position sizing:</strong> How large a position as a function of signal strength and risk. Example: "Size = target_vol / realized_vol * capital"</li>
       </ul>
     </div>
+  </div>
 
-    <h3 style="margin-top: 1.5rem;">Worked example Section 2a: Corn futures</h3>
+  <div class="section">
+    <h2 class="section-title">Three signal construction patterns</h2>
+
+    <h3 style="margin-top: 1.5rem;">Pattern 1: Z-score signals (mean reversion)</h3>
+    <p>Z-score measures deviation from the rolling mean in standard deviations.</p>
+    \[ z_t = \frac{x_t - \mu_{t,w}}{\sigma_{t,w}} \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where x_t is price or returns, w is lookback window, μ and σ are rolling mean and std.</p>
+
+    <div class="card">
+      <p><strong>Entry rule:</strong> Long when z &lt; -2.0 (price is 2 std below average). Short when z &gt; +2.0.</p>
+      <p><strong>Exit rule:</strong> Exit when z crosses zero (price returns to mean). Or time-based: exit after 20 trading days if signal hasn't closed.</p>
+      <p><strong>Typical use:</strong> Pairs trading, commodity mean reversion, currency mean reversion.</p>
+      <p><strong>Advantage:</strong> Simple, easy to interpret. Disadvantage: whipsaws in trending markets.</p>
+    </div>
+
+    <h3 style="margin-top: 1.5rem;">Pattern 2: Momentum signals (trend-following)</h3>
+    <p>Momentum measures the rate of change in price. EWMAC (Exponentially Weighted Moving Average Convergence Divergence) is the most robust version.</p>
+    \[ \text{EWMAC}_{f,s} = \text{EWM}_{t,f} - \text{EWM}_{t,s} \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where EWM_f is fast (short lookback), EWM_s is slow (long lookback).</p>
+
+    <div class="card">
+      <p><strong>Entry rule:</strong> Long when EWMAC &gt; 0 and positive regime filter. Short when EWMAC &lt; 0.</p>
+      <p><strong>Exit rule:</strong> Exit when EWMAC crosses zero. Or time-based: exit after 60 days.</p>
+      <p><strong>Parameters:</strong> Fast window (e.g., 8 days), slow window (e.g., 32 days). Use powers of 2 for efficiency.</p>
+      <p><strong>Typical use:</strong> Trend-following in commodities, equities, FX.</p>
+      <p><strong>Advantage:</strong> Captures trends, avoids mean-reversion whipsaws. Disadvantage: lags trend reversals.</p>
+    </div>
+
+    <h3 style="margin-top: 1.5rem;">Pattern 3: Regression-based signals</h3>
+    <p>Fit a regression model to predict forward returns. Use the fitted value as the signal.</p>
+    \[ \hat{r}_{t+h} = \alpha + \beta_1 x_{1,t} + \beta_2 x_{2,t} + \varepsilon \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where x_i are predictors (fundamental data, alternative data, technical factors).</p>
+
+    <div class="card">
+      <p><strong>Signal:</strong> Predicted return \(\hat{r}_{t+h}\). Positive = long, negative = short.</p>
+      <p><strong>Entry rule:</strong> Long when \(\hat{r} &gt; \text{threshold}\) (e.g., 0.5% expected return).</p>
+      <p><strong>Exit rule:</strong> Exit when \(\hat{r} &lt; 0\) (expected return turns negative) or after 20 days.</p>
+      <p><strong>Advantage:</strong> Can use multiple factors. Captures fundamental information.</p>
+      <p><strong>Disadvantage:</strong> More parameters, higher overfitting risk. Must test assumptions carefully (Section 3b).</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Position sizing</h2>
+
+    <h3 style="margin-top: 1.5rem;">Volatility-targeted sizing (preferred at AlgoGators)</h3>
+    <p>Scale position size inversely to volatility. High volatility → smaller position. Low volatility → larger position. Maintains constant risk contribution.</p>
+    \[ \text{position size} = \frac{\text{target vol}}{\sigma_t} \cdot \text{capital} \]
+
+    <div class="card">
+      <p><strong>Example:</strong></p>
+      <pre><code>target_vol = 0.10  # 10% annualized target volatility
+annual_factor = np.sqrt(252)
+
+realized_vol = returns.rolling(20).std() * annual_factor
+position_size = (target_vol / realized_vol) * capital
+
+# When realized_vol is high (20%), size down
+# When realized_vol is low (5%), size up
+</code></pre>
+      <p style="margin-top: 1rem;"><strong>Advantage:</strong> Risk contribution is stable across time. Avoids overlevering in calm periods.</p>
+    </div>
+
+    <h3 style="margin-top: 1.5rem;">Kelly Criterion (rarely used in practice)</h3>
+    <p>Optimal fraction of capital to bet given win probability and payoff ratio.</p>
+    \[ f^* = \frac{p \cdot b - q}{b} \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where p = win probability, q = 1-p, b = win/loss ratio.</p>
+
+    <p style="margin-top: 1rem;">Full Kelly is too aggressive. Most funds use half-Kelly or quarter-Kelly.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Regime filters</h2>
+    <p>A regime filter conditions signal execution on market state. Example: only trade momentum when in an uptrend.</p>
+
+    <div class="card">
+      <p><strong>Example:</strong> Trend filter</p>
+      \[ \text{regime}_t = \mathbb{1}\left[P_t &gt; \text{EMA}_{t,200}\right] \]
+      <p style="margin-top: 1rem;">Only execute momentum signals when price is above the 200-day exponential moving average. In downtrends, stay in cash.</p>
+      <p style="margin-top: 1rem;"><strong>Advantage:</strong> Reduces drawdowns by avoiding trades in bad regimes. <strong>Disadvantage:</strong> Misses opportunities at regime transitions.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Chart: Signal timeline example</h2>
+    <div class="chart-container">
+      <canvas id="signalChart"></canvas>
+    </div>
+    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">Price (blue), z-score signal (orange), entry points (green dots = buy, red = sell). Notice the whipsaws: several short-lived entries and exits. This is mean reversion, not ideal in trends.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Section 3a template</h2>
+
     <div class="card" style="background: var(--bg-elevated); font-size: 0.9rem;">
-      <p style="color: var(--accent); font-weight: 600;">DATA SOURCING & CLEANING — Corn Futures Strategy</p>
+      <p style="color: var(--accent); font-weight: 600;">SECTION 3A: SIGNAL CONSTRUCTION</p>
 
-      <p style="margin-top: 1rem;"><strong>2a.1 Data series</strong></p>
-      <p>Continuous corn futures (CBOT ZC), front-month contract rolled 5 trading days before first notice date. Daily close prices from 2010-01-01 to 2024-01-31. Units: cents per bushel. Source: Databento (live) / CME historical archive (backtest).</p>
+      <p style="margin-top: 1rem;"><strong>3a.1 Signal formula</strong></p>
+      <p style="font-style: italic;">z_t = (close_t - mean(close_t-20:t)) / std(close_t-20:t)</p>
 
-      <p style="margin-top: 1rem;"><strong>2a.2 Cleaning steps</strong></p>
-      <ul style="margin-left: 1.5rem; font-size: 0.9rem;">
-        <li>Raw prices: unadjusted. Split/delivery adjustments N/A (futures).</li>
-        <li>Outlier detection: daily moves &gt; 10% of 30-day rolling volatility flagged for inspection. None removed (verified legitimate). Liquidity gap handling: contracts within 5 trading days of first notice are excluded (low liquidity, high bid-ask).</li>
-        <li>Missing days: none (futures trade daily).</li>
-        <li>Roll handling: front month rolled 5 days before expiry. New contract takes over seamlessly in TimescaleDB continuous aggregate.</li>
-      </ul>
+      <p style="margin-top: 1rem;"><strong>3a.2 Entry rule</strong></p>
+      <p style="font-style: italic;">Long: z_t &lt; -1.5 AND regime_t = 1 (positive trend)</p>
+      <p style="font-style: italic;">regime_t = 1 if close_t &gt; EMA(close, 50), else 0</p>
 
-      <p style="margin-top: 1rem;"><strong>2a.3 Features</strong></p>
-      <ul style="margin-left: 1.5rem; font-size: 0.9rem;">
-        <li>Price momentum (5-day): (close_t / close_t-5) - 1</li>
-        <li>Volatility (30-day): std(log-returns_t-30:t) × sqrt(252) [annualized]</li>
-        <li>Seasonal factor: deviation from 10-year average price for calendar day-of-year</li>
-      </ul>
+      <p style="margin-top: 1rem;"><strong>3a.3 Exit rule</strong></p>
+      <p style="font-style: italic;">Exit long if: z_t &gt; 0 OR position held for 30 days, whichever first</p>
 
-      <p style="margin-top: 1rem;"><strong>2a.4 Descriptive statistics (2020–2024 sample)</strong></p>
-      <ul style="margin-left: 1.5rem; font-size: 0.9rem;">
-        <li>Mean daily return: 0.08%</li>
-        <li>Std dev: 1.42%</li>
-        <li>Skewness: -0.31 (left tail)</li>
-        <li>Kurtosis: 4.2 (fat tails, excess kurtosis = 1.2)</li>
-        <li>AC(1): 0.04 (minimal autocorrelation)</li>
-      </ul>
+      <p style="margin-top: 1rem;"><strong>3a.4 Position sizing</strong></p>
+      <p style="font-style: italic;">units = (target_vol / realized_vol) * capital / price</p>
+      <p style="font-style: italic;">target_vol = 0.10 (10% annual target)</p>
+      <p style="font-style: italic;">realized_vol = 20-day rolling volatility, annualized</p>
     </div>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">The three major data biases</h2>
-
-    <h3 style="margin-top: 1.5rem;">1. Survivorship bias</h3>
-    <div class="card">
-      <p><strong>What it is:</strong> Your backtest universe only includes assets that survived to today. You've excluded all the bankruptcies, delistings, and failures.</p>
-      <p><strong>Example:</strong> You backtest a long-only equity strategy on the current S&P 500 constituents going back to 2010. But the current 500 are not the same 500 as 2010. Companies that were in the index in 2010 and have since been delisted are missing from your analysis. Your backtest systematically excludes the losers.</p>
-      <p><strong>Impact:</strong> Your backtest Sharpe overstates live Sharpe. You're comparing 14 years of current winners against 14 years of actual 2010 universe (which included some failures). The survivor set looks better.</p>
-      <p><strong>How to fix:</strong> Use point-in-time constituent lists. If you want to backtest on S&P 500 from 2010–2024, get the actual S&P 500 constituents as they were on each date, not today's constituents.</p>
-    </div>
-
-    <h3 style="margin-top: 1.5rem;">2. Look-ahead bias</h3>
-    <div class="card">
-      <p><strong>What it is:</strong> Using data in your signal that wasn't available at the time the signal fired.</p>
-      <p><strong>Example:</strong> You build a signal using dividend-adjusted prices. But dividend adjustments are applied backward — the adjusted price on day T reflects information (the dividend) that was announced on day T+500. Your signal is using future information.</p>
-      <p><strong>More examples:</strong></p>
-      <ul style="font-size: 0.95rem;">
-        <li>Using the month's final close on day 1 of the month</li>
-        <li>Using year-end financial data to predict January returns</li>
-        <li>Using revised/final numbers instead of as-reported earnings</li>
-        <li>Using forward prices to trade spot on the same day (latency)</li>
-      </ul>
-      <p><strong>How to fix:</strong> Use as-reported data, not revised. Use prices available at the time. Build features on raw (not backward-adjusted) prices, apply adjustments only to returns.</p>
-    </div>
-
-    <h3 style="margin-top: 1.5rem;">3. Point-in-time data</h3>
-    <div class="card">
-      <p><strong>What it is:</strong> Fundamental data (earnings, balance sheets, analyst estimates) is released with a lag and revised afterward. If you backtest using the final revised figure, you're using data the market didn't have yet.</p>
-      <p><strong>Example:</strong> A company reports Q1 earnings of $1.50 EPS on April 15. But the reported figure is later revised to $1.45 on July 1 due to restatement. If you use $1.45 in your backtest for April 15, you're using information that wasn't available on April 15.</p>
-      <p><strong>How to fix:</strong> Use as-reported data on the as-reported date. Avoid pre-revised figures. Many data providers (Bloomberg, FactSet) provide point-in-time data specifically for this reason.</p>
-    </div>
-
-    <h3 style="margin-top: 1.5rem;">Chart: Survivorship bias impact</h3>
-    <div class="chart-container" style="margin-top: 1.5rem;">
-      <canvas id="survivalChart"></canvas>
-    </div>
-    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">The orange curve (survivors only) compounds faster than the blue curve (including delisted companies). The difference grows over time — by year 15, survivorship bias has inflated apparent returns by roughly 16%.</p>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Section 2b: The QD approval gate</h2>
-    <p><strong>This is non-negotiable.</strong> You cannot submit an IP with incomplete Section 2b. This is not bureaucracy — it's a forcing function to catch infeasible research early.</p>
-
-    <div class="card">
-      <p style="font-weight: 600; margin-bottom: 1rem;">Section 2b must contain:</p>
-      <ul style="font-size: 0.95rem;">
-        <li>Data availability: exact asset/frequency/date range, confirmed available from Databento or other source</li>
-        <li>Ingestibility: confirmation that data can be ingested into TimescaleDB at the required frequency</li>
-        <li>Alternative data licensing: if using satellite, social, proprietary data — confirmed licensed and available</li>
-        <li><strong>Written sign-off from the Head of Data Engineering</strong> confirming all above</li>
-      </ul>
-    </div>
-
-    <h3 style="margin-top: 1.5rem;">Example Section 2b</h3>
-    <div class="card" style="background: var(--bg-elevated); font-size: 0.9rem;">
-      <p style="color: var(--accent); font-weight: 600;">SECTION 2B: QD APPROVAL — Corn Futures Strategy</p>
-
-      <p style="margin-top: 1rem;">Data sourcing: Continuous corn futures (CBOT ZC) daily close from 2010-01-01 to 2024-01-31 is available via Databento at no additional cost (existing subscription covers). Historical archive verified via CME website.</p>
-
-      <p style="margin-top: 0.5rem;">Ingestibility: Daily OHLCV can be ingested into TimescaleDB continuous aggregate within 1 hour of daily close. Data-ngin pipeline has existing handling for commodity futures roll management.</p>
-
-      <p style="margin-top: 0.5rem;">Alternative data: None required.</p>
-
-      <p style="margin-top: 0.5rem;"><strong>Head of Data Engineering approval (Jane Smith, jane.smith@algogators.com):</strong></p>
-      <p style="margin-top: 0.5rem; font-style: italic;">"Confirmed: ZC daily data available, ingestible, covers requested date range. Rollover logic already in place. No additional pipeline work required. Approved for development. — JS"</p>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Data cleaning Python patterns</h2>
-
-    <h3 style="margin-top: 1.5rem;">Winsorizing outliers</h3>
-    <pre><code>import numpy as np
-
-# Cap extreme returns at ±3 standard deviations
-mean_ret = df['returns'].mean()
-std_ret = df['returns'].std()
-df['returns_clean'] = df['returns'].clip(
-    lower=mean_ret - 3*std_ret,
-    upper=mean_ret + 3*std_ret
-)</code></pre>
-
-    <h3 style="margin-top: 1.5rem;">Missing value handling</h3>
-    <pre><code># Forward-fill prices (last known price)
-df['close'] = df['close'].ffill()
-
-# Do NOT forward-fill volume — use NaN-aware methods
-df['volume_avg'] = df['volume'].rolling(20).mean()
-# rolling() handles NaN gracefully</code></pre>
-
-    <h3 style="margin-top: 1.5rem;">Rolling z-score normalization</h3>
-    <pre><code>def rolling_zscore(series, window=60):
-    return (series - series.rolling(window).mean()) / \
-           series.rolling(window).std()
-
-df['signal'] = rolling_zscore(df['close'], window=60)</code></pre>
   </div>
 
   <div class="section">
     <h2 class="section-title">Common mistakes</h2>
     <div class="mistakes-list">
-      <h4 style="margin-top: 0;">Five data sins</h4>
+      <h4 style="margin-top: 0;">Five signal construction failures</h4>
       <ul>
-        <li><strong>Using adjusted-close prices for signal construction.</strong> This is look-ahead bias. Use raw close, adjust only the final returns for splits and dividends.</li>
-        <li><strong>Not documenting the exact date range.</strong> "2010–2024 S&P 500 data" is vague. "ZC CBOT front-contract, 2010-01-01 through 2024-01-31, rolled 5 days before first notice" is precise. Be precise.</li>
-        <li><strong>Cleaning data by removing bad periods.</strong> "I removed 2008 because it was too volatile." Wrong. Document what happened (gap, halt, unusual volume) and handle it (forward-fill, interpolate). Don't just delete outliers.</li>
-        <li><strong>Not checking historical depth of alternative data.</strong> Satellite data goes back 10 years. That's 2.5 full market cycles — okay. But if it only goes back 3 years, you have only one bull/bear cycle — too short.</li>
-        <li><strong>Incomplete Section 2b.</strong> If you don't have written QD approval, your IP is rejected. No exceptions.</li>
+        <li><strong>Entry and exit rules that create whipsawing.</strong> Entering and exiting every few days on noise. Use regime filters or time-holding requirements to stabilize.</li>
+        <li><strong>Not defining parameter values in Section 3a.</strong> "Use momentum" is vague. "5-day momentum = (close_t - close_t-5) / close_t-5 with entry at +2% threshold" is precise.</li>
+        <li><strong>Position sizing that doesn't account for volatility.</strong> 1 contract in calm markets vs. volatile markets = very different risk. Use vol-targeting.</li>
+        <li><strong>Stop losses at arbitrary round numbers.</strong> Stop at 10% loss instead of 2 std-dev move. Round numbers are often support/resistance where slippage is terrible.</li>
+        <li><strong>No exit rule.</strong> Every position must have an explicit exit condition. "Hold until I decide" creates uncontrolled risk and decision fatigue.</li>
       </ul>
     </div>
   </div>
 
   <div class="week-nav">
-    <a href="week7.html" class="week-nav-button">← Week 7: The Hypothesis</a>
-    <a href="week9.html" class="week-nav-button">Week 9: Signal Construction →</a>
+    <a href="week7.html" class="week-nav-button">← Week 7: Data Sourcing</a>
+    <a href="week9.html" class="week-nav-button">Week 9: Model Assumptions →</a>
   </div>
 
 </div>
@@ -229,42 +209,59 @@ df['signal'] = rolling_zscore(df['close'], window=60)</code></pre>
 </footer>
 
 <script>
-  const ctx = document.getElementById('survivalChart').getContext('2d');
+  const ctx = document.getElementById('signalChart').getContext('2d');
 
-  const years = Array.from({length: 15}, (_, i) => 2010 + i);
+  const days = Array.from({length: 100}, (_, i) => i);
 
-  // Biased path (survivors only) — ~11% per year
-  const survivors = years.map((_, i) => {
-    return Math.round(100 * Math.exp(0.11 * (i + 1)));
+  // Generate prices with mean-reversion pattern
+  const prices = days.map((_, i) => {
+    const trend = 100 + i * 0.1;
+    const mean_rev = Math.sin(i / 10) * 5;
+    return trend + mean_rev + (Math.random() - 0.5) * 2;
   });
 
-  // Unbiased path (including failed companies) — ~10% per year
-  const unbiased = years.map((_, i) => {
-    return Math.round(100 * Math.exp(0.10 * (i + 1)));
+  // Compute z-score
+  const lookback = 20;
+  const zscores = days.map((_, i) => {
+    if (i < lookback) return 0;
+    const window_prices = prices.slice(i - lookback, i);
+    const mean = window_prices.reduce((a, b) => a + b) / lookback;
+    const variance = window_prices.reduce((a, b) => a + (b - mean)**2) / lookback;
+    const std = Math.sqrt(variance);
+    return (prices[i] - mean) / std;
   });
+
+  // Entry signals: z < -1.5
+  const entries = zscores.map((z, i) => z < -1.5 && i > lookback ? prices[i] : null);
 
   new Chart(ctx, {
     type: 'line',
     data: {
-      labels: years,
+      labels: days,
       datasets: [
         {
-          label: 'Survivors Only (Biased)',
-          data: survivors,
-          borderColor: '#FF9500',
-          borderWidth: 3,
-          pointRadius: 4,
-          fill: false,
-          tension: 0.3
+          label: 'Price',
+          data: prices,
+          borderColor: '#4a86e8',
+          borderWidth: 2,
+          pointRadius: 0,
+          yAxisID: 'y'
         },
         {
-          label: 'Including Delisted (Unbiased)',
-          data: unbiased,
-          borderColor: '#4a86e8',
-          borderWidth: 3,
-          pointRadius: 4,
-          fill: false,
-          tension: 0.3
+          label: 'Z-Score Signal',
+          data: zscores,
+          borderColor: '#FF9500',
+          borderWidth: 2,
+          pointRadius: 0,
+          yAxisID: 'y1'
+        },
+        {
+          label: 'Entry Signals',
+          data: entries,
+          type: 'scatter',
+          pointBackgroundColor: '#2a9d5c',
+          pointRadius: 6,
+          yAxisID: 'y'
         }
       ]
     },
@@ -277,14 +274,20 @@ df['signal'] = rolling_zscore(df['close'], window=60)</code></pre>
         }
       },
       scales: {
-        x: {
-          ticks: { color: '#888888' },
-          grid: { color: '#1f1f1f' }
-        },
+        x: { grid: { color: '#1f1f1f' }, ticks: { color: '#888888' } },
         y: {
+          type: 'linear',
+          position: 'left',
           grid: { color: '#1f1f1f' },
           ticks: { color: '#888888' },
-          title: { display: true, text: 'Cumulative Return ($)', color: '#888' }
+          title: { display: true, text: 'Price', color: '#888' }
+        },
+        y1: {
+          type: 'linear',
+          position: 'right',
+          grid: { drawOnChartArea: false },
+          ticks: { color: '#888888' },
+          title: { display: true, text: 'Z-Score', color: '#888' }
         }
       }
     }
@@ -292,123 +295,65 @@ df['signal'] = rolling_zscore(df['close'], window=60)</code></pre>
 </script>
 
 <script>
-/* Week 8 — chaos → order, mirrored on both sides of centre divider */
+/* Week 9 — component waves combining into a composite signal */
 (function () {
   const hero   = document.querySelector('.week-hero');
   const canvas = document.getElementById('w8-canvas');
   const ctx    = canvas.getContext('2d');
   let W, H;
 
-  const COLS = 9, ROWS = 10;
-  const GY0 = 0.07, GY1 = 0.93;
-  const L0 = 0.03, L1 = 0.44, R0 = 0.56, R1 = 0.97;
-
-  let particles = [];
-
-  function init() {
-    particles = [];
-
-    /* left-side targets */
-    for (let i = 0; i < COLS * ROWS; i++) {
-      const c  = i % COLS, r = Math.floor(i / COLS);
-      const tx = L0 + (c / (COLS - 1)) * (L1 - L0);
-      const ty = GY0 + (r / (ROWS - 1)) * (GY1 - GY0);
-      particles.push({
-        x: 0.46 + Math.random() * 0.08,
-        y: GY0  + Math.random() * (GY1 - GY0),
-        tx, ty,
-        side: 'L',
-        nx: -(Math.random() * 0.003 + 0.001),
-        ny: (Math.random() - 0.5) * 0.004,
-        alpha: 0,
-        delay: Math.random() * 1800,
-      });
-    }
-
-    /* right-side targets (mirror) */
-    for (let i = 0; i < COLS * ROWS; i++) {
-      const c  = i % COLS, r = Math.floor(i / COLS);
-      const tx = R0 + (c / (COLS - 1)) * (R1 - R0);
-      const ty = GY0 + (r / (ROWS - 1)) * (GY1 - GY0);
-      particles.push({
-        x: 0.46 + Math.random() * 0.08,
-        y: GY0  + Math.random() * (GY1 - GY0),
-        tx, ty,
-        side: 'R',
-        nx:  (Math.random() * 0.003 + 0.001),
-        ny: (Math.random() - 0.5) * 0.004,
-        alpha: 0,
-        delay: Math.random() * 1800,
-      });
-    }
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
   }
 
-  let elapsed = 0, lastTs = null;
+  const WAVES = [
+    { freq: 1.6, amp: 0.075, phase: 0.0,  alpha: 0.11, speed: 0.00080 },
+    { freq: 3.3, amp: 0.048, phase: 1.2,  alpha: 0.09, speed: 0.00120 },
+    { freq: 0.8, amp: 0.095, phase: 2.5,  alpha: 0.10, speed: 0.00050 },
+    { freq: 5.2, amp: 0.028, phase: 0.8,  alpha: 0.07, speed: 0.00180 },
+  ];
+
+  let t = 0, lastTs = null;
 
   function frame(ts) {
     if (!lastTs) lastTs = ts;
     const dt = Math.min(ts - lastTs, 40);
     lastTs = ts;
-    elapsed += dt;
+    t += dt;
 
     ctx.clearRect(0, 0, W, H);
 
-    /* centre divider */
-    ctx.beginPath();
-    ctx.moveTo(W * 0.50, 0);
-    ctx.lineTo(W * 0.50, H);
-    ctx.strokeStyle = 'rgba(255,125,42,0.14)';
-    ctx.lineWidth   = 1;
-    ctx.setLineDash([4, 7]);
-    ctx.stroke();
-    ctx.setLineDash([]);
+    const cy = H * 0.5;
 
-    for (const p of particles) {
-      if (elapsed < p.delay) continue;
-      p.alpha = Math.min(0.75, p.alpha + dt * 0.002);
-
-      const settled =
-        p.side === 'L'
-          ? Math.abs(p.x - p.tx) < 0.012 && Math.abs(p.y - p.ty) < 0.012
-          : Math.abs(p.x - p.tx) < 0.012 && Math.abs(p.y - p.ty) < 0.012;
-
-      if (!settled) {
-        p.x = Math.max(0.01, Math.min(0.99, p.x + p.nx * dt));
-        p.y = Math.max(0.04, Math.min(0.96, p.y + p.ny * dt));
-        if (Math.random() < 0.010) p.ny = (Math.random() - 0.5) * 0.004;
-
-        const pastGrid = p.side === 'L' ? p.x < L1 + 0.05 : p.x > R0 - 0.05;
-        if (pastGrid) {
-          p.x += (p.tx - p.x) * 0.05;
-          p.y += (p.ty - p.y) * 0.05;
-        }
-      }
-
+    /* component waves */
+    for (const w of WAVES) {
       ctx.beginPath();
-      ctx.arc(p.x * W, p.y * H, 2.2, 0, 6.283);
-      ctx.fillStyle = settled
-        ? `rgba(255,125,42,${p.alpha.toFixed(3)})`
-        : `rgba(255,210,160,${(p.alpha * 0.65).toFixed(3)})`;
-      ctx.fill();
-
-      if (settled && Math.random() < 0.00035 * dt) {
-        p.x     = 0.44 + Math.random() * 0.12;
-        p.y     = GY0  + Math.random() * (GY1 - GY0);
-        p.alpha = 0;
-        p.delay = 0;
-        p.nx    = p.side === 'L' ? -(Math.random() * 0.003 + 0.001) : (Math.random() * 0.003 + 0.001);
-        p.ny    = (Math.random() - 0.5) * 0.004;
+      for (let i = 0; i <= W; i++) {
+        const px = (i / W) * Math.PI * 2 * w.freq;
+        const y  = cy + Math.sin(px + w.phase + t * w.speed) * w.amp * H;
+        i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
       }
+      ctx.strokeStyle = `rgba(255,238,215,${w.alpha})`;
+      ctx.lineWidth   = 0.8;
+      ctx.stroke();
     }
 
-    requestAnimationFrame(frame);
-  }
+    /* composite signal */
+    ctx.beginPath();
+    for (let i = 0; i <= W; i++) {
+      const px = (i / W) * Math.PI * 2;
+      let sum  = 0;
+      for (const w of WAVES) sum += Math.sin(px * w.freq + w.phase + t * w.speed) * w.amp;
+      const y = cy + sum * H;
+      i === 0 ? ctx.moveTo(i, y) : ctx.lineTo(i, y);
+    }
+    ctx.strokeStyle = 'rgba(255,125,42,0.55)';
+    ctx.lineWidth   = 1.8;
+    ctx.stroke();
 
-  function resize() {
-    const r = hero.getBoundingClientRect();
-    W = canvas.width  = Math.round(r.width);
-    H = canvas.height = Math.round(r.height);
-    init();
+    requestAnimationFrame(frame);
   }
 
   new ResizeObserver(resize).observe(hero);

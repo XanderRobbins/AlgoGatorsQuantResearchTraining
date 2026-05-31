@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 7: Writing the Hypothesis (IP §1) — QR Training</title>
+  <title>Week 7: Data Sourcing & Cleaning (IP §2) — QR Training</title>
   <link rel="stylesheet" href="styles.css">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
   <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
@@ -30,9 +30,6 @@
     <a href="week8.html">W8</a>
     <a href="week9.html">W9</a>
     <a href="week10.html">W10</a>
-    <a href="week11.html">W11</a>
-    <a href="week12.html">W12</a>
-    <a href="week13.html">W13</a>
   </div>
 </nav>
 
@@ -40,9 +37,9 @@
   <canvas class="week-hero-canvas" id="w7-canvas"></canvas>
   <div class="week-hero-inner">
     <div class="week-hero-badge">Week 07 &mdash; Phase 3: Research Execution</div>
-    <h1>Writing the<br>Hypothesis (IP §1)</h1>
-    <div class="week-hero-pill">Section 1 — Hypothesis</div>
-    <p class="week-hero-objective">Write a hypothesis that is economic, testable, and falsifiable. This IS Section 1 of your Investment Proposal.</p>
+    <h1>Data Sourcing &amp;<br>Cleaning (IP §2)</h1>
+    <div class="week-hero-pill">Section 2 — Data Sourcing &amp; QD Approval</div>
+    <p class="week-hero-objective">Write Section 2 of your IP: precise data description and the QD approval gate. Understand the three major data biases and how to avoid them.</p>
   </div>
 </div>
 
@@ -50,139 +47,176 @@
 
   <div class="ip-anchor">
     <span class="ip-anchor-label">IP Anchor</span>
-    <span class="ip-anchor-section">Section 1 — Hypothesis</span>
-    <span class="ip-anchor-desc">This week IS Section 1. Submit the template below as your IP Section 1.</span>
+    <span class="ip-anchor-section">Section 2 — Data sourcing & QD approval</span>
+    <span class="ip-anchor-desc">Section 2a is your data description. Section 2b is the QD gate: without it, your IP is incomplete. You can't proceed without both.</span>
   </div>
 
   <div class="section">
     <h2 class="section-title">What this week covers</h2>
-    <p>A strong hypothesis has three components: (1) an economic mechanism explaining why the inefficiency exists, (2) the predicted relationship between signal and return, and (3) a falsifiability condition. This week teaches you to write all three, and walks through hypothesis types with real examples.</p>
+    <p>Data quality determines backtest quality. This week teaches what belongs in Section 2a (detailed data sourcing and cleaning), the three major data biases (survivorship, look-ahead, and point-in-time), and why Section 2b (the QD approval gate) must be completed before you run any backtest.</p>
   </div>
 
   <div class="section">
-    <h2 class="section-title">The three components of a strong hypothesis</h2>
+    <h2 class="section-title">Section 2a: What to include</h2>
 
     <div class="card">
-      <h3 style="margin-top: 0;">1. Economic mechanism</h3>
-      <p>Why does this pattern exist? Not "I found it in the data." Why would market participants allow this inefficiency to persist?</p>
-      <p>Good mechanisms explain:</p>
+      <p style="font-weight: 600; margin-bottom: 1rem;">Your data section should contain:</p>
       <ul style="font-size: 0.95rem;">
-        <li><strong>Behavioral:</strong> What bias or constraint causes participants to misbehave? (anchoring, disposition effect, herding, underreaction)</li>
-        <li><strong>Structural:</strong> What market constraint forces suboptimal behavior? (hedging requirements, index rebalancing, roll yield, storage costs)</li>
+        <li><strong>Data series:</strong> Asset name, exchange/source, frequency (daily/hourly/tick), date range, units</li>
+        <li><strong>Cleaning steps:</strong> Outlier treatment, missing value handling, corporate action adjustments with specific methods</li>
+        <li><strong>Feature construction:</strong> Derived variables, with exact formulas. Example: "5-day rolling z-score: (close_t - mean(close_t-5:t)) / std(close_t-5:t)"</li>
+        <li><strong>Descriptive statistics:</strong> Mean, std, skewness, kurtosis, lag-1 autocorrelation of primary series</li>
       </ul>
     </div>
 
-    <div class="card">
-      <h3 style="margin-top: 0;">2. Predicted relationship</h3>
-      <p>What signal predicts what return, in what direction, over what horizon?</p>
-      <p>Example: "When 30-day rolling soil moisture deviation is more than 1 standard deviation below the 20-year seasonal average, corn futures are expected to have negative returns over the next 5–10 trading days because low soil moisture predicts lower yields, which the market will reprice when USDA yield reports are released."</p>
-      <p>Specify:</p>
-      <ul style="font-size: 0.95rem;">
-        <li>The signal (soil moisture deviation)</li>
-        <li>The direction (negative / low moisture → lower returns)</li>
-        <li>The horizon (5–10 trading days)</li>
-        <li>The mechanism link (yields → prices)</li>
-      </ul>
-    </div>
-
-    <div class="card">
-      <h3 style="margin-top: 0;">3. Falsifiability condition</h3>
-      <p>What result would convince you the hypothesis is <em>wrong</em>? If you can't answer this, you don't have a hypothesis.</p>
-      <p>Example: "This hypothesis is falsified if (a) the Information Coefficient between soil moisture deviation and forward corn returns is less than 0.02 (no predictive power), or (b) the backtest Sharpe on a 2023 hold-out period is less than 0.5 (results don't hold out-of-sample)."</p>
-      <p>Good falsifiability conditions are:</p>
-      <ul style="font-size: 0.95rem;">
-        <li><strong>Testable:</strong> You can calculate it from data</li>
-        <li><strong>Specific:</strong> Explicit number, not "seems promising"</li>
-        <li><strong>Fair:</strong> Not unreasonably high (Sharpe 5.0) or low (0.1)</li>
-      </ul>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Hypothesis template</h2>
-    <p style="color: var(--text-secondary); margin-bottom: 1rem;">Copy this template into Section 1 of your IP. Fill in each section with your hypothesis.</p>
-
+    <h3 style="margin-top: 1.5rem;">Worked example Section 2a: Corn futures</h3>
     <div class="card" style="background: var(--bg-elevated); font-size: 0.9rem;">
-      <p style="font-weight: 600; color: var(--accent);">HYPOTHESIS TEMPLATE</p>
+      <p style="color: var(--accent); font-weight: 600;">DATA SOURCING & CLEANING — Corn Futures Strategy</p>
 
-      <p style="margin-top: 1.5rem;"><strong>Economic mechanism:</strong></p>
-      <p style="font-style: italic; color: var(--text-secondary);">[Market participants systematically _____ because _____, which causes prices to _____ .]</p>
+      <p style="margin-top: 1rem;"><strong>2a.1 Data series</strong></p>
+      <p>Continuous corn futures (CBOT ZC), front-month contract rolled 5 trading days before first notice date. Daily close prices from 2010-01-01 to 2024-01-31. Units: cents per bushel. Source: Databento (live) / CME historical archive (backtest).</p>
 
-      <p style="margin-top: 1.5rem;"><strong>Predicted relationship:</strong></p>
-      <p style="font-style: italic; color: var(--text-secondary);">[When [signal] is [high/low/rising/falling], [asset] returns are expected to be [positive/negative] over [horizon], because [mechanism above].]</p>
+      <p style="margin-top: 1rem;"><strong>2a.2 Cleaning steps</strong></p>
+      <ul style="margin-left: 1.5rem; font-size: 0.9rem;">
+        <li>Raw prices: unadjusted. Split/delivery adjustments N/A (futures).</li>
+        <li>Outlier detection: daily moves &gt; 10% of 30-day rolling volatility flagged for inspection. None removed (verified legitimate). Liquidity gap handling: contracts within 5 trading days of first notice are excluded (low liquidity, high bid-ask).</li>
+        <li>Missing days: none (futures trade daily).</li>
+        <li>Roll handling: front month rolled 5 days before expiry. New contract takes over seamlessly in TimescaleDB continuous aggregate.</li>
+      </ul>
 
-      <p style="margin-top: 1.5rem;"><strong>Falsifiability:</strong></p>
-      <p style="font-style: italic; color: var(--text-secondary);">[This hypothesis would be rejected if [specific quantitative condition — e.g., Information Coefficient &lt; 0.02, or Sharpe &lt; 0.5 on hold-out period, or directional accuracy &lt; 55% on out-of-sample data].]</p>
+      <p style="margin-top: 1rem;"><strong>2a.3 Features</strong></p>
+      <ul style="margin-left: 1.5rem; font-size: 0.9rem;">
+        <li>Price momentum (5-day): (close_t / close_t-5) - 1</li>
+        <li>Volatility (30-day): std(log-returns_t-30:t) × sqrt(252) [annualized]</li>
+        <li>Seasonal factor: deviation from 10-year average price for calendar day-of-year</li>
+      </ul>
+
+      <p style="margin-top: 1rem;"><strong>2a.4 Descriptive statistics (2020–2024 sample)</strong></p>
+      <ul style="margin-left: 1.5rem; font-size: 0.9rem;">
+        <li>Mean daily return: 0.08%</li>
+        <li>Std dev: 1.42%</li>
+        <li>Skewness: -0.31 (left tail)</li>
+        <li>Kurtosis: 4.2 (fat tails, excess kurtosis = 1.2)</li>
+        <li>AC(1): 0.04 (minimal autocorrelation)</li>
+      </ul>
     </div>
   </div>
 
   <div class="section">
-    <h2 class="section-title">Hypothesis types with examples</h2>
+    <h2 class="section-title">The three major data biases</h2>
 
-    <h3 style="margin-top: 1.5rem;">Type 1: Behavioral inefficiency</h3>
+    <h3 style="margin-top: 1.5rem;">1. Survivorship bias</h3>
     <div class="card">
-      <p><strong>Example: Post-earnings drift (momentum)</strong></p>
-      <p><strong>Economic mechanism:</strong> Investors systematically underreact to earnings news. The market reprices gradually over weeks or months, not immediately at announcement. Short-selling constraints and institutional limitations on volatility exposure prevent arbitrageurs from eliminating this drift immediately.</p>
-      <p><strong>Predicted relationship:</strong> When earnings surprise is large and positive (actual EPS &gt; consensus EPS by more than 1 standard deviation), the stock is expected to have positive abnormal returns for 3–6 months post-announcement.</p>
-      <p><strong>Falsifiability:</strong> This hypothesis is rejected if the average post-announcement drift is not significantly different from zero (t-stat &lt; 1.96) over a 3-month hold period, or if the drift reverses (negative returns) in the first week after announcement.</p>
+      <p><strong>What it is:</strong> Your backtest universe only includes assets that survived to today. You've excluded all the bankruptcies, delistings, and failures.</p>
+      <p><strong>Example:</strong> You backtest a long-only equity strategy on the current S&P 500 constituents going back to 2010. But the current 500 are not the same 500 as 2010. Companies that were in the index in 2010 and have since been delisted are missing from your analysis. Your backtest systematically excludes the losers.</p>
+      <p><strong>Impact:</strong> Your backtest Sharpe overstates live Sharpe. You're comparing 14 years of current winners against 14 years of actual 2010 universe (which included some failures). The survivor set looks better.</p>
+      <p><strong>How to fix:</strong> Use point-in-time constituent lists. If you want to backtest on S&P 500 from 2010–2024, get the actual S&P 500 constituents as they were on each date, not today's constituents.</p>
     </div>
 
-    <h3 style="margin-top: 1.5rem;">Type 2: Structural inefficiency</h3>
+    <h3 style="margin-top: 1.5rem;">2. Look-ahead bias</h3>
     <div class="card">
-      <p><strong>Example: Commodity roll yield (contango/backwardation)</strong></p>
-      <p><strong>Economic mechanism:</strong> Commodity futures contracts are rolled before expiry. When the term structure is in backwardation (near-month contract trading at a premium to far-month), rolling captures positive yield. This is not an arbitrage — it reflects the physical convenience value of holding inventory. Hedgers (producers and consumers) are willing to pay this premium because holding physical commodity has value. The premium is persistent because the underlying convenience value doesn't disappear.</p>
-      <p><strong>Predicted relationship:</strong> When the front/second-month spread is in backwardation (front price &gt; second-month price), a rolling long position in the front-month contract is expected to earn positive roll yield equal to the spread minus the cost of financing. Expected return is positive.</p>
-      <p><strong>Falsifiability:</strong> This hypothesis is rejected if average roll yield is zero or negative over a 5-year period, or if roll yield does not persist after transaction costs.</p>
+      <p><strong>What it is:</strong> Using data in your signal that wasn't available at the time the signal fired.</p>
+      <p><strong>Example:</strong> You build a signal using dividend-adjusted prices. But dividend adjustments are applied backward — the adjusted price on day T reflects information (the dividend) that was announced on day T+500. Your signal is using future information.</p>
+      <p><strong>More examples:</strong></p>
+      <ul style="font-size: 0.95rem;">
+        <li>Using the month's final close on day 1 of the month</li>
+        <li>Using year-end financial data to predict January returns</li>
+        <li>Using revised/final numbers instead of as-reported earnings</li>
+        <li>Using forward prices to trade spot on the same day (latency)</li>
+      </ul>
+      <p><strong>How to fix:</strong> Use as-reported data, not revised. Use prices available at the time. Build features on raw (not backward-adjusted) prices, apply adjustments only to returns.</p>
     </div>
 
-    <h3 style="margin-top: 1.5rem;">Type 3: Alternative data (information latency)</h3>
+    <h3 style="margin-top: 1.5rem;">3. Point-in-time data</h3>
     <div class="card">
-      <p><strong>Example: Satellite weather data predicting crop yields</strong></p>
-      <p><strong>Economic mechanism:</strong> NASA satellite data provides daily measurements of soil moisture and temperature at the field level. These measurements predict crop yields. The market prices crops based on USDA forecasts, which are survey-based and release once per month. There is an information gap: satellite data predicts yields before USDA reports them. The market does not instantaneously incorporate satellite data because (a) the data is not in standard market feeds, (b) processing it requires domain expertise, (c) few market participants have access or motivation to use it.</p>
-      <p><strong>Predicted relationship:</strong> When growing-season soil moisture anomalies (satellite GDD deviation from 20-year seasonal average) are large and negative, corn prices are expected to decline in the 5–10 days preceding the next USDA yield report, capturing the market's repricing as the report data becomes known.</p>
-      <p><strong>Falsifiability:</strong> This hypothesis is rejected if the Information Coefficient between satellite moisture deviation and forward corn returns is &lt; 0.02, or if the strategy has negative Sharpe on a 2023 hold-out period.</p>
+      <p><strong>What it is:</strong> Fundamental data (earnings, balance sheets, analyst estimates) is released with a lag and revised afterward. If you backtest using the final revised figure, you're using data the market didn't have yet.</p>
+      <p><strong>Example:</strong> A company reports Q1 earnings of $1.50 EPS on April 15. But the reported figure is later revised to $1.45 on July 1 due to restatement. If you use $1.45 in your backtest for April 15, you're using information that wasn't available on April 15.</p>
+      <p><strong>How to fix:</strong> Use as-reported data on the as-reported date. Avoid pre-revised figures. Many data providers (Bloomberg, FactSet) provide point-in-time data specifically for this reason.</p>
     </div>
-  </div>
 
-  <div class="section">
-    <h2 class="section-title">Information Coefficient (IC)</h2>
-    <p>IC measures the correlation between your signal and forward returns. It's the core metric for evaluating whether your hypothesis has predictive power before you build the full backtest.</p>
-    \[ IC = \text{Corr}(\text{signal}_t,\ r_{t+h}) \]
-    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where signal_t is your signal at time t, r_{t+h} is the return from t to t+h (your chosen horizon).</p>
-
-    <p style="margin-top: 1.5rem;"><strong>Interpretation:</strong></p>
-    <ul>
-      <li>IC ≈ 0: No predictive power (noise)</li>
-      <li>IC = 0.05–0.10: Meaningful in quantitative finance. This is the zone for real edges.</li>
-      <li>IC = 0.20+: Exceptional (and suspicious — check for look-ahead bias)</li>
-    </ul>
-
-    <p style="margin-top: 1.5rem;"><strong>IC Information Ratio (ICIR):</strong></p>
-    \[ ICIR = \frac{\overline{IC}}{\sigma_{IC}} \]
-    <p style="margin-top: 0.5rem; font-size: 0.9rem; color: var(--text-secondary);">Average IC divided by the standard deviation of IC. ICIR &gt; 0.5 suggests a consistently predictive signal.</p>
-
+    <h3 style="margin-top: 1.5rem;">Chart: Survivorship bias impact</h3>
     <div class="chart-container" style="margin-top: 1.5rem;">
-      <canvas id="icChart"></canvas>
+      <canvas id="survivalChart"></canvas>
     </div>
+    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">The orange curve (survivors only) compounds faster than the blue curve (including delisted companies). The difference grows over time — by year 15, survivorship bias has inflated apparent returns by roughly 16%.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Section 2b: The QD approval gate</h2>
+    <p><strong>This is non-negotiable.</strong> You cannot submit an IP with incomplete Section 2b. This is not bureaucracy — it's a forcing function to catch infeasible research early.</p>
+
+    <div class="card">
+      <p style="font-weight: 600; margin-bottom: 1rem;">Section 2b must contain:</p>
+      <ul style="font-size: 0.95rem;">
+        <li>Data availability: exact asset/frequency/date range, confirmed available from Databento or other source</li>
+        <li>Ingestibility: confirmation that data can be ingested into TimescaleDB at the required frequency</li>
+        <li>Alternative data licensing: if using satellite, social, proprietary data — confirmed licensed and available</li>
+        <li><strong>Written sign-off from the Head of Data Engineering</strong> confirming all above</li>
+      </ul>
+    </div>
+
+    <h3 style="margin-top: 1.5rem;">Example Section 2b</h3>
+    <div class="card" style="background: var(--bg-elevated); font-size: 0.9rem;">
+      <p style="color: var(--accent); font-weight: 600;">SECTION 2B: QD APPROVAL — Corn Futures Strategy</p>
+
+      <p style="margin-top: 1rem;">Data sourcing: Continuous corn futures (CBOT ZC) daily close from 2010-01-01 to 2024-01-31 is available via Databento at no additional cost (existing subscription covers). Historical archive verified via CME website.</p>
+
+      <p style="margin-top: 0.5rem;">Ingestibility: Daily OHLCV can be ingested into TimescaleDB continuous aggregate within 1 hour of daily close. Data-ngin pipeline has existing handling for commodity futures roll management.</p>
+
+      <p style="margin-top: 0.5rem;">Alternative data: None required.</p>
+
+      <p style="margin-top: 0.5rem;"><strong>Head of Data Engineering approval (Jane Smith, jane.smith@algogators.com):</strong></p>
+      <p style="margin-top: 0.5rem; font-style: italic;">"Confirmed: ZC daily data available, ingestible, covers requested date range. Rollover logic already in place. No additional pipeline work required. Approved for development. — JS"</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Data cleaning Python patterns</h2>
+
+    <h3 style="margin-top: 1.5rem;">Winsorizing outliers</h3>
+    <pre><code>import numpy as np
+
+# Cap extreme returns at ±3 standard deviations
+mean_ret = df['returns'].mean()
+std_ret = df['returns'].std()
+df['returns_clean'] = df['returns'].clip(
+    lower=mean_ret - 3*std_ret,
+    upper=mean_ret + 3*std_ret
+)</code></pre>
+
+    <h3 style="margin-top: 1.5rem;">Missing value handling</h3>
+    <pre><code># Forward-fill prices (last known price)
+df['close'] = df['close'].ffill()
+
+# Do NOT forward-fill volume — use NaN-aware methods
+df['volume_avg'] = df['volume'].rolling(20).mean()
+# rolling() handles NaN gracefully</code></pre>
+
+    <h3 style="margin-top: 1.5rem;">Rolling z-score normalization</h3>
+    <pre><code>def rolling_zscore(series, window=60):
+    return (series - series.rolling(window).mean()) / \
+           series.rolling(window).std()
+
+df['signal'] = rolling_zscore(df['close'], window=60)</code></pre>
   </div>
 
   <div class="section">
     <h2 class="section-title">Common mistakes</h2>
     <div class="mistakes-list">
-      <h4 style="margin-top: 0;">Five hypothesis failures</h4>
+      <h4 style="margin-top: 0;">Five data sins</h4>
       <ul>
-        <li><strong>Writing the hypothesis as a tautology.</strong> "When momentum is positive, the stock continues to have positive momentum." This is circular — of course it's true. A real hypothesis explains WHY.</li>
-        <li><strong>No falsifiability condition.</strong> If you can't state what result would make you reject the hypothesis, you don't have a hypothesis. Add a specific quantitative threshold.</li>
-        <li><strong>Economic mechanism stated too vaguely.</strong> "The market is inefficient" doesn't distinguish from data mining. "Investors underreact to earnings by an average of 6 weeks due to limited attention" is specific enough to test.</li>
-        <li><strong>Signal direction not specified before testing.</strong> "I'll look at momentum and see if it predicts returns." Wrong. "High momentum predicts positive returns over 1-month horizon" specified before you test.</li>
-        <li><strong>Hypothesis changed after seeing the data.</strong> If you test 10 signal variants and then form a hypothesis around the best one, you're p-hacking. The hypothesis must come before the backtest.</li>
+        <li><strong>Using adjusted-close prices for signal construction.</strong> This is look-ahead bias. Use raw close, adjust only the final returns for splits and dividends.</li>
+        <li><strong>Not documenting the exact date range.</strong> "2010–2024 S&P 500 data" is vague. "ZC CBOT front-contract, 2010-01-01 through 2024-01-31, rolled 5 days before first notice" is precise. Be precise.</li>
+        <li><strong>Cleaning data by removing bad periods.</strong> "I removed 2008 because it was too volatile." Wrong. Document what happened (gap, halt, unusual volume) and handle it (forward-fill, interpolate). Don't just delete outliers.</li>
+        <li><strong>Not checking historical depth of alternative data.</strong> Satellite data goes back 10 years. That's 2.5 full market cycles — okay. But if it only goes back 3 years, you have only one bull/bear cycle — too short.</li>
+        <li><strong>Incomplete Section 2b.</strong> If you don't have written QD approval, your IP is rejected. No exceptions.</li>
       </ul>
     </div>
   </div>
 
   <div class="week-nav">
-    <a href="week6.html" class="week-nav-button">← Week 6: Toolstack</a>
-    <a href="week8.html" class="week-nav-button">Week 8: Data Sourcing →</a>
+    <a href="week6.html" class="week-nav-button">← Week 6: Toolstack &amp; Hypothesis</a>
+    <a href="week8.html" class="week-nav-button">Week 8: Signal Construction →</a>
   </div>
 
 </div>
@@ -192,40 +226,41 @@
 </footer>
 
 <script>
-  const ctx = document.getElementById('icChart').getContext('2d');
+  const ctx = document.getElementById('survivalChart').getContext('2d');
 
-  // Generate sample IC data
-  const periods = Array.from({length: 60}, (_, i) => i + 1);
+  const years = Array.from({length: 15}, (_, i) => 2010 + i);
 
-  // Simulated good signal: positive IC with noise
-  const goodSignalIC = periods.map(() => 0.08 + (Math.random() - 0.5) * 0.05);
+  // Biased path (survivors only) — ~11% per year
+  const survivors = years.map((_, i) => {
+    return Math.round(100 * Math.exp(0.11 * (i + 1)));
+  });
 
-  // Simulated noise signal: IC around zero
-  const noiseSignalIC = periods.map(() => (Math.random() - 0.5) * 0.08);
+  // Unbiased path (including failed companies) — ~10% per year
+  const unbiased = years.map((_, i) => {
+    return Math.round(100 * Math.exp(0.10 * (i + 1)));
+  });
 
   new Chart(ctx, {
     type: 'line',
     data: {
-      labels: periods,
+      labels: years,
       datasets: [
         {
-          label: 'Good Signal (mean IC ≈ 0.08)',
-          data: goodSignalIC,
+          label: 'Survivors Only (Biased)',
+          data: survivors,
           borderColor: '#FF9500',
-          backgroundColor: 'rgba(255, 149, 0, 0.1)',
-          borderWidth: 2,
-          pointRadius: 2,
-          fill: true,
+          borderWidth: 3,
+          pointRadius: 4,
+          fill: false,
           tension: 0.3
         },
         {
-          label: 'Noise Signal (mean IC ≈ 0)',
-          data: noiseSignalIC,
-          borderColor: '#d97757',
-          backgroundColor: 'rgba(217, 119, 87, 0.1)',
-          borderWidth: 2,
-          pointRadius: 2,
-          fill: true,
+          label: 'Including Delisted (Unbiased)',
+          data: unbiased,
+          borderColor: '#4a86e8',
+          borderWidth: 3,
+          pointRadius: 4,
+          fill: false,
           tension: 0.3
         }
       ]
@@ -241,13 +276,12 @@
       scales: {
         x: {
           ticks: { color: '#888888' },
-          grid: { color: '#1f1f1f' },
-          title: { display: true, text: 'Period', color: '#888' }
+          grid: { color: '#1f1f1f' }
         },
         y: {
           grid: { color: '#1f1f1f' },
           ticks: { color: '#888888' },
-          title: { display: true, text: 'Information Coefficient', color: '#888' }
+          title: { display: true, text: 'Cumulative Return ($)', color: '#888' }
         }
       }
     }
@@ -255,100 +289,127 @@
 </script>
 
 <script>
-/* Week 7 — mind map growing from central node */
+/* Week 8 — chaos → order, mirrored on both sides of centre divider */
 (function () {
   const hero   = document.querySelector('.week-hero');
   const canvas = document.getElementById('w7-canvas');
   const ctx    = canvas.getContext('2d');
   let W, H;
 
-  function resize() {
-    const r = hero.getBoundingClientRect();
-    W = canvas.width  = Math.round(r.width);
-    H = canvas.height = Math.round(r.height);
-  }
+  const COLS = 9, ROWS = 10;
+  const GY0 = 0.07, GY1 = 0.93;
+  const L0 = 0.03, L1 = 0.44, R0 = 0.56, R1 = 0.97;
 
-  const N_MAIN = 9;
-  let nodes = [], startTime = null;
+  let particles = [];
 
-  function buildTree() {
-    nodes = [];
-    for (let i = 0; i < N_MAIN; i++) {
-      const ang = (i / N_MAIN) * Math.PI * 2 - Math.PI / 2;
-      const d1  = 0.19;
-      const nx  = 0.5 + Math.cos(ang) * d1;
-      const ny  = 0.5 + Math.sin(ang) * d1 * 0.72;
-      nodes.push({ x: nx, y: ny, px: 0.5, py: 0.5, r: 4, alpha: 0, delay: 500 + i * 180 });
+  function init() {
+    particles = [];
 
-      // always 2 sub-branches per main
-      for (let j = 0; j < 2; j++) {
-        const sa  = ang + (j === 0 ? -0.55 : 0.55);
-        const d2  = 0.13;
-        const sx  = Math.max(0.02, Math.min(0.98, nx + Math.cos(sa) * d2));
-        const sy  = Math.max(0.04, Math.min(0.96, ny + Math.sin(sa) * d2 * 0.72));
-        nodes.push({ x: sx, y: sy, px: nx, py: ny, r: 2.8, alpha: 0, delay: 2000 + i * 180 + j * 220 });
-
-        // 1 sub-sub-branch per sub
-        const ssa  = sa + (Math.random() - 0.5) * 0.7;
-        const d3   = 0.09;
-        const ssx  = Math.max(0.01, Math.min(0.99, sx + Math.cos(ssa) * d3));
-        const ssy  = Math.max(0.03, Math.min(0.97, sy + Math.sin(ssa) * d3 * 0.72));
-        nodes.push({ x: ssx, y: ssy, px: sx, py: sy, r: 1.8, alpha: 0, delay: 3800 + i * 180 + j * 220 });
-      }
+    /* left-side targets */
+    for (let i = 0; i < COLS * ROWS; i++) {
+      const c  = i % COLS, r = Math.floor(i / COLS);
+      const tx = L0 + (c / (COLS - 1)) * (L1 - L0);
+      const ty = GY0 + (r / (ROWS - 1)) * (GY1 - GY0);
+      particles.push({
+        x: 0.46 + Math.random() * 0.08,
+        y: GY0  + Math.random() * (GY1 - GY0),
+        tx, ty,
+        side: 'L',
+        nx: -(Math.random() * 0.003 + 0.001),
+        ny: (Math.random() - 0.5) * 0.004,
+        alpha: 0,
+        delay: Math.random() * 1800,
+      });
     }
-    startTime = null;
+
+    /* right-side targets (mirror) */
+    for (let i = 0; i < COLS * ROWS; i++) {
+      const c  = i % COLS, r = Math.floor(i / COLS);
+      const tx = R0 + (c / (COLS - 1)) * (R1 - R0);
+      const ty = GY0 + (r / (ROWS - 1)) * (GY1 - GY0);
+      particles.push({
+        x: 0.46 + Math.random() * 0.08,
+        y: GY0  + Math.random() * (GY1 - GY0),
+        tx, ty,
+        side: 'R',
+        nx:  (Math.random() * 0.003 + 0.001),
+        ny: (Math.random() - 0.5) * 0.004,
+        alpha: 0,
+        delay: Math.random() * 1800,
+      });
+    }
   }
 
-  let rootAlpha = 0, lastTs = null;
+  let elapsed = 0, lastTs = null;
 
   function frame(ts) {
     if (!lastTs) lastTs = ts;
-    if (!startTime) startTime = ts;
-    const dt      = Math.min(ts - lastTs, 40);
-    lastTs        = ts;
-    const elapsed = ts - startTime;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+    elapsed += dt;
 
     ctx.clearRect(0, 0, W, H);
 
-    /* root */
-    rootAlpha = Math.min(0.75, rootAlpha + dt * 0.005);
+    /* centre divider */
     ctx.beginPath();
-    ctx.arc(W * 0.5, H * 0.5, 6, 0, 6.283);
-    ctx.fillStyle = `rgba(255,125,42,${rootAlpha})`;
-    ctx.fill();
-    ctx.beginPath();
-    ctx.arc(W * 0.5, H * 0.5, 12, 0, 6.283);
-    ctx.strokeStyle = `rgba(255,125,42,${rootAlpha * 0.28})`;
-    ctx.lineWidth = 1;
+    ctx.moveTo(W * 0.50, 0);
+    ctx.lineTo(W * 0.50, H);
+    ctx.strokeStyle = 'rgba(255,125,42,0.14)';
+    ctx.lineWidth   = 1;
+    ctx.setLineDash([4, 7]);
     ctx.stroke();
+    ctx.setLineDash([]);
 
-    for (const n of nodes) {
-      if (elapsed < n.delay) continue;
-      n.alpha = Math.min(0.50, n.alpha + dt * 0.004);
+    for (const p of particles) {
+      if (elapsed < p.delay) continue;
+      p.alpha = Math.min(0.75, p.alpha + dt * 0.002);
 
-      /* line to parent */
+      const settled =
+        p.side === 'L'
+          ? Math.abs(p.x - p.tx) < 0.012 && Math.abs(p.y - p.ty) < 0.012
+          : Math.abs(p.x - p.tx) < 0.012 && Math.abs(p.y - p.ty) < 0.012;
+
+      if (!settled) {
+        p.x = Math.max(0.01, Math.min(0.99, p.x + p.nx * dt));
+        p.y = Math.max(0.04, Math.min(0.96, p.y + p.ny * dt));
+        if (Math.random() < 0.010) p.ny = (Math.random() - 0.5) * 0.004;
+
+        const pastGrid = p.side === 'L' ? p.x < L1 + 0.05 : p.x > R0 - 0.05;
+        if (pastGrid) {
+          p.x += (p.tx - p.x) * 0.05;
+          p.y += (p.ty - p.y) * 0.05;
+        }
+      }
+
       ctx.beginPath();
-      ctx.moveTo(n.px * W, n.py * H);
-      ctx.lineTo(n.x  * W, n.y  * H);
-      ctx.strokeStyle = `rgba(255,238,215,${(n.alpha * 0.38).toFixed(3)})`;
-      ctx.lineWidth   = 1;
-      ctx.stroke();
-
-      /* node */
-      ctx.beginPath();
-      ctx.arc(n.x * W, n.y * H, n.r, 0, 6.283);
-      ctx.fillStyle = `rgba(255,125,42,${n.alpha.toFixed(3)})`;
+      ctx.arc(p.x * W, p.y * H, 2.2, 0, 6.283);
+      ctx.fillStyle = settled
+        ? `rgba(255,125,42,${p.alpha.toFixed(3)})`
+        : `rgba(255,210,160,${(p.alpha * 0.65).toFixed(3)})`;
       ctx.fill();
-    }
 
-    if (elapsed > 12000) buildTree();
+      if (settled && Math.random() < 0.00035 * dt) {
+        p.x     = 0.44 + Math.random() * 0.12;
+        p.y     = GY0  + Math.random() * (GY1 - GY0);
+        p.alpha = 0;
+        p.delay = 0;
+        p.nx    = p.side === 'L' ? -(Math.random() * 0.003 + 0.001) : (Math.random() * 0.003 + 0.001);
+        p.ny    = (Math.random() - 0.5) * 0.004;
+      }
+    }
 
     requestAnimationFrame(frame);
   }
 
-  new ResizeObserver(() => { resize(); buildTree(); }).observe(hero);
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+    init();
+  }
+
+  new ResizeObserver(resize).observe(hero);
   resize();
-  buildTree();
   requestAnimationFrame(frame);
 })();
 </script>
