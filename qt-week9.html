@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 9: Basic Market Microstructure — QT Training</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="icon" type="image/png" href="Delta.png">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">QT Training Hub</span>
+  </div>
+  <div class="nav-links">
+    <a href="qt.html">Home</a>
+    <a href="week1.html">W1</a>
+    <a href="week2.html">W2</a>
+    <a href="week3.html">W3</a>
+    <a href="week4.html">W4</a>
+    <a href="week5.html">W5</a>
+    <a href="qt-week6.html">W6</a>
+    <a href="qt-week7.html">W7</a>
+    <a href="qt-week8.html">W8</a>
+    <a href="qt-week9.html" class="active">W9</a>
+  </div>
+</nav>
+
+<!-- ── Hero ───────────────────────────────────────────────────── -->
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="w9-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Week 09 &mdash; Phase 3: Live Trading</div>
+    <h1>Basic Market<br>Microstructure</h1>
+    <div class="week-hero-pill">QT Pillar 4 — Execution</div>
+    <p class="week-hero-objective">How orders actually fill: the limit order book, the bid&ndash;ask spread, and what it really costs to push size through the market.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="ip-anchor">
+    <span class="ip-anchor-label">QT Pillar Anchor</span>
+    <span class="ip-anchor-section">Pillar 4 — Execution</span>
+    <span class="ip-anchor-desc">A backtest assumes you trade at the mid, for free, in unlimited size. Microstructure is the gap between that assumption and a real fill — and how to measure it, so QT can size and route orders within it.</span>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">What this week covers</h2>
+    <p>Weeks 6&ndash;8 decided <em>what</em> to hold — <a href="qt-week6.html">W6</a> target weights, <a href="qt-week7.html">W7</a> factor exposures, <a href="qt-week8.html">W8</a> stress tests. But none of it is a position until an order fills. Market microstructure is the mechanism that turns a target weight into a fill: the order book, the counterparties, and the price you pay for immediacy.</p>
+    <p>Every strategy QR hands over was backtested on closing prices or mids — no spread, no impact, infinite liquidity. Live, the spread is real, your own order moves the price, and the strategy has a <strong>capacity</strong>: a size beyond which impact eats the edge. Trading inside it is Pillar 4.</p>
+    <p>By Friday you should be able to:</p>
+    <ul>
+      <li>Read a <strong>limit order book</strong> and compute the quoted, effective, and realized spread.</li>
+      <li>Explain <strong>why</strong> the spread exists — the three-component decomposition — and who earns it.</li>
+      <li>Estimate the <strong>market impact</strong> of an order with the square-root law, and compute <strong>implementation shortfall</strong> against an arrival price.</li>
+      <li>Pick an <strong>execution schedule</strong> (TWAP / VWAP / POV / IS) and say what trade-off it is making.</li>
+    </ul>
+    <p>Reading: Harris, <em>Trading and Exchanges</em> (2003) is the readable canonical text; O'Hara, <em>Market Microstructure Theory</em> (1995) for the models; Almgren &amp; Chriss (2000) for optimal execution; Perold (1988) for implementation shortfall. Bouchaud et&nbsp;al., <em>Trades, Quotes and Prices</em> (2018) for the empirical impact literature.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">The limit order book</h2>
+    <p>Most modern equity and futures venues are <strong>continuous double auctions</strong> built around a <strong>limit order book</strong> (LOB): every resting order to buy or sell, ranked by price. Buy orders are <strong>bids</strong>, sell orders <strong>asks</strong> (offers); the highest bid and lowest ask are the <strong>top of book</strong>. In US equities the consolidated top across venues is the <strong>NBBO</strong> (National Best Bid and Offer).</p>
+    <p>Two orders compete for the same price by <strong>price&ndash;time priority</strong> (price first, then arrival time — FIFO). Some venues use <strong>pro-rata</strong> matching instead, splitting a fill across resting orders by size. A snapshot for a stock quoting around $50:</p>
+
+    <table class="comparison-table">
+      <thead>
+        <tr><th>Level</th><th>Side</th><th>Price</th><th>Size (shares)</th><th>Cumulative</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>Ask +3</td><td>Sell</td><td>50.06</td><td>1,200</td><td>3,100</td></tr>
+        <tr><td>Ask +2</td><td>Sell</td><td>50.05</td><td>1,400</td><td>1,900</td></tr>
+        <tr><td><strong>Best Ask</strong></td><td>Sell</td><td><strong>50.04</strong></td><td>500</td><td>500</td></tr>
+        <tr><td colspan="5" style="text-align:center; color: var(--text-tertiary); font-style: italic;">&mdash; mid 50.035 &nbsp;·&nbsp; spread 0.01 (2.0 bps) &mdash;</td></tr>
+        <tr><td><strong>Best Bid</strong></td><td>Buy</td><td><strong>50.03</strong></td><td>600</td><td>600</td></tr>
+        <tr><td>Bid &minus;2</td><td>Buy</td><td>50.02</td><td>900</td><td>1,500</td></tr>
+        <tr><td>Bid &minus;3</td><td>Buy</td><td>50.01</td><td>1,500</td><td>3,000</td></tr>
+      </tbody>
+    </table>
+
+    <p>A <strong>market order</strong> demands immediacy and walks the book: to buy 1,000 shares now you take all 500 at 50.04, then 500 of the 1,400 at 50.05, for a size-weighted fill of <strong>50.045</strong> — 1&nbsp;bp of half-spread (mid&nbsp;50.035&nbsp;&rarr;&nbsp;ask&nbsp;50.04) plus ~1&nbsp;bp of <strong>impact</strong> from the second level. A <strong>limit order</strong> instead joins the book and waits — no spread paid, but no guarantee of a fill.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">The bid&ndash;ask spread</h2>
+    <p>The spread is the price of immediacy. Three measurements, increasingly honest about what you actually paid. Let \( m_t \) be the mid and \( D=+1 \) for a buy, \( -1 \) for a sell.</p>
+
+    \[ m_t=\frac{P^{\text{bid}}_t+P^{\text{ask}}_t}{2}, \qquad s^{\text{quoted}}_t = P^{\text{ask}}_t - P^{\text{bid}}_t \]
+
+    <p>The <strong>quoted spread</strong> is what the screen shows — but you rarely trade exactly at the quote, getting price improvement inside it or paying up by walking the book. The <strong>effective spread</strong> measures realized cost against the mid at the fill:</p>
+
+    \[ s^{\text{eff}} = 2\,D\,\bigl(P_{\text{exec}} - m_t\bigr) \qquad\bigl[\text{in bps: } s^{\text{eff}}/m_t \times 10^4\bigr] \]
+
+    <p>The factor of 2 makes it comparable to the round-trip quoted spread: a fill at the far touch gives \( s^{\text{eff}} = s^{\text{quoted}} \), price improvement less, walking the book more. The <strong>realized spread</strong> then marks the fill against the mid a short interval \( \Delta \) <em>later</em> (5&nbsp;min is common):</p>
+
+    \[ s^{\text{real}} = 2\,D\,\bigl(P_{\text{exec}} - m_{t+\Delta}\bigr), \qquad \underbrace{s^{\text{eff}}}_{\text{you paid}} = \underbrace{s^{\text{real}}}_{\text{maker kept}} + \underbrace{\bigl(s^{\text{eff}} - s^{\text{real}}\bigr)}_{\text{price impact}} \]
+
+    <p>That decomposition is the whole game from the maker's side: effective spread is what the taker pays, realized spread is what the maker keeps after the price moves, and the difference is <strong>adverse-selection</strong> cost — they traded with someone who knew more.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Why the spread exists</h2>
+    <p>A market maker quotes a two-sided price and earns the spread for standing ready to trade. The classic decomposition (Stoll 1978; Glosten&ndash;Milgrom 1985; Ho&ndash;Stoll 1981) splits it into three costs:</p>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h3 style="margin-top: 0;">1 · Order-processing cost</h3>
+        <p>The fixed, mechanical cost of being in the business — exchange and clearing fees, technology, the minimum tick. Roughly constant per trade; dominant in liquid, low-information names where the other two costs are small.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">2 · Inventory risk</h3>
+        <p>A maker who buys your sell holds unwanted inventory and bears price risk until they offload it — the wider the spread, the faster they're paid for that exposure. Inventory models (Ho&ndash;Stoll, Amihud&ndash;Mendelson) have the maker skew quotes to mean-revert the position toward zero.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">3 · Adverse selection</h3>
+        <p>Some counterparties are <strong>informed</strong> — they trade because they know something. The maker systematically loses to them and must recoup it from <strong>uninformed</strong> flow by widening the spread (Glosten&ndash;Milgrom). Kyle (1985) formalizes the same force as price impact \( \lambda \): price moves linearly in net order flow.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">Why QT cares</h3>
+        <p>These three set the floor on your trading cost, and they are not constant. Spreads widen at the open, into the close, around news, and in stress (recall the 2020 liquidity squeeze in <a href="qt-week8.html">W8</a>). Sizing that ignores this assumes a spread that isn't there when you need it.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Makers, takers, and the fee model</h2>
+    <p>Every fill has a <strong>liquidity provider</strong> (the resting limit order — the <em>maker</em>) and a <strong>liquidity taker</strong> (the marketable order that hits it). Most US equity venues run <strong>maker&ndash;taker</strong> pricing: the taker pays a fee, the maker collects a rebate. A representative tape-A schedule is a taker fee around \$0.0030/share and a maker rebate around \$0.0020&ndash;0.0025/share; <strong>inverted</strong> venues flip the sign to attract takers.</p>
+    <p>The consequence: <strong>posting</strong> (joining the book) and <strong>crossing</strong> (taking) have different all-in costs even before impact — a passive fill can earn the rebate <em>and</em> the half-spread, an aggressive fill pays the half-spread <em>and</em> the access fee. The cost of patience is fill risk: your limit order may never trade, and the price may run (timing risk, below).</p>
+    <div class="callout">
+      <div class="callout-title">The core tension</div>
+      <p>Posting is cheap but uncertain; taking is certain but expensive. Every execution decision QT makes is a point on that line — and the right point depends on how much the signal decays while you wait.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Order types</h2>
+    <p>The order type is how you express your position on the cost-vs-certainty tension. The essential set:</p>
+
+    <table class="comparison-table">
+      <thead>
+        <tr><th>Type</th><th>Behavior</th><th>Use when</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Market</strong></td><td>Fills immediately against the book at whatever price it reaches.</td><td>Immediacy dominates cost; small size relative to top-of-book depth.</td></tr>
+        <tr><td><strong>Limit</strong></td><td>Rests at a stated price or better; may not fill.</td><td>Capturing the spread / rebate matters more than certainty of fill.</td></tr>
+        <tr><td><strong>Marketable limit</strong></td><td>A limit priced through the book — fills now, but caps the worst price.</td><td>You want immediacy but a hard cap on slippage from walking the book.</td></tr>
+        <tr><td><strong>IOC</strong> (immediate-or-cancel)</td><td>Takes whatever is available right now, cancels the rest.</td><td>Sweeping available liquidity without leaving a resting footprint.</td></tr>
+        <tr><td><strong>FOK</strong> (fill-or-kill)</td><td>All-or-nothing, immediately.</td><td>The position only makes sense in full size.</td></tr>
+        <tr><td><strong>Stop / stop-limit</strong></td><td>Dormant until a trigger price, then becomes a market / limit order.</td><td>Risk exits and breakout entries — not a resting book order until triggered.</td></tr>
+        <tr><td><strong>Pegged</strong></td><td>Auto-tracks a reference (mid, bid, or ask) as it moves.</td><td>Staying at the touch passively without constant re-quoting.</td></tr>
+        <tr><td><strong>Hidden / iceberg</strong></td><td>Displays none / only a slice of true size.</td><td>Working large size while minimizing information leakage.</td></tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Market impact: the cost of size</h2>
+    <p>Crossing the spread is the visible cost. The larger, hidden cost is <strong>market impact</strong> — your own trading moves the price against you. It splits in two:</p>
+    <ul>
+      <li><strong>Temporary impact</strong> — you consume resting liquidity; the price snaps back after you stop. This is a cost of <em>demanding immediacy</em> and it mean-reverts.</li>
+      <li><strong>Permanent impact</strong> — the market infers information from your flow and re-prices. This portion stays. (It is exactly the adverse-selection the maker was pricing in above.)</li>
+    </ul>
+    <p>Empirically, impact is <strong>concave</strong> in size — it grows like the square root of the order, not linearly. The widely-used approximation (Almgren et&nbsp;al.; BARRA; Tóth&ndash;Bouchaud):</p>
+
+    \[ \frac{\Delta P}{P} \;\approx\; Y\,\sigma\,\sqrt{\frac{Q}{V}} \]
+
+    <p>where \( \sigma \) is daily volatility, \( Q \) the order size, \( V \) average daily volume (ADV), and \( Y \) a constant of order one (\( \approx 0.3\text{–}1 \)). The square root is the key fact: <strong>doubling the order doesn't double the cost</strong> — 4&times; the size costs ~2&times; the impact. The curve below uses \( Y=0.5,\ \sigma=2\% \):</p>
+
+    <div class="chart-container">
+      <canvas id="impactChart"></canvas>
+    </div>
+
+    <p>This curve is why <strong>capacity</strong> exists. A signal worth 40&nbsp;bps per trade is pure profit at 1% of ADV (~10&nbsp;bps cost) and underwater at 40% (~63&nbsp;bps). Tradable size is wherever impact crosses the edge — and the only way past it is to <em>spread the order over time</em>.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Implementation shortfall</h2>
+    <p>How do you score an execution? Perold's (1988) <strong>implementation shortfall</strong> (IS) compares the <em>paper</em> portfolio — filled instantly and free at the <strong>arrival price</strong> (the price when you decided to trade) — against the <em>real</em> portfolio you got. Everything that makes reality worse than paper is the shortfall:</p>
+
+    \[ \text{IS} = \underbrace{(P_{\text{exec}} - P_{\text{dec}})\,Q_{\text{filled}}\,D}_{\text{execution cost}} \;+\; \underbrace{(P_{\text{end}} - P_{\text{dec}})\,Q_{\text{unfilled}}\,D}_{\text{opportunity cost}} \;+\; \text{fees} \]
+
+    <p>The first term is the spread and impact you paid on filled shares. The second is the <strong>opportunity cost</strong> of shares you <em>didn't</em> get because you were too passive and the price ran — what market orders avoid and limit orders incur. IS is the honest, all-in number, and the standard benchmark precisely because it can't be gamed with a flattering reference.</p>
+
+    <p>Computing effective spread and IS from a fills table is a few lines:</p>
+
+    <pre><code>import pandas as pd
+
+# fills: one row per execution, with the prevailing bid/ask at fill time
+fills['mid']  = (fills['bid'] + fills['ask']) / 2
+fills['side'] = fills['is_buy'].map({True: 1, False: -1})   # D
+
+# effective spread per fill, in bps (signed by direction)
+fills['eff_spread_bps'] = 2 * fills['side'] * (fills['price'] - fills['mid']) \
+                            / fills['mid'] * 1e4
+
+# implementation shortfall vs the arrival (decision) price, for a buy
+arrival   = 50.035
+exec_vwap = (fills['price'] * fills['qty']).sum() / fills['qty'].sum()
+is_bps    = (exec_vwap - arrival) / arrival * 1e4
+
+print(f"avg effective spread {fills['eff_spread_bps'].mean():.2f} bps")
+print(f"exec VWAP {exec_vwap:.4f}   IS {is_bps:.1f} bps vs arrival")</code></pre>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Execution algorithms</h2>
+    <p>The fix for impact is to slice a parent order into child orders over time. <em>How</em> you slice is the schedule, and each makes a different bet on the impact-vs-timing-risk trade-off — trade fast and pay impact, or trade slow and risk the price drifting away while you wait (Almgren&ndash;Chriss formalize this as an efficient frontier).</p>
+
+    <table class="comparison-table">
+      <thead>
+        <tr><th>Algo</th><th>Schedule</th><th>Benchmark / goal</th><th>Trade-off</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>TWAP</strong></td><td>Equal slices across a fixed clock window.</td><td>Time-weighted average price.</td><td>Simple, predictable; ignores when volume actually shows up.</td></tr>
+        <tr><td><strong>VWAP</strong></td><td>Slices tracking the intraday (U-shaped) volume profile.</td><td>Volume-weighted average price.</td><td>Blends into natural volume; underperforms if the day's profile is abnormal.</td></tr>
+        <tr><td><strong>POV</strong> (participation)</td><td>A fixed % of live market volume until done.</td><td>Stay a constant fraction of flow.</td><td>Self-adjusts to liquidity; completion time is uncertain.</td></tr>
+        <tr><td><strong>Implementation Shortfall</strong></td><td>Front-loaded; trades faster when the signal is urgent or vol is low.</td><td>Minimize slippage vs the arrival price.</td><td>Lowest expected IS; takes more impact up front to cut timing risk.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <div class="callout-title">Choosing one</div>
+      <p>The schedule should follow the <strong>signal's decay</strong>. A fast-decaying alpha (gone by tomorrow) wants an IS / arrival-price algo — pay impact now, because waiting forfeits the trade. A slow, no-urgency rebalance wants VWAP or a low POV — minimize footprint, let timing risk wash out. Matching schedule to decay is the practical core of Pillar 4.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Common mistakes</h2>
+    <div class="mistakes-list">
+      <h4 style="margin-top: 0;">Four ways execution reasoning goes wrong</h4>
+      <ul>
+        <li><strong>Backtesting at the mid and trading at the touch.</strong> A backtest that fills at the close/mid silently assumes zero spread and impact. For a strategy turning over daily, 2&ndash;5 bps of round-trip cost can erase the entire paper Sharpe. Subtract a realistic cost model <em>before</em> believing the backtest.</li>
+        <li><strong>Assuming impact is linear.</strong> "I can trade 10&times; the size for 10&times; the cost" is wrong — impact grows like \( \sqrt{Q} \), so the marginal share is cheaper than the average, but total cost still climbs without bound. Size against the square-root law, not a per-share constant.</li>
+        <li><strong>Ignoring capacity.</strong> An edge is not a number, it is a number <em>at a size</em>. A 40 bps signal is real at 1% of ADV and fictional at 40%. A strategy QR validates on small notional may have no capacity at the book's scale — that is a QT finding, not a QR one.</li>
+        <li><strong>Picking the algo by habit, not by signal decay.</strong> Running everything through VWAP because it's the default leaks fast alpha to the market; running everything through an aggressive IS algo pays impact you didn't need to on a slow rebalance. The schedule is a decision, and it follows how quickly the edge disappears.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <a href="qt-week8.html" class="week-nav-button">← Week 8: Market Disruptions</a>
+    <a href="qt-week10.html" class="week-nav-button">Week 10: Optimal Execution &amp; Live Markets →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — QT Training Program // Internal Use Only
+</footer>
+
+<script>
+/* ── Hero canvas: a living limit order book ───────────────────── */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('w9-canvas');
+  const ctx    = canvas.getContext('2d');
+
+  let W, H;
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+  }
+
+  const N = 9;                 // price levels per side
+  let bid = [], ask = [];
+  function mkLevel() {
+    return {
+      cur:  Math.random() * 0.45 + 0.20,
+      tgt:  Math.random() * 0.65 + 0.20,
+      spd:  0.0012 + Math.random() * 0.0020,
+      flash: 0,
+    };
+  }
+  function makeBook() {
+    bid = []; ask = [];
+    for (let i = 0; i < N; i++) { bid.push(mkLevel()); ask.push(mkLevel()); }
+  }
+
+  let lastTs = null, tradeTimer = 320;
+
+  function drawSide(arr, dir, midX, rowH, maxLen, dt) {  // dir −1 = bid (left), +1 = ask (right)
+    for (let i = 0; i < N; i++) {
+      const b = arr[i];
+      b.cur += (b.tgt - b.cur) * b.spd * dt;
+      if (Math.abs(b.tgt - b.cur) < 0.025) b.tgt = Math.random() * 0.65 + 0.18;
+      if (b.flash > 0) b.flash = Math.max(0, b.flash - dt * 0.0045);
+
+      const y    = rowH * (i + 1);
+      const len  = Math.max(2, b.cur * maxLen);
+      const fade = 0.14 + (1 - i / N) * 0.20;            // top of book a touch brighter
+      const a    = Math.min(0.85, fade + b.flash * 0.55);
+
+      ctx.fillStyle = dir < 0
+        ? `rgba(255, 125, 42, ${a.toFixed(3)})`
+        : `rgba(255, 238, 215, ${a.toFixed(3)})`;
+      const x = dir < 0 ? midX - len : midX;
+      ctx.fillRect(x, y - rowH * 0.30, len, rowH * 0.60);
+    }
+  }
+
+  function frame(ts) {
+    if (lastTs === null) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    ctx.clearRect(0, 0, W, H);
+
+    const midX   = W * 0.5;
+    const rowH   = H / (N + 1);
+    const maxLen = W * 0.42;
+
+    // mid line
+    ctx.strokeStyle = 'rgba(255, 238, 215, 0.12)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(midX, rowH * 0.4);
+    ctx.lineTo(midX, H - rowH * 0.4);
+    ctx.stroke();
+
+    // occasional marketable order sweeps a top level
+    tradeTimer -= dt;
+    if (tradeTimer <= 0) {
+      tradeTimer = 260 + Math.random() * 520;
+      const side = Math.random() < 0.5 ? bid : ask;
+      const lvl  = Math.floor(Math.random() * 3);        // near the touch
+      side[lvl].flash = 1;
+      side[lvl].cur   = Math.max(0.10, side[lvl].cur - (0.20 + Math.random() * 0.30));
+      side[lvl].tgt   = Math.random() * 0.65 + 0.20;
+    }
+
+    drawSide(bid, -1, midX, rowH, maxLen, dt);
+    drawSide(ask, +1, midX, rowH, maxLen, dt);
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(() => { resize(); makeBook(); }).observe(hero);
+  resize();
+  makeBook();
+  requestAnimationFrame(frame);
+})();
+</script>
+
+<script>
+/* ── Square-root market-impact curve ──────────────────────────── */
+(function () {
+  const ctx = document.getElementById('impactChart').getContext('2d');
+
+  // impact(bps) = Y·σ·√(Q/V)·1e4, with Y=0.5, σ=2%  →  coefficient = 100
+  const pct    = [1, 2, 5, 10, 15, 20, 30, 40, 50];
+  const impact = pct.map(p => 100 * Math.sqrt(p / 100));
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: pct.map(p => p + '%'),
+      datasets: [{
+        label: 'Expected market impact (bps)',
+        data: impact,
+        borderColor: '#FF7D2A',
+        borderWidth: 2,
+        pointRadius: 0,
+        tension: 0.3,
+        fill: false,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#666', font: { family: "'IBM Plex Mono'", size: 11 } } },
+        tooltip: { callbacks: { label: (c) => `≈ ${c.parsed.y.toFixed(0)} bps` } },
+      },
+      scales: {
+        x: {
+          grid: { color: '#eaeaea' },
+          ticks: { color: '#666', font: { family: "'IBM Plex Mono'" } },
+          title: { display: true, text: 'Order size (% of ADV)', color: '#666' },
+        },
+        y: {
+          grid: { color: '#eaeaea' },
+          ticks: { color: '#666', font: { family: "'IBM Plex Mono'" } },
+          title: { display: true, text: 'Impact (bps) — √-law', color: '#666' },
+          suggestedMin: 0,
+          suggestedMax: 80,
+        },
+      },
+    },
+  });
+})();
+</script>
+
+<script src="cursor.js"></script>
+</body>
+</html>

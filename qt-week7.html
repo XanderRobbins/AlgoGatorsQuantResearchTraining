@@ -1,0 +1,438 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 7: Factor Modeling — QT Training</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="icon" type="image/png" href="Delta.png">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">QT Training Hub</span>
+  </div>
+  <div class="nav-links">
+    <a href="qt.html">Home</a>
+    <a href="week1.html">W1</a>
+    <a href="week2.html">W2</a>
+    <a href="week3.html">W3</a>
+    <a href="week4.html">W4</a>
+    <a href="week5.html">W5</a>
+    <a href="qt-week6.html">W6</a>
+    <a href="qt-week7.html" class="active">W7</a>
+  </div>
+</nav>
+
+<!-- ── Hero ───────────────────────────────────────────────────── -->
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="w7-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Week 07 &mdash; Phase 2: QT Specialization</div>
+    <h1>Factor<br>Modeling</h1>
+    <div class="week-hero-pill">QT Pillar 3 — Portfolio Fit</div>
+    <p class="week-hero-objective">Decompose portfolio returns into known risk premia. Build a custom factor when the standard ones don't capture what your edge is loading on.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="ip-anchor">
+    <span class="ip-anchor-label">QT Pillar Anchor</span>
+    <span class="ip-anchor-section">Pillar 3 — Portfolio Fit (with Pillar 1 — Risk Sizing)</span>
+    <span class="ip-anchor-desc">A factor model answers two QT questions in one regression: what risks is the portfolio actually taking, and how much of last quarter's return was skill versus a known risk premium being paid?</span>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">What this week covers</h2>
+    <p><a href="week4.html">W4</a> introduced the major equity factors — Market, Size (SMB), Value (HML), Momentum (UMD), Quality, Low Vol — and noted that they have multi-year drawdowns. This week is how to actually <em>use</em> them: regress portfolio returns on factor returns to read off exposures and separate alpha from beta.</p>
+    <p>By Friday you should be able to:</p>
+    <ul>
+      <li>Write down the <strong>Fama-French three-factor model</strong> and explain how SMB and HML are <em>constructed</em> (not just defined).</li>
+      <li>Run a multi-factor regression on a portfolio's monthly returns and <strong>interpret the alpha, betas, and R²</strong>.</li>
+      <li>Construct a <strong>custom factor</strong> from a stock characteristic and test whether it adds explanatory power over the standard set.</li>
+    </ul>
+    <p>The reading is the original Fama-French (1993) paper and Carhart (1997); Palomar Ch 7 §2 covers the regression interpretation. Cochrane (2001) Ch 12–13 has the standard-error theory if you want to go deeper.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">The factor model framework</h2>
+    <p>A factor model decomposes an asset's excess return into a weighted sum of common-factor returns plus an idiosyncratic residual. Both Merton's ICAPM and Ross's APT motivate the same form — factors must carry an economic reason to predict returns.</p>
+    \[ R_{i,t} - R_{f,t} \;=\; \alpha_i \;+\; \sum_{k=1}^{K} \beta_{i,k}\, F_{k,t} \;+\; \varepsilon_{i,t} \quad (1) \]
+    <p>A second, cross-sectional equation links <em>expected</em> returns to factor risk premia \( \lambda_k \):</p>
+    \[ \mathbb{E}[R_i - R_f] \;=\; \lambda_0 \;+\; \sum_{k=1}^{K} \beta_{i,k}\, \lambda_k \quad (2) \]
+    <p>Under a correctly specified model, \( \lambda_0 = 0 \) — no return without exposure. The \( \beta_{i,k} \) is the asset's <strong>loading</strong> on factor \( k \); the \( \lambda_k \) is the <strong>risk premium</strong> the market pays per unit of that exposure.</p>
+
+    <p>What plays the role of \( F_{k,t} \) depends on the factor type:</p>
+    <ul>
+      <li><strong>Factor-mimicking portfolios</strong> (Fama-French SMB, HML; Carhart MOM): long-short return spreads. \( F_{k,t} \) is just the time-\( t \) return of the spread. This is the case we focus on.</li>
+      <li><strong>Macroeconomic factors</strong> (Chen, Roll &amp; Ross 1986): inflation, term spread, industrial production. \( F_{k,t} \) is the <em>surprise</em> — realized value minus the predictable component.</li>
+    </ul>
+    <p>Two estimation routes match these two cases (covered below): <strong>time-series regression</strong> for traded-portfolio factors, <strong>Fama-MacBeth two-pass</strong> for macro factors. QT uses time-series exclusively — we're auditing what the live book is exposed to, not pricing new assets.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">From CAPM to Fama-French to FF5</h2>
+    <p>Every model below is the same equation above with a different choice of factors.</p>
+
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>Model</th>
+          <th>Factors</th>
+          <th>What it adds</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>CAPM</strong><br>(Sharpe-Lintner, 1964)</td>
+          <td>Mkt − R<sub>f</sub></td>
+          <td>The baseline. Only systematic (market) risk should be compensated. Empirically inadequate — small and value stocks earn more than CAPM predicts.</td>
+        </tr>
+        <tr>
+          <td><strong>Fama-French 3</strong><br>(1993)</td>
+          <td>Mkt − R<sub>f</sub>, SMB, HML</td>
+          <td>Adds Size and Value premia. Explains roughly 90%+ of US-equity cross-sectional return variance.</td>
+        </tr>
+        <tr>
+          <td><strong>Carhart 4</strong><br>(1997)</td>
+          <td>+ UMD (a.k.a. MOM)</td>
+          <td>Adds Momentum (Up-Minus-Down). Essential when evaluating any trend-following or momentum strategy.</td>
+        </tr>
+        <tr>
+          <td><strong>Fama-French 5</strong><br>(2015)</td>
+          <td>+ RMW, CMA</td>
+          <td>Adds Profitability (Robust-Minus-Weak) and Investment (Conservative-Minus-Aggressive). Subsumes much of HML; better empirical fit post-2000.</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <p>Written out, the four-factor Carhart model is:</p>
+    \[ R_{p,t} - R_{f,t} \;=\; \alpha_p \;+\; \beta_{\mathrm{MKT}}(R_{M,t} - R_{f,t}) \;+\; \beta_{\mathrm{SMB}}\,\mathrm{SMB}_t \;+\; \beta_{\mathrm{HML}}\,\mathrm{HML}_t \;+\; \beta_{\mathrm{MOM}}\,\mathrm{MOM}_t \;+\; \varepsilon_{p,t} \]
+    <p>This is the default QT uses for portfolio decomposition. FF5 is worth running as a robustness check.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">How Fama-French actually builds SMB and HML</h2>
+    <p><a href="week4.html">W4</a> told you what SMB and HML <em>mean</em> ("Small Minus Big", "High Minus Low book-to-market"). The factor returns Fama and French publish on their <a href="https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html">data library</a> are not just SMB = small-cap index minus large-cap index. They come from a specific <strong>2×3 sort</strong> that isolates each premium from the other.</p>
+
+    <p>Every June, the universe (NYSE + AMEX + NASDAQ common stocks) is sorted on two characteristics simultaneously:</p>
+    <ol>
+      <li><strong>Size</strong> — market cap, split at the NYSE median into <em>Small</em> and <em>Big</em>.</li>
+      <li><strong>Book-to-market</strong> — split at the NYSE 30th and 70th percentiles into <em>Low</em>, <em>Medium</em>, <em>High</em>. (Some papers use median or 10/90 splits; 30/70 is the Fama-French convention.)</li>
+    </ol>
+    <p>The intersection gives six value-weighted portfolios: <strong>SL, SM, SH, BL, BM, BH</strong>. The factor returns are then:</p>
+
+    \[ \mathrm{SMB}_t = \tfrac{1}{3}(R_{\mathrm{SL}} + R_{\mathrm{SM}} + R_{\mathrm{SH}})_t \;-\; \tfrac{1}{3}(R_{\mathrm{BL}} + R_{\mathrm{BM}} + R_{\mathrm{BH}})_t \]
+    \[ \mathrm{HML}_t = \tfrac{1}{2}(R_{\mathrm{SH}} + R_{\mathrm{BH}})_t \;-\; \tfrac{1}{2}(R_{\mathrm{SL}} + R_{\mathrm{BL}})_t \]
+
+    <p>Two design choices in here are worth internalizing:</p>
+    <ul>
+      <li><strong>Long-short construction.</strong> Each factor is dollar-neutral by construction — a long basket minus a short basket of equal weight. That isolates the <em>spread</em> in returns due to the characteristic, not the market beta.</li>
+      <li><strong>2×3 sort, not 2 separate 1D sorts.</strong> SMB averages across the three B/M groups (and HML across the two size groups), so each factor's loading on the <em>other</em> characteristic is mechanically neutralized. This is why Fama-French betas are interpretable as independent exposures.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Building your own factor</h2>
+    <p>The Fama-French recipe generalizes. Any cross-sectional stock characteristic can be turned into a factor by sorting and going long-short.</p>
+
+    <ol>
+      <li><strong>Pick a characteristic.</strong> It must be (a) measurable from public data, (b) cross-sectionally varying — every stock has a different value, (c) tied to an economic mechanism you can defend (recall <a href="week1.html">W1</a>: hypothesis before backtest).</li>
+      <li><strong>Rank and sort.</strong> At each rebalance, rank the universe on the characteristic. The split is a design choice — median (2 buckets), 30/70 (3 buckets, the Fama-French convention), 10/90, or quintiles/deciles. Finer sorts give cleaner separation between top and bottom; coarser sorts give larger, more diversified buckets.</li>
+      <li><strong>Form the long-short portfolio.</strong> Long the top quintile (or decile), short the bottom. Value-weight within each quintile. The factor return is the spread.
+      \[ F_{t}^{\mathrm{custom}} = R_{\mathrm{top}, t} - R_{\mathrm{bottom}, t} \]
+      </li>
+      <li><strong>Test orthogonality.</strong> Regress your factor against the existing Carhart 4 factors:
+      \[ F_{t}^{\mathrm{custom}} = a + b_1 \mathrm{MKT}_t + b_2 \mathrm{SMB}_t + b_3 \mathrm{HML}_t + b_4 \mathrm{MOM}_t + u_t \]
+      If the intercept \( a \) is significantly positive and \( R^2 \) is low, your factor carries return that the standard set doesn't capture — it's a real candidate. If \( R^2 \) is 0.85, you've reinvented an existing factor with a new name.</li>
+      <li><strong>Test robustness.</strong> Split the sample (pre-2010 / post-2010), look at sub-sectors, run in different countries. A factor that works only in one regime is unlikely to survive live.</li>
+    </ol>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">Example: a "Quality" factor</h3>
+      <p>Characteristic: gross profitability = (Revenue − COGS) / Total Assets, as in Novy-Marx (2013).</p>
+      <p>At each June, rank the universe, form a long-short portfolio of top-quintile minus bottom-quintile. Call the factor return QMJ (Quality-Minus-Junk). Regress QMJ against the FF3 + MOM factors. Novy-Marx reports a significant positive intercept of ~0.3% per month with \( R^2 \) around 0.30 — the quality premium isn't captured by Mkt / SMB / HML / MOM, so it's a real fifth factor.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Two estimation routes</h2>
+    <p>Equations (1) and (2) suggest two regression strategies. Which one you use depends on whether your factors are traded portfolios or general macroeconomic surprises.</p>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h3 style="margin-top: 0;">Time-series regression<br><span style="font-size: 0.85rem; font-weight: 400; color: var(--text-secondary);">Fama-French method</span></h3>
+        <p>When factors are returns (SMB, HML, MOM): fit equation (1) directly per asset or portfolio with OLS. The \( \beta_{i,k} \) are the slopes. The factor risk premium \( \lambda_k \) is just the time-series mean of \( F_{k,t} \).</p>
+        <p>The asset-pricing test is whether \( \alpha_i = 0 \) jointly across all assets — the GRS F-test (Gibbons, Ross &amp; Shanken 1989), HAC-adjusted for autocorrelation.</p>
+        <p style="font-size: 0.9rem; color: var(--text-secondary);"><strong>QT default.</strong> Tractable in pandas + statsmodels; this is what the rest of this week uses.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">Cross-sectional regression<br><span style="font-size: 0.85rem; font-weight: 400; color: var(--text-secondary);">Fama-MacBeth two-pass</span></h3>
+        <p>When factors are macroeconomic surprises or otherwise non-traded:</p>
+        <ol style="font-size: 0.95rem; margin-top: 0.5rem;">
+          <li><strong>Pass 1 (time-series):</strong> per asset, regress \( R_i \) on \( F \) to estimate \( \hat\beta_i \).</li>
+          <li><strong>Pass 2 (cross-section):</strong> regress average returns \( \overline{R}_i \) on \( \hat\beta_i \) to estimate \( \hat\lambda_k \).</li>
+        </ol>
+        <p>Rolling 60-month windows are the standard. Standard errors must correct for the fact that the \( \hat\beta \)s are themselves estimated — Fama-MacBeth (1973) gave the original adjustment; Cochrane (2001) Ch 12 has the modern treatment.</p>
+        <p style="font-size: 0.9rem; color: var(--text-secondary);">More relevant to QR asset-pricing work than to QT portfolio decomposition.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Running the regression on a portfolio</h2>
+    <p>Once factors exist, decomposing a portfolio's returns is just OLS:</p>
+
+    <pre><code>import pandas as pd, statsmodels.api as sm
+
+# portfolio_excess = monthly portfolio return - monthly Rf
+# factors = DataFrame with columns ['MKT_RF', 'SMB', 'HML', 'MOM']
+
+X = sm.add_constant(factors)
+model = sm.OLS(portfolio_excess, X).fit(
+    cov_type='HAC', cov_kwds={'maxlags': 6}  # Newey-West, accounts for autocorrelation
+)
+print(model.summary())</code></pre>
+
+    <p>Three notes on the regression itself:</p>
+    <ul>
+      <li><strong>Use monthly, not daily, data.</strong> Daily factor returns are noisier and microstructure effects dominate. The Fama-French data library publishes monthly series specifically because of this.</li>
+      <li><strong>Use Newey-West standard errors.</strong> <a href="week5.html">W5</a> covered the autocorrelation problem; the HAC adjustment here is the fix. Without it, the t-stats on the betas are wrong.</li>
+      <li><strong>Lookback ≥ 60 months.</strong> Five years of monthly data is the Fama-MacBeth standard; 36 months is the bare minimum. With fewer observations the betas have standard errors larger than the betas themselves.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Interpreting α, β, R²</h2>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h3 style="margin-top: 0;">α (alpha)</h3>
+        <p>The intercept. Portfolio's average excess return <em>not</em> attributable to factor exposures. Under a correctly specified model the asset-pricing prediction is \( \alpha = 0 \); a significant non-zero \( \alpha \) means either (a) the model is missing a factor, or (b) the portfolio has true skill that no factor captures.</p>
+        <p style="font-size: 0.9rem; color: var(--text-secondary);">If \( \alpha \) is negative, you're paying for factor exposure you could get cheaper through a factor ETF.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">β (factor loadings)</h3>
+        <p>Each \( \beta_k \) is the portfolio's exposure to factor \( k \). \( \beta_{\mathrm{MOM}} = 0.4 \) means a 1% MOM factor return contributes 0.4% to the portfolio that month.</p>
+        <p style="font-size: 0.9rem; color: var(--text-secondary);">Sign matters: \( \beta_{\mathrm{HML}} &lt; 0 \) is a growth tilt; \( \beta_{\mathrm{HML}} &gt; 0 \) is a value tilt.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">R²</h3>
+        <p>Fraction of return variance explained by the factors. \( R^2 = 0.90 \) means 90% of the portfolio's monthly variance comes from factor exposures; only 10% is idiosyncratic.</p>
+        <p style="font-size: 0.9rem; color: var(--text-secondary);">High \( R^2 \) is not bad — it means the model is doing its job. The question is what's left in the residual.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">Residual ε</h3>
+        <p>The unexplained portion of returns. Its variance is the portfolio's <em>idiosyncratic</em> risk. If two strategies have similar betas but different residual variance, the lower-residual one is more "factor-like" and less likely to surprise.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Worked example: decomposing a portfolio</h2>
+    <p>A hypothetical multi-strategy portfolio, 48 months of returns. Regress against Carhart 4-factor + a custom Quality factor (QMJ). OLS with Newey-West errors:</p>
+
+    <table class="comparison-table">
+      <thead>
+        <tr><th>Term</th><th>Estimate</th><th>t-stat</th><th>Interpretation</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>α (monthly)</strong></td><td>0.04%</td><td>0.6</td><td>Not statistically distinguishable from zero. No skill premium after factors.</td></tr>
+        <tr><td><strong>β<sub>MKT</sub></strong></td><td>0.85</td><td>14.2</td><td>High market exposure — the portfolio moves 85¢ for every $1 of market.</td></tr>
+        <tr><td><strong>β<sub>SMB</sub></strong></td><td>0.22</td><td>2.4</td><td>Significant small-cap tilt.</td></tr>
+        <tr><td><strong>β<sub>HML</sub></strong></td><td>-0.18</td><td>-1.9</td><td>Marginal growth tilt (negative value loading).</td></tr>
+        <tr><td><strong>β<sub>MOM</sub></strong></td><td>0.35</td><td>3.8</td><td>Strong momentum exposure.</td></tr>
+        <tr><td><strong>β<sub>QMJ</sub></strong></td><td>0.15</td><td>1.6</td><td>Borderline quality tilt; not statistically robust.</td></tr>
+        <tr><td><strong>R²</strong></td><td>0.87</td><td>—</td><td>87% of variance explained by the 5 factors.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="chart-container">
+      <canvas id="factorChart"></canvas>
+    </div>
+
+    <h3 style="margin-top: 2rem;">Reading the result</h3>
+    <ul>
+      <li>The portfolio's return is almost entirely a function of its factor exposures (\( R^2 = 0.87 \)) — there's no measurable alpha (t-stat on \( \alpha \) is 0.6).</li>
+      <li>The dominant exposures are <strong>market</strong> (0.85) and <strong>momentum</strong> (0.35). Whoever runs this book is leaning hard on trend.</li>
+      <li>A modest small-cap tilt and a hint of growth orientation. Not a deliberate factor bet — likely a side-effect of the universe selection.</li>
+      <li>The custom quality factor adds nothing significant — for this portfolio, FF3 + MOM is enough.</li>
+    </ul>
+
+    <div class="callout">
+      <div class="callout-title">Example solution</div>
+      <p>Given the decomposition above, the QT takeaway is:</p>
+      <ul style="margin-top: 0.6rem;">
+        <li>Report the betas in the monthly tear sheet, not just total return — investors should know the portfolio is mostly a market + momentum bet.</li>
+        <li>If a peer momentum factor enters a drawdown (e.g., the 2009 momentum crash referenced in <a href="week4.html">W4</a>), this portfolio is expected to lose roughly 0.35× the factor return, before any idiosyncratic effects.</li>
+        <li>To claim alpha, the portfolio needs a positive intercept with t-stat &gt; 2 on a 36+ month window. Right now it doesn't have one — keep collecting data and re-run quarterly.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Common mistakes</h2>
+    <div class="mistakes-list">
+      <h4 style="margin-top: 0;">Four ways factor analysis goes wrong</h4>
+      <ul>
+        <li><strong>Confusing alpha with beta.</strong> A portfolio loading 0.5 on momentum during a +20% momentum year will look great. That's not alpha — it's a paid exposure. The alpha is what's left after subtracting the expected return from each factor exposure.</li>
+        <li><strong>Using too short a window.</strong> Fewer than 36 monthly observations and the standard errors on the betas swamp the estimates. The Fama-French publishes monthly precisely so you accumulate enough history.</li>
+        <li><strong>Ignoring multicollinearity.</strong> <a href="week5.html">W5</a> covered VIF. Quality, low-vol, and profitability factors are highly correlated. Adding them all at once produces unstable coefficients even though \( R^2 \) goes up.</li>
+        <li><strong>Treating betas as static.</strong> Loadings shift across regimes — a trend strategy has \( \beta_{\mathrm{MOM}} \approx 0.6 \) in trending markets and \( \beta_{\mathrm{MOM}} \approx 0.1 \) in chop. Rolling-window regression (e.g., 36-month windows updated monthly) is the standard fix.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <a href="qt-week6.html" class="week-nav-button">← Week 6: Portfolio Construction</a>
+    <a href="qt-week8.html" class="week-nav-button">Week 8: Market Disruptions →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — QT Training Program // Internal Use Only
+</footer>
+
+<script>
+/* ── Hero canvas: animated factor exposure bars ──────────────── */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('w7-canvas');
+  const ctx    = canvas.getContext('2d');
+
+  let W, H;
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+  }
+
+  const N_BARS = 9;
+  let bars = [];
+
+  function makeBars() {
+    bars = [];
+    for (let i = 0; i < N_BARS; i++) {
+      const isPrimary = (i === 3) || (i === 5);  // highlight a couple
+      bars.push({
+        target:  (Math.random() - 0.45) * 0.85,
+        current: 0,
+        speed:   0.0012 + Math.random() * 0.0014,
+        isPrimary,
+        alpha:   isPrimary ? 0.55 : 0.18,
+        nextChange: 1400 + Math.random() * 2200,
+      });
+    }
+  }
+
+  let lastTs = null;
+
+  function frame(ts) {
+    if (lastTs === null) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    ctx.clearRect(0, 0, W, H);
+
+    // Zero line
+    const zeroY = H * 0.55;
+    ctx.beginPath();
+    ctx.strokeStyle = 'rgba(255, 238, 215, 0.10)';
+    ctx.lineWidth = 1;
+    ctx.moveTo(0, zeroY);
+    ctx.lineTo(W, zeroY);
+    ctx.stroke();
+
+    const slot     = W / (N_BARS + 1);
+    const barWidth = Math.min(34, slot * 0.42);
+    const maxH     = H * 0.42;
+
+    for (let i = 0; i < N_BARS; i++) {
+      const b = bars[i];
+      b.current += (b.target - b.current) * b.speed * dt;
+      b.nextChange -= dt;
+      if (b.nextChange <= 0) {
+        b.target = (Math.random() - 0.45) * 0.85;
+        b.nextChange = 1400 + Math.random() * 2200;
+      }
+
+      const x = slot * (i + 1) - barWidth / 2;
+      const h = b.current * maxH;
+      const color = b.isPrimary
+        ? `rgba(255, 125, 42, ${b.alpha.toFixed(3)})`
+        : `rgba(255, 238, 215, ${b.alpha.toFixed(3)})`;
+
+      ctx.fillStyle = color;
+      if (h >= 0) ctx.fillRect(x, zeroY - h, barWidth, h);
+      else        ctx.fillRect(x, zeroY,     barWidth, -h);
+
+      // tiny tick under each bar
+      ctx.fillStyle = 'rgba(255, 238, 215, 0.15)';
+      ctx.fillRect(x + barWidth / 2 - 1, zeroY - 1, 2, 2);
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(() => { resize(); makeBars(); }).observe(hero);
+  resize();
+  makeBars();
+  requestAnimationFrame(frame);
+})();
+</script>
+
+<script>
+/* ── Factor exposure chart ─────────────────────────────────── */
+(function () {
+  const ctx = document.getElementById('factorChart').getContext('2d');
+
+  const labels = ['MKT-RF', 'SMB', 'HML', 'MOM', 'QMJ (custom)'];
+  const values = [0.85, 0.22, -0.18, 0.35, 0.15];
+  const colors = values.map(v => v >= 0 ? '#FF7D2A' : '#c0392b');
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels,
+      datasets: [{
+        label: 'β (factor loading)',
+        data: values,
+        backgroundColor: colors,
+      }],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: (c) => `β = ${c.parsed.y.toFixed(2)}` } },
+      },
+      scales: {
+        x: {
+          grid: { color: '#eaeaea' },
+          ticks: { color: '#666', font: { family: "'IBM Plex Mono'" } },
+        },
+        y: {
+          grid: { color: '#eaeaea' },
+          ticks: { color: '#666', font: { family: "'IBM Plex Mono'" } },
+          title: { display: true, text: 'β (factor loading)', color: '#666' },
+          suggestedMin: -0.3,
+          suggestedMax: 1.0,
+        },
+      },
+    },
+  });
+})();
+</script>
+
+<script src="cursor.js"></script>
+</body>
+</html>

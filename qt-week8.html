@@ -1,0 +1,428 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 8: Market Disruptions — QT Training</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="icon" type="image/png" href="Delta.png">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">QT Training Hub</span>
+  </div>
+  <div class="nav-links">
+    <a href="qt.html">Home</a>
+    <a href="week1.html">W1</a>
+    <a href="week2.html">W2</a>
+    <a href="week3.html">W3</a>
+    <a href="week4.html">W4</a>
+    <a href="week5.html">W5</a>
+    <a href="qt-week6.html">W6</a>
+    <a href="qt-week7.html">W7</a>
+    <a href="qt-week8.html" class="active">W8</a>
+  </div>
+</nav>
+
+<!-- ── Hero ───────────────────────────────────────────────────── -->
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="w8-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Week 08 &mdash; Phase 2: QT Specialization</div>
+    <h1>Market<br>Disruptions</h1>
+    <div class="week-hero-pill">QT Pillars 1 + 3 — Risk Sizing · Portfolio Fit</div>
+    <p class="week-hero-objective">What five canonical assets actually do during crises — and why their long-term returns come from somewhere else entirely.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="ip-anchor">
+    <span class="ip-anchor-label">QT Pillar Anchor</span>
+    <span class="ip-anchor-section">Pillar 1 — Risk Sizing · Pillar 3 — Portfolio Fit</span>
+    <span class="ip-anchor-desc">Every "safe haven" is one until it isn't. This week reads the historical record so risk sizing and portfolio construction don't extrapolate the wrong regime.</span>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">What this week covers</h2>
+    <p>An asset's crisis behavior and its long-term return driver are not the same thing. Buying gold because you read it spiked in 2008 is buying the crisis trade; if real rates rise, you lose for a decade. Buying long Treasuries because they hedged 2020 is buying disinflation; in 2022 the same trade was the worst calendar year on record.</p>
+    <p>Five case studies — Gold, US Treasuries, Crude Oil, JPY, HY Credit — each follow the same template:</p>
+    <ul>
+      <li><strong>Popular wisdom</strong> — what every textbook says the asset is for.</li>
+      <li><strong>Crisis behavior</strong> — what it actually did in specific disruptions, with numbers.</li>
+      <li><strong>Long-term driver</strong> — what the cumulative return is actually a function of.</li>
+      <li><strong>Lesson</strong> — what QT should take into sizing and portfolio fit.</li>
+    </ul>
+    <p>By Friday you should be able to look at any new "safe haven" pitch and ask the two right questions: <em>which crisis is it safe for, and what's the actual long-term driver of return?</em></p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Case Study 1 — Gold</h2>
+    <p><em>Popular wisdom: "Gold is a crisis hedge and an inflation hedge."</em></p>
+
+    <h3 style="margin-top: 1.5rem;">Crisis behavior</h3>
+    <ul>
+      <li><strong>Sep–Oct 2008 (Lehman):</strong> gold dropped ~15% in the first weeks as margin calls forced liquidation across asset classes. Then rallied from ~$800 to $1,920 by August 2011 — a 140% move over three years as the Fed expanded the balance sheet.</li>
+      <li><strong>Mar 2020 (COVID liquidity squeeze):</strong> sharp ~12% drop in mid-March on dollar funding stress. Recovered fully in three weeks and peaked at $2,070 in August, +25% from pre-crisis.</li>
+      <li><strong>2022 (inflation regime):</strong> gold traded sideways at ~$1,800 while CPI ran 8–9%. The "inflation hedge" failed to deliver because real rates rose faster than inflation.</li>
+    </ul>
+
+    <h3 style="margin-top: 1.5rem;">Long-term driver</h3>
+    <p>Real interest rates and dollar strength. Gold yields nothing, so its opportunity cost is the real rate on cash and bonds. When real rates are negative, holding gold is "free"; when they're positive, you're paying carry to hold metal. The 1980–2001 gold bear ($850 → $250) maps almost exactly onto Volcker's positive-real-rate regime; the 2001–2011 bull maps onto the post-dot-com / post-GFC negative-real-rate regime.</p>
+
+    <div class="callout">
+      <div class="callout-title">Lesson</div>
+      <p>Gold's crisis rally comes <em>after</em> the liquidity squeeze, not during it. Sized as an immediate hedge, it delivers the drawdown without the rally. The long-term position is a real-rate bet, not a crisis bet.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Case Study 2 — US Treasuries (long duration)</h2>
+    <p><em>Popular wisdom: "Treasuries are the safe-haven asset."</em></p>
+
+    <h3 style="margin-top: 1.5rem;">Crisis behavior</h3>
+    <ul>
+      <li><strong>2008 GFC:</strong> 10Y yield collapsed from 4.0% (June) to 2.0% (December). TLT (long-Treasury ETF, ~17yr duration) returned +34% while the S&amp;P fell 37%.</li>
+      <li><strong>Aug 2011 (US downgrade paradox):</strong> S&amp;P downgraded US sovereign debt on Aug 5. Treasuries <em>rallied</em> over the next month as foreign capital fled European sovereigns — the downgraded asset was still the relative safe haven.</li>
+      <li><strong>Mar 2020 (COVID):</strong> 10Y from 1.9% (Feb 19) to 0.5% (Mar 9) in three weeks. TLT peaked +21%.</li>
+      <li><strong>2022 (inflation):</strong> 10Y from 1.5% to 4.0% as the Fed hiked into 9% CPI. TLT returned <strong>-32%</strong> for the year — the worst calendar year for long Treasuries on record.</li>
+    </ul>
+
+    <h3 style="margin-top: 1.5rem;">Long-term driver</h3>
+    <p>Inflation regime and Fed credibility. The 1981–2020 bond bull market was the disinflation trade — Volcker established credibility, Greenspan, Bernanke, Yellen, and Powell preserved it, demographics (aging populations) and globalization (China labor) added structural disinflation, and yields ground steadily lower for forty years. 2022 flipped the regime: supply-driven inflation, a Fed that lost its 2% anchor, and the duration trade had to reprice. <a href="week4.html">W4</a> covered the duration mechanics; this is what the mechanics actually did when the regime turned.</p>
+
+    <div class="callout">
+      <div class="callout-title">Lesson</div>
+      <p>Same asset, opposite outcomes depending on the regime. Treasuries are a <em>deflationary</em> safe-haven, not a universal one. Sizing 60/40 in 2022 was sizing on the wrong regime.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Case Study 3 — Crude Oil (WTI)</h2>
+    <p><em>Popular wisdom: "Oil is a real asset and an inflation hedge."</em></p>
+
+    <h3 style="margin-top: 1.5rem;">Crisis behavior</h3>
+    <ul>
+      <li><strong>1973 OPEC embargo:</strong> oil quadrupled from ~$3 to ~$12 in months. The classic supply-shock crisis.</li>
+      <li><strong>1990 Gulf War:</strong> $20 to $40 in six weeks on the same template — geopolitical supply risk.</li>
+      <li><strong>2008 GFC:</strong> oil first spiked to $147 (July), then crashed to $33 (December) as global demand collapsed. A 78% drawdown in five months — the inflation hedge lost more than equities.</li>
+      <li><strong>2014–2016 shale crash:</strong> $107 (June 2014) to $26 (February 2016). Not a "crisis" — a structural supply shift as US shale added 5M+ barrels/day.</li>
+      <li><strong>April 20, 2020:</strong> front-month WTI futures settled at <strong>−$37.63</strong>. Cushing storage was full; physical holders paid to get rid of barrels. Unique to the demand-collapse + storage-constraint regime.</li>
+      <li><strong>2022 Ukraine invasion:</strong> spiked from $90 to $130 in days, settled back to $80 by year-end. Geopolitical premium repriced as substitution materialized.</li>
+    </ul>
+
+    <h3 style="margin-top: 1.5rem;">Long-term driver</h3>
+    <p>Structural supply. The US shale revolution transformed oil from a supply-constrained to a supply-flexible market — OPEC+ now competes against a marginal producer that can ramp in months. Long-term price is set by the cost curve of shale plus OPEC capacity discipline. Add a slow demand ceiling from the energy transition, and the structural backdrop is range-bound, not trending. <a href="week3.html">W3</a> covered the term-structure mechanics (contango vs backwardation); roll yield dominates total return for any long-only crude exposure.</p>
+
+    <div class="callout">
+      <div class="callout-title">Lesson</div>
+      <p>The same asset behaves in opposite directions depending on crisis type — geopolitical supply shocks send it up, demand collapses send it down. "Oil as a diversifier" requires specifying which crisis the portfolio is hedging.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Case Study 4 — Japanese Yen (JPY)</h2>
+    <p><em>Popular wisdom: "JPY is the safe-haven currency for global risk-off."</em></p>
+
+    <h3 style="margin-top: 1.5rem;">Crisis behavior</h3>
+    <ul>
+      <li><strong>1998 LTCM / Russian default:</strong> USDJPY dropped from 140 to 112 in two months. Yen +25% as global carry trades unwound.</li>
+      <li><strong>2008 GFC:</strong> USDJPY from 110 (Aug) to 87 (Jan 2009). Yen +26% in five months.</li>
+      <li><strong>March 2011 (Fukushima):</strong> yen rallied during a domestic disaster — Japanese insurers and corporates repatriated capital. USDJPY hit 76, a post-war high. The G7 had to coordinate intervention.</li>
+      <li><strong>August 2024 carry unwind:</strong> BOJ surprise rate hike + soft US payrolls + Fed cut expectations narrowed the rate differential. Carry traders had built record short-yen positions. Liquidation: USDJPY from 162 (Jul 11) to 142 (Aug 5) — yen +14% in three weeks. Nikkei fell 20% over the same window. A "crisis" caused by the unwind itself.</li>
+    </ul>
+
+    <h3 style="margin-top: 1.5rem;">Long-term driver</h3>
+    <p>Rate differentials, not country attribute. JPY is the world's funding currency: borrow at Japan's ~0% rate, invest in higher-yielding USD/EUR/MXN/BRL. As long as Japan stays near-zero and the US has positive rates, the carry favors short-yen and the yen drifts weaker. Apparent "safe-haven appreciation" in risk-off events is really the symmetric force — global investors closing positions financed in yen.</p>
+
+    <div class="callout">
+      <div class="callout-title">Lesson</div>
+      <p>Safe-haven status is a function of rate differentials, not country. When BOJ exits ZIRP (as in 2024), the carry foundation weakens and the yen can flip from passive funding currency to <em>the</em> crisis asset — the violent appreciation is its own disruption.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Case Study 5 — High-Yield Credit (HY)</h2>
+    <p><em>Popular wisdom: "HY is the place to get yield when rates are low."</em></p>
+
+    <h3 style="margin-top: 1.5rem;">Crisis behavior</h3>
+    <ul>
+      <li><strong>2008 GFC:</strong> HY option-adjusted spreads went from ~250 bps (mid-2007) to ~2,000 bps (December 2008). HY index returned -26% for 2008.</li>
+      <li><strong>2011 EU sovereign crisis:</strong> HY OAS from 450 bps to 850 bps in three months. Modest by 2008 standards.</li>
+      <li><strong>Mar 2020 (COVID):</strong> HY OAS from 350 bps (Feb 21) to 1,100 bps (Mar 23) in four weeks. On March 23 the Fed announced HY ETF purchases <em>for the first time</em>. Spreads compressed back to 350 bps by year-end.</li>
+      <li><strong>2022 inflation:</strong> HY OAS widened to ~600 bps but default rates stayed near 2% — spreads priced a recession that did not arrive in 2022.</li>
+      <li><strong>March 2023 (SVB):</strong> brief widening to ~500 bps, snapped back within weeks as the Fed introduced the BTFP funding facility.</li>
+    </ul>
+
+    <h3 style="margin-top: 1.5rem;">Long-term driver</h3>
+    <p>The default cycle and Fed accommodation. Long-term HY total return ≈ coupon − defaults − downgrades. Defaults cluster in recessions (peaks in 2002, 2009, 2020). Spread compression and recovery come from the Fed cutting and accommodating credit — every post-2008 cycle has had a Fed-driven spread snap-back. In normal times, the carry <em>is</em> the return: HY index averages ~6% annualized over multi-decade windows.</p>
+
+    <div class="callout">
+      <div class="callout-title">Lesson</div>
+      <p>HY spreads blow out precisely when you would want to add risk — and that's exactly when mark-to-market drawdowns force the opposite. The crisis spread spike is the "wish I were in cash" trade, not the "back up the truck" trade. Unless you are the Fed.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Cross-asset summary</h2>
+    <p>The five case studies side by side:</p>
+
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>Asset</th>
+          <th>Crisis behavior</th>
+          <th>Long-term driver</th>
+          <th>Key regime shift</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Gold</strong></td>
+          <td>Sells off in the liquidity squeeze, rallies in the aftermath</td>
+          <td>Real interest rates, USD strength</td>
+          <td>Volcker 1980 (positive real rates → 20-yr bear)</td>
+        </tr>
+        <tr>
+          <td><strong>10Y Treasuries</strong></td>
+          <td>Yields collapse on flight-to-quality</td>
+          <td>Inflation regime + Fed credibility</td>
+          <td>2022 (inflation broke the 40-yr bull)</td>
+        </tr>
+        <tr>
+          <td><strong>Crude oil</strong></td>
+          <td>Geopolitical = up, demand collapse = down</td>
+          <td>Structural supply (shale, OPEC discipline)</td>
+          <td>2014 shale crash</td>
+        </tr>
+        <tr>
+          <td><strong>JPY</strong></td>
+          <td>Strengthens during global risk-off</td>
+          <td>Rate differentials (Japan vs US)</td>
+          <td>Aug 2024 BOJ exit / carry unwind</td>
+        </tr>
+        <tr>
+          <td><strong>HY credit</strong></td>
+          <td>OAS spreads blow out</td>
+          <td>Default cycle + Fed accommodation</td>
+          <td>Mar 2020 (Fed HY ETF buying for first time)</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Synthesis: all five through COVID 2020</h2>
+    <p>The cleanest single window where every case study fired is February–August 2020. Each asset is indexed to 100 on February 1.</p>
+
+    <div class="chart-container">
+      <canvas id="covidChart"></canvas>
+    </div>
+
+    <ul style="margin-top: 1.5rem;">
+      <li><strong>Treasuries</strong> rallied immediately on the deflationary shock — fastest mover, peaked by mid-March.</li>
+      <li><strong>Gold</strong> sold off in the mid-March liquidity squeeze, then re-rallied past pre-crisis as the Fed expanded the balance sheet.</li>
+      <li><strong>HY credit</strong> drew down ~18% in four weeks, then recovered the entire move once the Fed announced HY ETF purchases on March 23.</li>
+      <li><strong>Oil</strong> collapsed through the period — demand shock plus storage constraint produced the negative-print event on April 20.</li>
+      <li><strong>JPY</strong> moved least in absolute terms but appreciated steadily as carry positions unwound. The "safe-haven" effect was real but quiet.</li>
+    </ul>
+
+    <p>One crisis, five very different stories. A portfolio long all five would have ended the period roughly flat — but only because the gains in Treasuries, gold, and HY (post-Fed) offset the loss in oil. Without the Fed's HY intervention or without long duration in a deflationary shock, the picture is very different.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Common mistakes</h2>
+    <div class="mistakes-list">
+      <h4 style="margin-top: 0;">Four ways crisis analysis goes wrong</h4>
+      <ul>
+        <li><strong>Treating crisis behavior as the long-term return profile.</strong> Gold spiked in 2008; that doesn't mean gold's expected return is "what gold does in 2008." Long-term return is set by the structural driver — real rates for gold, inflation regime for Treasuries, supply for oil.</li>
+        <li><strong>Failing to distinguish crisis type.</strong> Oil and HY behaved opposite ways in 2008 (oil spiked, then crashed) versus 1973 (oil only spiked). "Crisis" is not one event — it's at least three (supply shock, demand shock, liquidity shock), and each asset reacts differently to each.</li>
+        <li><strong>Assuming yesterday's safe haven is tomorrow's safe haven.</strong> JPY's safe-haven role depends on the BOJ staying at zero. When BOJ hikes (2024), the carry foundation flips and JPY appreciates on its own — that's no longer a hedge for risk-off, it <em>is</em> the risk-off.</li>
+        <li><strong>Buying the spread-widening on mean-reversion logic.</strong> HY OAS at 1,500 bps looks "cheap" relative to history, but in 2008 it kept going to 2,000. Mean reversion requires the Fed to step in — without that, the trade is buying the falling knife.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <a href="qt-week7.html" class="week-nav-button">← Week 7: Factor Modeling</a>
+    <a href="qt-week9.html" class="week-nav-button">Week 9: Basic Market Microstructure →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — QT Training Program // Internal Use Only
+</footer>
+
+<script>
+/* ── Hero canvas: parallel return curves with occasional crisis shocks ── */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('w8-canvas');
+  const ctx    = canvas.getContext('2d');
+
+  let W, H;
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+  }
+
+  function makeCurve(isPrimary, delayMs) {
+    const N = 700;
+    const pts = new Float32Array(N);
+    let y = 0.45 + (Math.random() - 0.5) * 0.20;
+    pts[0] = y;
+    // Place 1-2 sharp drops at random positions to simulate disruption
+    const shocks = [];
+    const nShocks = 1 + Math.floor(Math.random() * 2);
+    for (let s = 0; s < nShocks; s++) {
+      shocks.push(120 + Math.floor(Math.random() * (N - 240)));
+    }
+    for (let i = 1; i < N; i++) {
+      let drift = (Math.random() - 0.488) * 0.012;
+      // Crisis shock: sharp downward push over 8 steps
+      for (const sx of shocks) {
+        if (i >= sx && i < sx + 8) drift -= 0.030;
+        else if (i >= sx + 8 && i < sx + 80) drift += 0.0015; // slow recovery
+      }
+      y = Math.max(0.06, Math.min(0.94, y + drift));
+      pts[i] = y;
+    }
+    return {
+      isPrimary,
+      pts,
+      alpha: 0,
+      progress: 0,
+      phase: 'waiting',
+      delay: delayMs,
+      lingerMs: 900 + Math.random() * 600,
+      lingerRemain: 0,
+      speed: 0.00045 + Math.random() * 0.00020,
+      maxAlpha: isPrimary ? 0.50 : (0.10 + Math.random() * 0.08),
+    };
+  }
+
+  const curves = [];
+  function initCurves() {
+    curves.length = 0;
+    curves.push(makeCurve(true,  400));
+    curves.push(makeCurve(false, 0));
+    curves.push(makeCurve(false, 600));
+    curves.push(makeCurve(false, 1400));
+    curves.push(makeCurve(false, 2200));
+    curves.push(makeCurve(false, 800));
+    curves.push(makeCurve(false, 1800));
+  }
+
+  let lastTs = null;
+
+  function frame(ts) {
+    if (lastTs === null) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    ctx.clearRect(0, 0, W, H);
+
+    for (const c of curves) {
+      if (c.phase === 'waiting') {
+        c.delay -= dt;
+        if (c.delay <= 0) c.phase = 'drawing';
+      }
+      if (c.phase === 'drawing') {
+        c.alpha    = Math.min(c.maxAlpha, c.alpha + dt * 0.003);
+        c.progress = Math.min(1, c.progress + c.speed * dt);
+        if (c.progress >= 1) { c.phase = 'lingering'; c.lingerRemain = c.lingerMs; }
+      }
+      if (c.phase === 'lingering') {
+        c.lingerRemain -= dt;
+        if (c.lingerRemain <= 0) c.phase = 'fading';
+      }
+      if (c.phase === 'fading') {
+        c.alpha -= dt * 0.002;
+        if (c.alpha <= 0) Object.assign(c, makeCurve(c.isPrimary, 200 + Math.random() * 2500));
+      }
+      if (c.alpha <= 0 || c.progress < 0.002) continue;
+
+      const visCount = Math.max(2, Math.floor(c.progress * W));
+      const N = c.pts.length;
+
+      ctx.beginPath();
+      ctx.lineWidth   = c.isPrimary ? 1.6 : 0.8;
+      ctx.strokeStyle = c.isPrimary
+        ? `rgba(255,125,42,${c.alpha.toFixed(3)})`
+        : `rgba(255,238,215,${c.alpha.toFixed(3)})`;
+      for (let i = 0; i < visCount; i++) {
+        const x  = (i / (W - 1)) * W;
+        const yi = Math.floor((i / (W - 1)) * (N - 1));
+        const y  = c.pts[yi] * H;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(() => { resize(); initCurves(); }).observe(hero);
+  resize();
+  initCurves();
+  requestAnimationFrame(frame);
+})();
+</script>
+
+<script>
+/* ── COVID 2020 cross-asset chart ─────────────────────────────── */
+(function () {
+  const ctx = document.getElementById('covidChart').getContext('2d');
+
+  // Approximate monthly indexed values, Feb 1 2020 = 100
+  // Labels: Feb 1, Feb 15, Mar 1, Mar 15, Apr 1, Apr 15, May 1, Jun 1, Jul 1, Aug 1, Aug 31
+  const labels = ['Feb 1', 'Feb 15', 'Mar 1', 'Mar 15', 'Apr 1', 'Apr 15', 'May 1', 'Jun 1', 'Jul 1', 'Aug 1', 'Aug 31'];
+
+  const datasets = [
+    { label: 'Gold (GLD)',          data: [100, 102, 100,  95, 104, 109, 110, 113, 118, 125, 124], borderColor: '#FF7D2A', borderWidth: 2, pointRadius: 0, tension: 0.3, fill: false },
+    { label: '10Y Treasuries (TLT)', data: [100, 103, 108, 118, 116, 113, 112, 111, 113, 116, 113], borderColor: '#4a86e8', borderWidth: 2, pointRadius: 0, tension: 0.3, fill: false },
+    { label: 'WTI Crude',           data: [100,  90,  78,  68,  56,  30,  35,  45,  50,  52,  50], borderColor: '#c0392b', borderWidth: 2, pointRadius: 0, tension: 0.3, fill: false },
+    { label: 'JPY (vs USD)',        data: [100, 100,  99,  99, 101, 102, 102, 103, 103, 105, 104], borderColor: '#2a9d5c', borderWidth: 2, pointRadius: 0, tension: 0.3, fill: false },
+    { label: 'HY Credit (HYG)',     data: [100, 100,  97,  82,  87,  93,  95,  97,  98,  99,  99], borderColor: '#8e44ad', borderWidth: 2, pointRadius: 0, tension: 0.3, fill: false },
+  ];
+
+  new Chart(ctx, {
+    type: 'line',
+    data: { labels, datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#666', font: { family: "'IBM Plex Mono'", size: 11 } } },
+        tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y.toFixed(0)}` } },
+      },
+      scales: {
+        x: {
+          grid: { color: '#eaeaea' },
+          ticks: { color: '#666', font: { family: "'IBM Plex Mono'", size: 10 } },
+        },
+        y: {
+          grid: { color: '#eaeaea' },
+          ticks: { color: '#666', font: { family: "'IBM Plex Mono'" } },
+          title: { display: true, text: 'Indexed to Feb 1 2020 = 100', color: '#666' },
+          suggestedMin: 25,
+          suggestedMax: 130,
+        },
+      },
+    },
+  });
+})();
+</script>
+
+<script src="cursor.js"></script>
+</body>
+</html>

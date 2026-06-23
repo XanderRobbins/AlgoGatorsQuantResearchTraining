@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 10: Optimal Execution &amp; Live Markets — QT Training</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="icon" type="image/png" href="Delta.png">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">QT Training Hub</span>
+  </div>
+  <div class="nav-links">
+    <a href="qt.html">Home</a>
+    <a href="week1.html">W1</a>
+    <a href="week2.html">W2</a>
+    <a href="week3.html">W3</a>
+    <a href="week4.html">W4</a>
+    <a href="week5.html">W5</a>
+    <a href="qt-week6.html">W6</a>
+    <a href="qt-week7.html">W7</a>
+    <a href="qt-week8.html">W8</a>
+    <a href="qt-week9.html">W9</a>
+    <a href="qt-week10.html" class="active">W10</a>
+  </div>
+</nav>
+
+<!-- ── Hero ───────────────────────────────────────────────────── -->
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="w10-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Week 10 &mdash; Phase 3: Live Trading</div>
+    <h1>Live<br>Execution</h1>
+    <div class="week-hero-pill">QT Pillar 4 — Execution · Program Capstone</div>
+    <p class="week-hero-objective">Run the strategy in the market: trade the impact-vs-risk frontier optimally, and react in real time to macro releases and the order flow.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="ip-anchor">
+    <span class="ip-anchor-label">QT Pillar Anchor</span>
+    <span class="ip-anchor-section">Pillar 4 — Execution · Program Capstone</span>
+    <span class="ip-anchor-desc">Weeks 1&ndash;9 produced a sized, risk-checked target weight. Week 10 is the live act of getting there — executing on the optimal impact&ndash;risk trade-off while the market, macro and microstructure, moves against you in real time.</span>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">What this week covers</h2>
+    <p>Weeks 6&ndash;9 built the machine: <a href="qt-week6.html">W6</a> set the weights, <a href="qt-week7.html">W7</a> read the exposures, <a href="qt-week8.html">W8</a> stress-tested the regime, <a href="qt-week9.html">W9</a> priced a single fill. This week runs it live, and live trading is two problems at once: <strong>how fast to trade</strong> (optimal execution) and <strong>how to react while you trade</strong> (live information — macro and microstructure).</p>
+    <p>By Friday you should be able to:</p>
+    <ul>
+      <li>Derive the <strong>Almgren&ndash;Chriss</strong> impact-vs-risk trade-off, read the <strong>efficient frontier</strong>, and set execution urgency.</li>
+      <li>Schedule around <strong>macro releases</strong> and explain why liquidity vanishes into a scheduled print.</li>
+      <li>Read live <strong>microstructure signals</strong> — book imbalance, signed flow, toxic-flow — and react with the right order.</li>
+      <li>Name the <strong>risk controls</strong> that keep an automated execution system from blowing up the desk.</li>
+    </ul>
+    <p>Reading: Almgren &amp; Chriss (2000), <em>Optimal Execution of Portfolio Transactions</em>; Kissell, <em>The Science of Algorithmic Trading</em> (2013); Cartea, Jaimungal &amp; Penalva, <em>Algorithmic and High-Frequency Trading</em> (2015); Easley, López de Prado &amp; O'Hara (2012) on VPIN and flow toxicity.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Optimal execution: the impact&ndash;risk trade-off</h2>
+    <p><a href="qt-week9.html">W9</a> named the efficient frontier; here is the model behind it (Almgren&ndash;Chriss 2000). You must liquidate \( X \) shares over a horizon \( [0,T] \), choosing a trajectory \( x(t) \) — shares <em>still held</em> at time \( t \), with \( x(0)=X \) and \( x(T)=0 \). The trade rate is \( v(t) = -\dot{x}(t) \). Two costs pull in opposite directions:</p>
+    <ul>
+      <li><strong>Temporary impact</strong> — trading faster costs more per share (\( \propto v \)). Compressing the schedule raises expected cost.</li>
+      <li><strong>Timing risk</strong> — the unexecuted position \( x(t) \) is exposed to volatility \( \sigma \). Stretching the schedule raises the <em>variance</em> of the cost.</li>
+    </ul>
+    <p>With permanent-impact coefficient \( \gamma \) and temporary coefficient \( \eta \), the expected shortfall and its variance are:</p>
+
+    \[ \mathbb{E}[C] = \tfrac{1}{2}\gamma X^2 + \eta \int_0^T v(t)^2\,dt, \qquad \mathbb{V}[C] = \sigma^2 \int_0^T x(t)^2\,dt \]
+
+    <p>The trader minimizes a mean&ndash;variance objective, where \( \lambda \ge 0 \) is risk aversion (urgency):</p>
+
+    \[ \min_{x(t)} \; \mathbb{E}[C] + \lambda\,\mathbb{V}[C] \]
+
+    <p>For linear impact this has a closed-form optimal trajectory — inventory decays as a hyperbolic sine:</p>
+
+    \[ x(t) = X\,\frac{\sinh\!\big(\kappa (T-t)\big)}{\sinh(\kappa T)}, \qquad \kappa = \sqrt{\lambda \sigma^2 / \eta} \]
+
+    <p>\( \kappa \) is the <strong>urgency</strong>. At \( \lambda = 0 \) (risk-neutral) \( \kappa \to 0 \) and the trajectory is a straight line — that is <strong>TWAP</strong>. As \( \lambda \to \infty \), \( \kappa \) is large and the schedule front-loads — dump fast to kill risk. Every schedule in between is a convex curve. This is the math under W9's rule that <em>the schedule follows the signal's decay</em>.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">The efficient frontier of execution</h2>
+    <p>Each \( \lambda \) gives a trajectory, and each trajectory has an <em>(expected cost, timing risk)</em> pair. Sweep \( \lambda \) and you trace the <strong>efficient frontier</strong>: the minimum expected cost achievable at each level of risk. You cannot trade below it; every real execution sits somewhere on it.</p>
+
+    <div class="chart-container">
+      <canvas id="frontierChart"></canvas>
+    </div>
+
+    <p>The two ends are the strategies W9 already named. <strong>Patient / TWAP</strong> (low \( \lambda \)) sits bottom-right: low expected cost, high timing risk — you take your time and accept that the price may drift. <strong>Urgent</strong> (high \( \lambda \)) sits top-left: high cost, low risk — you pay impact to be done. Picking a point on this curve <em>is</em> the execution decision.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Setting the urgency</h2>
+    <p>\( \lambda \) is not a constant you set once — it is a dial you turn per order. Three inputs move it:</p>
+    <div class="grid grid-2">
+      <div class="card">
+        <h3 style="margin-top: 0;">Alpha decay</h3>
+        <p>How fast does the edge disappear? A signal gone by tomorrow is urgent — waiting <em>forfeits</em> it, so accept impact now (high \( \lambda \)). A slow structural rebalance has no decay; minimize footprint (low \( \lambda \)).</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">Volatility</h3>
+        <p>Timing risk scales with \( \sigma \). In a high-vol regime (or into the events below) the unexecuted position is more dangerous per minute, which pushes \( \kappa \) up — trade faster.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">Size vs ADV</h3>
+        <p>Bigger relative size means more impact (the square-root law, W9), arguing to stretch the schedule — but only as far as the alpha survives. Capacity and urgency are solved together.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">The synthesis</h3>
+        <p>Fast alpha + small size + high vol &rarr; trade now. Slow rebalance + large size + calm tape &rarr; work it patiently. \( \lambda \) encodes that judgment as one number the algo can act on.</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Reacting to live macro information</h2>
+    <p>Scheduled releases are <strong>known in time, unknown in content</strong> — the worst combination for a resting order. Seconds before FOMC or CPI, market makers pull quotes: the book thins, the spread gaps, and the first print moves the price discontinuously. And the market trades the <strong>surprise</strong> (actual − consensus), not the level — a strong number is bad for bonds only if it beats what was already priced.</p>
+
+    <table class="comparison-table">
+      <thead>
+        <tr><th>Event</th><th>Time (ET)</th><th>Why it moves the tape</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>FOMC decision</strong></td><td>2:00pm (8×/yr)</td><td>Policy rate + statement + presser; the largest scheduled vol event.</td></tr>
+        <tr><td><strong>CPI</strong></td><td>8:30am</td><td>Inflation surprise; the single biggest cross-asset mover of 2022&ndash;23.</td></tr>
+        <tr><td><strong>Nonfarm payrolls</strong></td><td>8:30am, 1st Fri</td><td>Growth + wage surprise; whipsaws rates and equities.</td></tr>
+        <tr><td><strong>PCE</strong></td><td>8:30am</td><td>The Fed's preferred inflation gauge.</td></tr>
+        <tr><td><strong>ECB / BOJ</strong></td><td>varies</td><td>Rate differentials drive FX — recall the JPY carry unwind in <a href="qt-week8.html">W8</a>.</td></tr>
+        <tr><td><strong>Treasury auctions</strong></td><td>1:00pm</td><td>Supply shocks the curve; weak demand tails move yields fast.</td></tr>
+      </tbody>
+    </table>
+
+    <p>Execution rules follow directly:</p>
+    <ul>
+      <li><strong>Default: don't cross the spread into a print.</strong> Finish before, or start after — never work an order through the vacuum.</li>
+      <li><strong>If the signal trades the event,</strong> pre-position before the liquidity drains, or wait for it to rebuild (often 30&ndash;120s after the print).</li>
+      <li><strong>Treat the calendar as a hard input</strong> to the Almgren&ndash;Chriss horizon — route the schedule around blackout windows rather than trading through them.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Reacting to live microstructure information</h2>
+    <p>Between events, the order flow itself is information. Three real-time signals drive the per-child-order decision:</p>
+    <ul>
+      <li><strong>Order-book imbalance</strong> — \( I = (Q_b - Q_a)/(Q_b + Q_a) \in [-1, 1] \). Positive means more size bid than offered, which predicts a short-horizon up-tick. The single most-used micro predictor.</li>
+      <li><strong>Signed order flow (Kyle's \( \lambda \))</strong> — price moves roughly linearly in net signed volume, \( \Delta P \approx \lambda\,(\text{buys} - \text{sells}) \). Cumulative signed flow leads price.</li>
+      <li><strong>Toxic flow (VPIN)</strong> — when the volume-synchronized probability of informed trading spikes, the flow you are facing is informed and <strong>adverse selection</strong> (W9) is high. VPIN rose sharply ahead of the May 6, 2010 Flash Crash.</li>
+    </ul>
+    <p>The reaction, for a passive order: benign flow and a tight spread &rarr; rest and earn the spread; adverse imbalance or rising VPIN &rarr; step aside or cross before you are picked off. A minimal reactive rule:</p>
+
+    <pre><code>def book_imbalance(bid_sz, ask_sz):
+    """Order-book imbalance in [-1, +1]; >0 = buy pressure."""
+    return (bid_sz - ask_sz) / (bid_sz + ask_sz)
+
+def child_order(imb, spread_bps, vpin, vpin_max=0.6):
+    """Place the next passive-buy child order, reacting to live flow."""
+    if vpin > vpin_max:
+        return "cross"   # flow is toxic — take liquidity before being picked off
+    if imb > 0.3 and spread_bps < 3:
+        return "cross"   # strong bid pressure, tight spread — price likely ticks up
+    if imb < -0.3:
+        return "wait"    # sellers stacked — let the price come to you
+    return "post"        # benign — rest at the bid, earn the spread</code></pre>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">The live execution loop</h2>
+    <p>A live algorithm layers all three together. Every child-order decision is a baseline plus two overlays:</p>
+    <ol>
+      <li><strong>Baseline schedule.</strong> The Almgren&ndash;Chriss trajectory from your chosen \( \lambda \) sets the target trade rate — the answer to "how fast on average."</li>
+      <li><strong>Macro overlay.</strong> If a scheduled print falls inside the window, blackout that interval and reroute the remaining quantity around it.</li>
+      <li><strong>Micro overlay.</strong> Modulate the rate and order type by live imbalance, VPIN, and spread — post when conditions are benign, cross or wait when they are not.</li>
+    </ol>
+    <p>Then send the child order, take the fill, update remaining inventory, and repeat until done.</p>
+    <div class="callout">
+      <div class="callout-title">The whole week in one line</div>
+      <p>The baseline answers <em>how fast on average?</em>; the overlays answer <em>exactly when, and with what order, right now?</em> Optimal execution is the baseline — live trading is the overlays.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Risk controls on a live desk</h2>
+    <p>Automation makes mistakes at machine speed, so live execution is wrapped in guardrails that sit <em>outside</em> the strategy:</p>
+    <ul>
+      <li><strong>Pre-trade limits</strong> — max order size, price collars (the fat-finger check), max participation rate.</li>
+      <li><strong>Position &amp; loss limits</strong> — hard caps that auto-flatten or halt the algo on breach.</li>
+      <li><strong>Throttles</strong> — message-rate and order-count ceilings, so a runaway loop can't flood the exchange.</li>
+      <li><strong>Kill switch</strong> — one action that halts all sending and cancels every resting order.</li>
+      <li><strong>Post-trade reconciliation</strong> — fills vs intended, flagging any drift before the next session.</li>
+    </ul>
+    <div class="callout">
+      <div class="callout-title">Why this is not optional — Knight Capital, Aug 1 2012</div>
+      <p>A botched deployment left dead code live on one server. In ~45 minutes it sent millions of unintended orders and lost ~$460M, ending a firm that had been a top US market maker. The strategy wasn't wrong — the controls were missing. Guardrails are the price of automating execution.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Common mistakes</h2>
+    <div class="mistakes-list">
+      <h4 style="margin-top: 0;">Four ways live execution goes wrong</h4>
+      <ul>
+        <li><strong>Trading through a scheduled print.</strong> Working an order into the liquidity vacuum before FOMC or CPI pays a gapped spread on thin depth. Route the schedule around the calendar — it is a known input, not a surprise.</li>
+        <li><strong>Setting urgency by habit.</strong> One \( \lambda \) for every order over-trades slow rebalances and under-trades fast alpha. Urgency is per-order: it follows decay, volatility, and size.</li>
+        <li><strong>Posting into toxic flow.</strong> Resting passively while VPIN climbs or imbalance turns against you means getting adversely selected — filled exactly when the price is about to move through you. Passive is not free.</li>
+        <li><strong>Automating without a kill switch.</strong> No throttle, no auto-halt, no manual stop. A bug then trades at machine speed until someone notices. Knight is the tuition; pay it once, in reading.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <a href="qt-week9.html" class="week-nav-button">← Week 9: Basic Market Microstructure</a>
+    <a href="qt.html" class="week-nav-button">QT Program Complete ↑</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — QT Training Program // Internal Use Only
+</footer>
+
+<script>
+/* ── Hero canvas: a fan of optimal-execution trajectories ─────── */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('w10-canvas');
+  const ctx    = canvas.getContext('2d');
+
+  let W, H;
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+  }
+
+  function makeTraj(isPrimary, delayMs) {
+    return {
+      isPrimary,
+      kappa:   0.2 + Math.random() * 3.3,          // urgency: ~linear (TWAP) → front-loaded
+      alpha:   0,
+      progress: 0,
+      phase:   'waiting',
+      delay:   delayMs,
+      lingerMs: 800 + Math.random() * 700,
+      lingerRemain: 0,
+      speed:   0.00045 + Math.random() * 0.00020,
+      maxAlpha: isPrimary ? 0.55 : (0.10 + Math.random() * 0.08),
+    };
+  }
+
+  const trajs = [];
+  function initTrajs() {
+    trajs.length = 0;
+    trajs.push(makeTraj(true,  300));
+    trajs.push(makeTraj(false, 0));
+    trajs.push(makeTraj(false, 700));
+    trajs.push(makeTraj(false, 1500));
+    trajs.push(makeTraj(false, 2300));
+    trajs.push(makeTraj(false, 1000));
+    trajs.push(makeTraj(false, 1900));
+  }
+
+  // inventory remaining at fraction u ∈ [0,1] — Almgren-Chriss sinh schedule
+  function inv(kappa, u) {
+    if (kappa < 0.05) return 1 - u;                // κ→0 limit = straight line (TWAP)
+    return Math.sinh(kappa * (1 - u)) / Math.sinh(kappa);
+  }
+
+  let lastTs = null;
+
+  function frame(ts) {
+    if (lastTs === null) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    ctx.clearRect(0, 0, W, H);
+
+    const padX = W * 0.06;
+    const x0 = padX, x1 = W - padX;
+    const yTop = H * 0.16, yBot = H * 0.84;
+
+    // zero-inventory baseline
+    ctx.strokeStyle = 'rgba(255, 238, 215, 0.10)';
+    ctx.lineWidth = 1;
+    ctx.beginPath();
+    ctx.moveTo(x0, yBot);
+    ctx.lineTo(x1, yBot);
+    ctx.stroke();
+
+    for (const c of trajs) {
+      if (c.phase === 'waiting')   { c.delay -= dt; if (c.delay <= 0) c.phase = 'drawing'; }
+      if (c.phase === 'drawing')   { c.alpha = Math.min(c.maxAlpha, c.alpha + dt * 0.003); c.progress = Math.min(1, c.progress + c.speed * dt); if (c.progress >= 1) { c.phase = 'lingering'; c.lingerRemain = c.lingerMs; } }
+      if (c.phase === 'lingering') { c.lingerRemain -= dt; if (c.lingerRemain <= 0) c.phase = 'fading'; }
+      if (c.phase === 'fading')    { c.alpha -= dt * 0.002; if (c.alpha <= 0) Object.assign(c, makeTraj(c.isPrimary, 200 + Math.random() * 2400)); }
+      if (c.alpha <= 0 || c.progress < 0.002) continue;
+
+      const steps = Math.max(2, Math.floor(c.progress * 120));
+      ctx.beginPath();
+      ctx.lineWidth   = c.isPrimary ? 1.8 : 0.9;
+      ctx.strokeStyle = c.isPrimary
+        ? `rgba(255, 125, 42, ${c.alpha.toFixed(3)})`
+        : `rgba(255, 238, 215, ${c.alpha.toFixed(3)})`;
+      for (let i = 0; i <= steps; i++) {
+        const u = i / 120;
+        const x = x0 + (x1 - x0) * u;
+        const y = yTop + (yBot - yTop) * (1 - inv(c.kappa, u));
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+
+      // leading dot at the working front
+      const uh = Math.min(1, c.progress);
+      const xh = x0 + (x1 - x0) * uh;
+      const yh = yTop + (yBot - yTop) * (1 - inv(c.kappa, uh));
+      ctx.fillStyle = c.isPrimary
+        ? `rgba(255, 165, 80, ${Math.min(1, c.alpha + 0.2).toFixed(3)})`
+        : `rgba(255, 238, 215, ${c.alpha.toFixed(3)})`;
+      ctx.beginPath();
+      ctx.arc(xh, yh, c.isPrimary ? 2.6 : 1.5, 0, 6.283185307);
+      ctx.fill();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(() => { resize(); initTrajs(); }).observe(hero);
+  resize();
+  initTrajs();
+  requestAnimationFrame(frame);
+})();
+</script>
+
+<script>
+/* ── Efficient frontier: expected cost vs timing risk ─────────── */
+(function () {
+  const ctx = document.getElementById('frontierChart').getContext('2d');
+
+  // sweep the trading horizon T: risk ∝ σ√T (up), expected cost ∝ permanent + temp/T (down)
+  const T    = [0.5, 1, 2, 3, 5, 8, 12, 20];
+  const pts  = T.map(t => ({ x: +(10 * Math.sqrt(t)).toFixed(1), y: +(5 + 60 / t).toFixed(1) }));
+
+  new Chart(ctx, {
+    type: 'scatter',
+    data: {
+      datasets: [
+        { label: 'Efficient frontier', data: pts, showLine: true, borderColor: '#FF7D2A', borderWidth: 2, pointRadius: 0, tension: 0.35, fill: false },
+        { label: 'Urgent (high λ)',          data: [pts[0]],               borderColor: '#c0392b', backgroundColor: '#c0392b', pointRadius: 5 },
+        { label: 'Patient · TWAP (low λ)',   data: [pts[pts.length - 1]],  borderColor: '#4a86e8', backgroundColor: '#4a86e8', pointRadius: 5 },
+      ],
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#666', font: { family: "'IBM Plex Mono'", size: 11 } } },
+        tooltip: { callbacks: { label: (c) => `risk ${c.parsed.x} bps · cost ${c.parsed.y} bps` } },
+      },
+      scales: {
+        x: {
+          type: 'linear',
+          grid: { color: '#eaeaea' },
+          ticks: { color: '#666', font: { family: "'IBM Plex Mono'" } },
+          title: { display: true, text: 'Timing risk — std. dev of cost (bps)', color: '#666' },
+          suggestedMin: 0,
+        },
+        y: {
+          grid: { color: '#eaeaea' },
+          ticks: { color: '#666', font: { family: "'IBM Plex Mono'" } },
+          title: { display: true, text: 'Expected cost (bps)', color: '#666' },
+          suggestedMin: 0,
+          suggestedMax: 140,
+        },
+      },
+    },
+  });
+})();
+</script>
+
+<script src="cursor.js"></script>
+</body>
+</html>

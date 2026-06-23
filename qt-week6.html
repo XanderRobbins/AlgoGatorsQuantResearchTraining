@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 6: Portfolio Construction — QT Training</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="icon" type="image/png" href="Delta.png">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">QT Training Hub</span>
+  </div>
+  <div class="nav-links">
+    <a href="qt.html">Home</a>
+    <a href="week1.html">W1</a>
+    <a href="week2.html">W2</a>
+    <a href="week3.html">W3</a>
+    <a href="week4.html">W4</a>
+    <a href="week5.html">W5</a>
+    <a href="qt-week6.html" class="active">W6</a>
+  </div>
+</nav>
+
+<!-- ── Hero ───────────────────────────────────────────────────── -->
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="w6-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Week 06 &mdash; Phase 2: QT Specialization</div>
+    <h1>Portfolio<br>Construction</h1>
+    <div class="week-hero-pill">QT Pillars 1, 2, 3 — Risk · Limits · Fit</div>
+    <p class="week-hero-objective">Given N approved strategies, decide how much capital each one gets — without over-trusting any single Sharpe estimate.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="ip-anchor">
+    <span class="ip-anchor-label">QT Pillar Anchor</span>
+    <span class="ip-anchor-section">Pillars 1 + 2 + 3 — Risk Sizing, Position Limits, Portfolio Fit</span>
+    <span class="ip-anchor-desc">The QT responsibilities you saw in <a href="week1.html">W1</a>. QR delivers approved signals; QT decides how much capital each gets, caps concentration, and ensures the bundle diversifies. This week is the math behind that decision.</span>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">What this week covers</h2>
+    <p>Five analysts each defended an Investment Proposal this semester. Each backtest passed. Each Sharpe is positive. Now QT has to deploy a single dollar of fund capital across all five.</p>
+    <p>By Friday you should be able to:</p>
+    <ul>
+      <li>Pick between <strong>1/N, inverse volatility, and risk parity</strong> — and know why risk parity is the practical default at AlgoGators.</li>
+      <li>Explain in one sentence why <strong>Markowitz mean-variance</strong> looks great on paper but disappoints live.</li>
+      <li>Recognize when to switch to <strong>CVaR or drawdown-constrained</strong> construction for our mandate.</li>
+    </ul>
+    <p>That's it. Three decisions. The reading is Palomar Chapters 6, 7, and 10 (skim 8 and 9).</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">The portfolio construction problem</h2>
+    <p>Let \( N \) be the number of approved strategies. Each strategy \( i \) has a return time-series \( r_i(t) \) with sample mean \( \hat{\mu}_i \) and variance \( \hat{\sigma}_i^2 \). Across strategies, the sample covariance is \( \hat{\boldsymbol{\Sigma}} \). A portfolio is a weight vector \( \mathbf{w} \). The portfolio return is:</p>
+    \[ R_p(t) = \mathbf{w}^\top \mathbf{r}(t), \qquad \mathbf{1}^\top \mathbf{w} = 1 \]
+    <p>Every construction method below is a different choice of objective and constraints over this same \( \mathbf{w} \).</p>
+
+    <p>Three constraints AlgoGators always enforces:</p>
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>Constraint</th>
+          <th>Math</th>
+          <th>Why</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Capital budget</strong></td>
+          <td>\( \mathbf{1}^\top \mathbf{w} = 1 \)</td>
+          <td>Deploy exactly the capital the fund has.</td>
+        </tr>
+        <tr>
+          <td><strong>Per-strategy cap</strong></td>
+          <td>\( w_i \leq 0.35 \)</td>
+          <td>No single analyst's strategy can dominate the fund.</td>
+        </tr>
+        <tr>
+          <td><strong>Turnover cap</strong></td>
+          <td>\( \|\mathbf{w}_t - \mathbf{w}_{t-1}\|_1 \leq 0.25 \)</td>
+          <td>Rebalancing costs eat alpha. Cap weight movement per period.</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Three measures Sharpe doesn't catch</h2>
+    <p>You already know Sharpe from <a href="week1.html">W1</a> — \( (\mathbb{E}[R_p] - r_f)/\sigma_p \), symmetric, treats a 5% gain and a 5% loss as equivalent "vol". For a student fund with a drawdown mandate, that symmetry is the problem. Three measures fix it.</p>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h3 style="margin-top: 0;">Sortino Ratio</h3>
+        \[ \mathrm{SortR} = \frac{\mathbb{E}[R_p] - r_f}{\sigma_p^{-}} \]
+        <p>Same numerator as Sharpe, but \( \sigma_p^{-} \) is the std-dev of only the <em>negative</em> returns. Reward per unit of downside.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">Conditional VaR</h3>
+        \[ \mathrm{CVaR}_\alpha = \mathbb{E}[L \mid L \geq \mathrm{VaR}_\alpha] \]
+        <p>Expected loss <em>given</em> you're in the worst \( \alpha \) of outcomes (usually \( \alpha = 5\% \)). The number the GP actually asks about in a bad month.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">Max Drawdown</h3>
+        <p>Peak-to-trough loss on the NAV curve. A strategy with 1.5 Sharpe and 40% max drawdown ends student funds.</p>
+        <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">Calmar ratio = annual return / MDD. Track it explicitly.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Three practical construction methods</h2>
+    <p>Start here. These three cover most of what real CTAs deploy.</p>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">1/N (Equal Weight)</h3>
+      \[ w_i = \frac{1}{N} \]
+      <p>The no-information prior. Hard to beat out-of-sample (DeMiguel, Garlappi &amp; Uppal, 2009) because it ignores estimation noise entirely.</p>
+      <p style="color: var(--text-secondary); font-size: 0.9rem;"><strong>When it fails:</strong> when strategy vols differ wildly. A 6%-vol calendar spread and an 18%-vol satellite strategy each at 20% gives the satellite roughly 3× the actual risk contribution.</p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">Inverse Volatility</h3>
+      \[ w_i = \frac{1/\hat{\sigma}_i}{\sum_j 1/\hat{\sigma}_j} \]
+      <p>Each strategy contributes the same <em>standalone</em> volatility. Ignores correlation — that's its blind spot.</p>
+      <p style="color: var(--text-secondary); font-size: 0.9rem;"><strong>When it fails:</strong> two strategies with correlation 0.8 still get separate vol budgets. You end up double-loaded on the same factor.</p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">Risk Parity</h3>
+      <p>Every strategy contributes the same dollar of risk to the portfolio:</p>
+      \[ w_i \cdot (\boldsymbol{\Sigma} \mathbf{w})_i = w_j \cdot (\boldsymbol{\Sigma} \mathbf{w})_j \quad \forall\, i, j \]
+      <p>Uses \( \boldsymbol{\Sigma} \) but not \( \boldsymbol{\mu} \). That's the point — it avoids the noisiest input. This is what Bridgewater All Weather, AQR Risk Parity, and most large CTAs run as their default.</p>
+      <p style="color: var(--text-secondary); font-size: 0.9rem;"><strong>When it fails:</strong> in crisis regimes when correlations spike to 1. The covariance estimate from a calm regime doesn't predict the panic regime.</p>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Markowitz — and why it disappoints</h2>
+    <p>Markowitz's 1952 framework formalized the trade-off between expected return and variance:</p>
+    \[ \max_{\mathbf{w}} \; \boldsymbol{\mu}^\top \mathbf{w} - \tfrac{\lambda}{2}\, \mathbf{w}^\top \boldsymbol{\Sigma} \mathbf{w} \quad \text{s.t.} \quad \mathbf{1}^\top \mathbf{w} = 1 \]
+    <p>On paper this is the right answer. In practice it almost always disappoints live. The reason has a name: <strong>error maximizer</strong> (Michaud, 1989).</p>
+
+    <p><a href="week1.html">W1</a> showed the intuition: backtest Sharpe is biased upward. Here's the statistical version. The Sharpe estimate on \( T \) daily observations has standard error \( \sqrt{(1 + \hat{S}^2/2)/T} \). For \( T = 252 \) and \( \hat{S} = 1.5 \), \( \mathrm{SE} \approx 0.08 \). The optimizer treats 1.5 and 1.3 as distinguishable. <strong>They're not.</strong> Tiny differences in \( \hat{\boldsymbol{\mu}} \) flip the "optimal" allocation from balanced to all-in on one strategy. Out-of-sample, you've concentrated on noise.</p>
+
+    <p><strong>Practical fixes:</strong></p>
+    <ul>
+      <li><strong>Shrinkage (Ledoit-Wolf)</strong> — blend \( \hat{\boldsymbol{\Sigma}} \) toward a structured target (e.g., constant-correlation matrix).</li>
+      <li><strong>Per-strategy caps</strong> — mechanically prevent the optimizer from concentrating.</li>
+      <li><strong>Black-Litterman</strong> — use market-implied returns as a prior; add views with explicit uncertainty.</li>
+    </ul>
+
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Tail-aware construction: CVaR &amp; drawdown</h2>
+    <p>Variance is symmetric. Returns aren't — <a href="week5.html">W5</a>'s fat-tail residuals are exactly why variance underweights tail risk. The AlgoGators IPS caps drawdown explicitly. Use a construction method that bakes the constraint into the math.</p>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h3 style="margin-top: 0;">CVaR Portfolio</h3>
+        <p>Minimize expected loss in the worst \( \alpha \) of outcomes. Rockafellar &amp; Uryasev (2000) showed this is convex — solvable as a linear program when returns are sample-based. Fast, stable, asymmetric-by-design.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">Drawdown-Constrained</h3>
+        \[ \max_{\mathbf{w}} \; \boldsymbol{\mu}^\top \mathbf{w} \;\;\text{s.t.}\;\; \mathrm{MDD}(\mathbf{w}) \leq D \]
+        <p>Maximize return subject to a cap on max drawdown — the constraint <em>is</em> the mandate. Non-convex in general but tractable as a stochastic program.</p>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Backtest the construction itself</h2>
+    <p>The weights themselves can overfit. If you optimize \( \mathbf{w} \) on the full sample and then report in-sample performance, you've data-mined the allocation. The fix is <strong>walk-forward construction</strong>:</p>
+    <ol>
+      <li>Pick a lookback window (e.g., 12 months).</li>
+      <li>At each rebalance date \( t \), estimate \( \hat{\boldsymbol{\mu}}_t \) and \( \hat{\boldsymbol{\Sigma}}_t \) from data only in \( [t - 12\mathrm{m},\, t] \).</li>
+      <li>Solve for \( \mathbf{w}_t \). Hold until the next rebalance. The realized return is out-of-sample.</li>
+    </ol>
+    <p>Two traps to avoid: <strong>look-ahead bias</strong> (using \( t+k \) data to choose \( \mathbf{w}_t \)) and <strong>turnover cost</strong> (high rebalance frequency turns a 1.5 backtest Sharpe into a 0.4 live Sharpe).</p>
+    <p style="font-style: italic; color: var(--text-secondary);">Full backtesting (Palomar Ch 8) gets its own QT week later. For now: every weight vector you produce is walk-forward, period.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Worked example: five AlgoGators strategies</h2>
+    <p>Five hypothetical approved strategies. Backtest statistics over the prior 24 months:</p>
+
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>Strategy</th>
+          <th>Description</th>
+          <th>Sharpe</th>
+          <th>Vol</th>
+          <th>Max DD</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>A</strong></td><td>Trend-following, commodities</td><td>0.86</td><td>14%</td><td>22%</td></tr>
+        <tr><td><strong>B</strong></td><td>Calendar spread, energy</td><td>0.83</td><td>6%</td><td>8%</td></tr>
+        <tr><td><strong>C</strong></td><td>Cross-asset momentum (corr 0.65 with A)</td><td>0.89</td><td>9%</td><td>14%</td></tr>
+        <tr><td><strong>D</strong></td><td>Macro mean-reversion, rates</td><td>0.64</td><td>11%</td><td>18%</td></tr>
+        <tr><td><strong>E</strong></td><td>Satellite-data corn yield (the <a href="week1.html">W1</a> NasaPowerCouncil example; uncorrelated with A–D)</td><td>0.78</td><td>18%</td><td>25%</td></tr>
+      </tbody>
+    </table>
+
+    <p>Four construction methods on the same five strategies produce dramatically different weights:</p>
+
+    <div class="chart-container">
+      <canvas id="weightsChart"></canvas>
+    </div>
+
+    <h3 style="margin-top: 2rem;">Reading the chart</h3>
+    <ul>
+      <li><strong>1/N</strong> ignores all the data. Each strategy at 20% — fund risk ends up dominated by E (highest vol) and the A/C cluster (correlated).</li>
+      <li><strong>Inverse Vol</strong> normalizes for standalone vol. B jumps to 34%; E drops to 11%. Better, but A and C together still carry 36% at 0.65 correlation.</li>
+      <li><strong>Risk Parity</strong> equalizes risk <em>contribution</em>, accounting for correlation. Slightly downweights the A/C cluster. The most robust default for a fund this size.</li>
+      <li><strong>Markowitz</strong> piles 50% into C — the highest backtest Sharpe. This is the error-maximizer at work. If C's true Sharpe is 0.6 not 0.89, the fund just took massive single-strategy risk for nothing.</li>
+    </ul>
+
+    <div class="callout">
+      <div class="callout-title">Example solution</div>
+      <p>Given the five strategies above, one defensible answer: deploy with <strong>Risk Parity</strong>, capped at 35% per strategy, re-derived monthly using a 12-month rolling window with a 25% turnover cap per rebalance. After 6+ months of live (non-backtest) data, evaluate switching to <strong>drawdown-constrained CVaR</strong>.</p>
+      <p style="margin-top: 1rem; font-size: 0.95rem;"><strong>Why this fits the problem:</strong> Risk parity handles the A/C correlation cluster better than inverse vol (which double-counts that exposure), ignores the noisy \( \hat{\boldsymbol{\mu}} \) that drives Markowitz to put 50% in C, and still gives E meaningful weight for the diversification it offers despite its 25% standalone drawdown. The per-strategy cap prevents any allocation from running away if estimation noise tilts the weights from one rebalance to the next.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Common mistakes</h2>
+    <div class="mistakes-list">
+      <h4 style="margin-top: 0;">Four ways portfolio construction goes wrong</h4>
+      <ul>
+        <li><strong>Optimizing portfolio weights on backtest Sharpe.</strong> <a href="week1.html">W1</a> warned about overfit single-strategy Sharpe; the same problem now hits cross-strategy weights. Sample Sharpe with 6–12 months of data has SE 0.2–0.4. Markowitz treats those estimates as known; out-of-sample, the optimizer's "best" pick reverts.</li>
+        <li><strong>Ignoring transaction costs.</strong> Monthly Markowitz can have turnover above 60%. At 5 bps per side that's 60 bps annual cost — a 0.6 Sharpe haircut on a 10% vol portfolio.</li>
+        <li><strong>Letting correlation regimes drift.</strong> Correlations estimated in calm markets understate crisis correlations. Risk parity assuming \( \rho = 0.2 \) blows up when \( \rho \to 0.8 \) in a sell-off.</li>
+        <li><strong>Treating drawdown as a metric, not a constraint.</strong> "We had a 30% drawdown but recovered" is a story the GP doesn't want to hear. Bake the mandate into the optimization.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <a href="qt.html" class="week-nav-button">← QT Hub</a>
+    <a href="qt-week7.html" class="week-nav-button">Week 7: Factor Modeling →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — QT Training Program // Internal Use Only
+</footer>
+
+<script>
+/* ── Hero canvas: animated efficient frontier with portfolio cloud ── */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('w6-canvas');
+  const ctx    = canvas.getContext('2d');
+
+  let W, H;
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+  }
+
+  function toX(risk) { return (risk / 0.45) * W; }
+  function toY(ret)  { return H - ((ret + 0.04) / 0.26) * H; }
+
+  const FA = 0.02, FB = 0.32, FC = 0.04;
+  function frontier(risk) { return FA + FB * Math.sqrt(Math.max(0, risk - FC)); }
+
+  let dots = [];
+  function makeDots() {
+    dots = [];
+    const N = 240;
+    for (let i = 0; i < N; i++) {
+      const risk = 0.04 + Math.random() * 0.40;
+      const ceil = frontier(risk);
+      const ret  = (ceil + 0.02) * (0.10 + Math.random() * 0.85) - 0.03;
+      const targetAlpha = 0.10 + Math.random() * 0.40;
+      const delay       = Math.random() * 3500;
+      dots.push({ risk, ret, alpha: 0, targetAlpha, delay });
+    }
+  }
+
+  let phase = 'drawing';
+  let progress = 0;
+  let lingerRemain = 0;
+  let alphaFront = 0;
+  let lastTs = null;
+
+  function frame(ts) {
+    if (lastTs === null) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    ctx.clearRect(0, 0, W, H);
+
+    for (const d of dots) {
+      if (d.delay > 0) { d.delay -= dt; continue; }
+      d.alpha = Math.min(d.targetAlpha, d.alpha + dt * 0.0010);
+      if (d.alpha <= 0) continue;
+      const x = toX(d.risk);
+      const y = toY(d.ret);
+      ctx.beginPath();
+      ctx.arc(x, y, 1.4, 0, 6.283185);
+      ctx.fillStyle = `rgba(255, 238, 215, ${d.alpha.toFixed(3)})`;
+      ctx.fill();
+    }
+
+    if (phase === 'drawing') {
+      progress  += dt * 0.00040;
+      alphaFront = Math.min(0.85, alphaFront + dt * 0.0015);
+      if (progress >= 1) { phase = 'lingering'; lingerRemain = 1400; }
+    } else if (phase === 'lingering') {
+      lingerRemain -= dt;
+      if (lingerRemain <= 0) phase = 'fading';
+    } else if (phase === 'fading') {
+      alphaFront -= dt * 0.00080;
+      for (const d of dots) d.alpha = Math.max(0, d.alpha - dt * 0.00060);
+      if (alphaFront <= 0) {
+        phase = 'drawing';
+        progress = 0;
+        alphaFront = 0;
+        makeDots();
+      }
+    }
+
+    if (alphaFront > 0 && progress > 0.002) {
+      const STEPS = 220;
+      const vis   = Math.floor(STEPS * progress);
+      ctx.beginPath();
+      ctx.lineWidth   = 1.8;
+      ctx.strokeStyle = `rgba(255, 125, 42, ${alphaFront.toFixed(3)})`;
+      for (let i = 0; i <= vis; i++) {
+        const risk = FC + (i / STEPS) * (0.44 - FC);
+        const ret  = frontier(risk);
+        const x = toX(risk);
+        const y = toY(ret);
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(() => { resize(); makeDots(); }).observe(hero);
+  resize();
+  makeDots();
+  requestAnimationFrame(frame);
+})();
+</script>
+
+<script>
+/* ── Weights-under-method comparison chart ───────────────────── */
+(function () {
+  const ctx = document.getElementById('weightsChart').getContext('2d');
+
+  const datasets = [
+    { label: '1/N',                data: [20, 20, 20, 20, 20], backgroundColor: '#999999' },
+    { label: 'Inverse Vol',        data: [14, 34, 22, 19, 11], backgroundColor: '#4a86e8' },
+    { label: 'Risk Parity',        data: [17, 28, 22, 19, 14], backgroundColor: '#2a9d5c' },
+    { label: 'Markowitz (Max SR)', data: [ 8, 18, 50,  4, 20], backgroundColor: '#c0392b' },
+  ];
+
+  new Chart(ctx, {
+    type: 'bar',
+    data: {
+      labels: ['A: Trend', 'B: Cal Spread', 'C: Momentum', 'D: Mean-Rev', 'E: Satellite'],
+      datasets,
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { labels: { color: '#666', font: { family: "'IBM Plex Mono'", size: 11 } } },
+        tooltip: { callbacks: { label: (c) => `${c.dataset.label}: ${c.parsed.y}%` } },
+      },
+      scales: {
+        x: {
+          grid: { color: '#eaeaea' },
+          ticks: { color: '#666', font: { family: "'IBM Plex Mono'" } },
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: '#eaeaea' },
+          ticks: { color: '#666', font: { family: "'IBM Plex Mono'" }, callback: (v) => v + '%' },
+          title: { display: true, text: 'Portfolio Weight', color: '#666' },
+          max: 55,
+        },
+      },
+    },
+  });
+})();
+</script>
+
+<script src="cursor.js"></script>
+</body>
+</html>
