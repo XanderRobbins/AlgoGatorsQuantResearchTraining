@@ -26,6 +26,10 @@
     <a href="week4.html">W4</a>
     <a href="week5.html">W5</a>
     <a href="qt-week6.html" class="active">W6</a>
+    <a href="qt-week7.html">W7</a>
+    <a href="qt-week8.html">W8</a>
+    <a href="qt-week9.html">W9</a>
+    <a href="qt-week10.html">W10</a>
   </div>
 </nav>
 
@@ -42,12 +46,6 @@
 
 <div class="container">
 
-  <div class="ip-anchor">
-    <span class="ip-anchor-label">QT Pillar Anchor</span>
-    <span class="ip-anchor-section">Pillars 1 + 2 + 3 — Risk Sizing, Position Limits, Portfolio Fit</span>
-    <span class="ip-anchor-desc">The QT responsibilities you saw in <a href="week1.html">W1</a>. QR delivers approved signals; QT decides how much capital each gets, caps concentration, and ensures the bundle diversifies. This week is the math behind that decision.</span>
-  </div>
-
   <div class="section">
     <h2 class="section-title">What this week covers</h2>
     <p>Five analysts each defended an Investment Proposal this semester. Each backtest passed. Each Sharpe is positive. Now QT has to deploy a single dollar of fund capital across all five.</p>
@@ -56,8 +54,9 @@
       <li>Pick between <strong>1/N, inverse volatility, and risk parity</strong> — and know why risk parity is the practical default at AlgoGators.</li>
       <li>Explain in one sentence why <strong>Markowitz mean-variance</strong> looks great on paper but disappoints live.</li>
       <li>Recognize when to switch to <strong>CVaR or drawdown-constrained</strong> construction for our mandate.</li>
+      <li>Turn those weights into real positions with <strong>volatility targeting and fractional Kelly</strong>, then cap the book with <strong>position and leverage limits</strong>.</li>
     </ul>
-    <p>That's it. Three decisions. The reading is Palomar Chapters 6, 7, and 10 (skim 8 and 9).</p>
+    <p>Construction, sizing, limits. The reading is Palomar Chapters 6, 7, and 10 (skim 8 and 9); Thorp (2006) on the Kelly criterion.</p>
   </div>
 
   <div class="section">
@@ -180,6 +179,52 @@
       </div>
     </div>
 
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Sizing the book: volatility targeting and Kelly</h2>
+    <p>Every method above gives <em>relative</em> weights \( \mathbf{w} \) — how to split risk <em>across</em> strategies. None sets the book's <em>overall</em> risk level: a 100% risk-parity portfolio can run at 5% or 25% annualized vol depending on the capital and leverage behind it. Two questions are left — <strong>what level</strong>, and <strong>how to hold it</strong>.</p>
+
+    <h3 style="margin-top: 1.5rem;">Volatility targeting — holding the level</h3>
+    <p>Scale gross exposure each period so realized portfolio vol tracks a target \( \sigma^{\text{target}} \):</p>
+    \[ k_t = \frac{\sigma^{\text{target}}}{\hat{\sigma}_{p,t}}, \qquad \text{position}_t = k_t \, \mathbf{w}\,(\text{capital}) \]
+    <p>\( \hat{\sigma}_{p,t} \) is a trailing vol estimate (an EWMA over ~20&ndash;60 days). Below target you lever up; when a vol spike hits — the crisis regimes of <a href="qt-week8.html">W8</a> — the same formula scales the book <em>down</em> automatically, before a human decides to. The two axes don't conflict: inverse-vol and risk parity size <em>across</em> strategies at a point in time; vol targeting sizes the <em>whole book</em> through time. You do both.</p>
+
+    <h3 style="margin-top: 1.5rem;">Kelly — choosing the level</h3>
+    <p>What should \( \sigma^{\text{target}} \) actually be? The <strong>Kelly criterion</strong> answers the question the mandate keeps asking — how large a bet does the edge warrant? For a Gaussian return stream, the growth-optimal fraction and the vol target it implies are:</p>
+    \[ f^{*} = \frac{\mu}{\sigma^{2}} \qquad\Longleftrightarrow\qquad \sigma^{\text{target}}_{\text{Kelly}} = \mathrm{Sharpe} \]
+    <p>Full Kelly targets an annualized vol equal to the strategy's Sharpe — a Sharpe-1 book at full Kelly runs ~100% vol, far too hot, because \( \mu \) is estimated with enormous error (the Markowitz error-maximizer again). So desks run <strong>fractional Kelly</strong>, \( f = c\,f^{*} \) with \( c \in [0.25, 0.5] \): half-Kelly keeps ~75% of the long-run growth at ~half the vol and a quarter of the drawdown. Fractional Kelly is just a principled way to set the target — \( \sigma^{\text{target}} = c \cdot \mathrm{Sharpe} \).</p>
+
+    <div class="callout">
+      <div class="callout-title">Rule of thumb</div>
+      <p>Full Kelly on an estimated edge is a ruin machine. Half-Kelly is the desk default — most of the compounding at a fraction of the drawdown. When in doubt, size lower; you can't compound back from zero.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Position limits and leverage</h2>
+    <p>Sizing is the model's answer. <strong>Limits</strong> are the hard caps bolted on top of it — independent of any estimate, because every \( \hat{\mu} \), \( \hat{\sigma} \), and correlation can be wrong at exactly the moment it matters (<a href="qt-week8.html">W8</a>). They bound the damage when vol targeting under-reads a regime break or Kelly over-bets a decayed edge.</p>
+
+    <table class="comparison-table">
+      <thead>
+        <tr><th>Limit</th><th>Typical cap</th><th>Guards against</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>Per-strategy weight</strong></td><td>&le; 35%</td><td>one analyst's model dominating the fund</td></tr>
+        <tr><td><strong>Sector / asset-class</strong></td><td>gross &le; 40%</td><td>a concentrated factor bet hiding across strategies</td></tr>
+        <tr><td><strong>Gross exposure</strong></td><td>&le; 2&times; capital</td><td>vol targeting quietly levering the book up in calm markets</td></tr>
+        <tr><td><strong>Net exposure</strong></td><td>|net| &le; 20%</td><td>an unintended directional tilt</td></tr>
+        <tr><td><strong>Margin-to-equity</strong></td><td>&le; 25%</td><td>futures leverage / margin-call risk</td></tr>
+        <tr><td><strong>Daily loss limit</strong></td><td>halt at &minus;5%</td><td>a tail day or an outright model failure</td></tr>
+      </tbody>
+    </table>
+
+    <p>The per-strategy 35% and turnover caps from the construction problem earlier are two of these; the rest bound leverage and concentration at the book level. On a futures book <strong>margin-to-equity</strong> is the leverage number that matters — vol targeting can push gross exposure well past 100% when realized vol is low, and the margin cap is the backstop that stops it.</p>
+
+    <div class="callout">
+      <div class="callout-title">Where limits sit</div>
+      <p>Limits are not the optimizer's objective — they are the constraint set it runs <em>inside</em>. When the sizing model and a limit disagree, the limit wins: each one is a line the fund won't cross no matter how good the backtest looks.</p>
+    </div>
   </div>
 
   <div class="section">
