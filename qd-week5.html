@@ -1,0 +1,429 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 5: The Data Pipeline — QD Training</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="Delta.png">
+  <style>
+    .flow-box {
+      background: var(--bg-elevated);
+      border: 1px solid var(--border);
+      border-radius: 6px;
+      padding: 2rem;
+      margin: 2rem 0;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.85rem;
+      overflow-x: auto;
+      white-space: pre;
+      color: var(--text-secondary);
+      line-height: 1.85;
+    }
+    .flow-box .hl   { color: var(--text-primary); font-weight: 700; }
+    .flow-box .acc  { color: var(--accent); }
+    .repo-tag {
+      display: inline-block;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.7rem;
+      letter-spacing: 0.1em;
+      color: var(--accent);
+      background: rgba(255, 125, 42, 0.08);
+      border: 1px solid rgba(255, 125, 42, 0.25);
+      padding: 0.15rem 0.5rem;
+      border-radius: 2px;
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">QD Training Hub</span>
+  </div>
+  <div class="nav-links">
+    <a href="qd.html">Home</a>
+    <a href="qd-week1.html">W1</a>
+    <a href="qd-week2.html">W2</a>
+    <a href="qd-week3.html">W3</a>
+    <a href="qd-week4.html">W4</a>
+    <a href="qd-week5.html" class="active">W5</a>
+    <a href="qd-week6.html">W6</a>
+    <a href="qd-week7.html">W7</a>
+    <a href="qd-week8.html">W8</a>
+    <a href="qd-week9.html">W9</a>
+    <a href="qd-week10.html">W10</a>
+  </div>
+</nav>
+
+<!-- ── Hero ───────────────────────────────────────────────────── -->
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="w5-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Week 05 &mdash; QD Specialization</div>
+    <h1>The Data<br>Pipeline</h1>
+    <div class="week-hero-pill">data-ngin — ingest · clean · load</div>
+    <p class="week-hero-objective">Every number the fund trades on comes through here. Learn what each piece is responsible for, how it's configured, and what actually happens when it runs.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="section">
+    <h2 class="section-title">What this week covers</h2>
+    <p>This week is orientation, not construction. By Friday you should be able to open <span class="repo-tag">data-ngin</span> and know what you're looking at — which module does what, where the config lives, and what happens end to end when the pipeline runs.</p>
+    <p>You should be able to answer:</p>
+    <ul>
+      <li>What are the <strong>five pieces</strong> of data-ngin, and what is each one responsible for?</li>
+      <li>How is the pipeline <strong>configured</strong> — and why can we swap a data vendor without touching code?</li>
+      <li>What is the <strong>exact order of operations</strong> when it runs, and why does raw data get inserted before it's cleaned?</li>
+      <li>Why is there <strong>more than one pipeline</strong>, and how do you tell which one you're looking at?</li>
+    </ul>
+    <p>Two things deliberately left out. <strong>Scheduling</strong> — how the pipeline runs automatically every morning — is <a href="qd-week7.html">Week 7</a>. <strong>What happens to the data downstream</strong> is <a href="qd-week6.html">Week 6</a>. This week is just the pipeline itself.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">What data-ngin is</h2>
+    <p>data-ngin is the fund's data engine. It's a Python application, and its job is to get market data from a vendor into our database in a form strategies can use.</p>
+    <p>It's worth being precise about the scope, because it's easy to under-describe. data-ngin does <strong>all three</strong> stages:</p>
+
+    <div class="grid grid-2">
+      <div class="card">
+        <h3 style="margin-top: 0;">Ingest</h3>
+        <p>Calls the vendor's API and pulls raw bars — at the frequency, coverage, and cost we're paying for.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">Clean</h3>
+        <p>Normalizes the vendor's format into ours and handles missing data.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">Load</h3>
+        <p>Writes to Postgres/TimescaleDB — both the raw pull and the cleaned result.</p>
+      </div>
+      <div class="card">
+        <h3 style="margin-top: 0;">Not: analysis</h3>
+        <p>data-ngin never decides what to trade. It produces bars. What happens to them is <a href="qd-week6.html">the trade engine's</a> problem.</p>
+      </div>
+    </div>
+
+    <div class="callout">
+      <div class="callout-title">A distinction worth holding onto</div>
+      <p>It's tempting to picture a vendor as the first <em>stage</em> of the pipeline — as though data flows out of it and into us. <strong>A vendor is a source, not a stage.</strong> data-ngin is the thing that does the calling, so the ingestion is ours: nothing in our stack runs before data-ngin does. Keep that straight and the rest of the architecture lines up.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">The five pieces</h2>
+    <p>data-ngin is deliberately small. Four modules do the work, and one controller wires them together. Each of the four is an abstract base class with one or more concrete implementations — which is what makes the vendor swappable.</p>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">1. Loader &mdash; <em>what symbols do we care about?</em></h3>
+      <p>Reads a CSV from <code>contracts/</code> and returns a <code>{symbol: asset_type}</code> dictionary. That's the whole job.</p>
+      <p>The CSV <em>is</em> our universe definition — if a symbol isn't in the file, the pipeline never fetches it, so it never reaches a strategy. Each row carries the metadata that matters downstream: the symbol, the exchange, the contract multiplier, the currency, the instrument type.</p>
+      <pre><code>assetDesc,underlying,dataSymbol,ibSymbol,exchange,multiplier,currency,dataSet,instrumentType
+EURUSD currency,FX,6E,6E,CME,125000,USD,GLOBEX,FUTURE
+Feeder cattle,Ags,GF,GF,CME,50000,USD,GLOBEX,FUTURE</code></pre>
+      <p style="color: var(--text-secondary); font-size: 0.9rem;">Implementation: <code>CSVLoader</code>. There's one universe file per pipeline, and they're the first place to look when a symbol you expected isn't in the database.</p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">2. Fetcher &mdash; <em>talk to the vendor</em></h3>
+      <p>Takes a symbol and a date range, calls the vendor's API, returns a pandas DataFrame. This is the only part of the pipeline that touches the outside world — and therefore the only part that needs an API key.</p>
+      <p style="color: var(--text-secondary); font-size: 0.9rem;">There's one fetcher per vendor, plus variants for bulk historical pulls. Each vendor's quirks — auth, rate limits, pagination — stay inside its own fetcher and leak no further.</p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">3. Cleaner &mdash; <em>make it ours</em></h3>
+      <p>Takes the vendor's DataFrame and returns rows in <em>our</em> schema. Vendors disagree about column names, timestamp conventions, and price units; the cleaner is where those differences stop.</p>
+      <p>It also applies the missing-data policy — which is config, not code (see below).</p>
+      <p style="color: var(--text-secondary); font-size: 0.9rem;">One cleaner per vendor, because each vendor is wrong in its own way. After this stage, nothing downstream can tell which vendor the data came from — that's the point.</p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">4. Inserter &mdash; <em>write it down</em></h3>
+      <p>Connects to Postgres and writes rows. Uses <code>INSERT ... ON CONFLICT DO NOTHING</code>, which is what makes the pipeline safe to re-run: a second run over the same days inserts nothing and changes nothing.</p>
+      <p style="color: var(--text-secondary); font-size: 0.9rem;">Implementation: <code>TimescaleDBInserter</code>. Note it writes to tables — it doesn't create them. Schema setup happens outside this repo.</p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">5. Orchestrator &mdash; <em>the controller</em></h3>
+      <p>The only piece that isn't swappable. It builds the other four from config, loads the symbol list, works out the date range, and runs every symbol through fetch → clean → insert.</p>
+      <p>It's also where the concurrency lives: all symbols are processed at once via <code>asyncio.gather</code>, not one after another.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">How it's configured</h2>
+    <p>This is the part worth understanding properly, because it explains the shape of everything else.</p>
+    <p><strong>The modules aren't chosen in code. They're chosen in YAML.</strong> Every one of the four is named by two strings — a class and a module path:</p>
+
+    <pre><code># src/config/&lt;pipeline&gt;.yaml
+
+loader:
+  class: "CSVLoader"
+  module: "loader.csv_loader"
+  file_path: ".../contracts/&lt;universe&gt;.csv"
+
+fetcher:
+  class: "&lt;Vendor&gt;Fetcher"           # ← the vendor lives here...
+  module: "fetcher.&lt;vendor&gt;_fetcher"
+
+cleaner:
+  class: "&lt;Vendor&gt;Cleaner"           # ← ...and here. Nowhere else.
+  module: "cleaner.&lt;vendor&gt;_cleaner"
+
+inserter:
+  class: "TimescaleDBInserter"
+  module: "inserter.timescaledb_inserter"</code></pre>
+
+    <p>At startup, <code>get_instance()</code> reads those two strings, imports the module, grabs the class, and constructs it:</p>
+
+    <pre><code># utils/dynamic_loader.py  (abridged)
+
+class_name  = module_config.get(class_key)                    # e.g. "AcmeCleaner"
+module_name = f"src.modules.{module_config.get('module')}"    # e.g. "src.modules.cleaner.acme_cleaner"
+cls = load_class(module_name, class_name)                     # importlib + getattr
+return cls(config=config, **kwargs)</code></pre>
+
+    <p>So the Orchestrator's constructor is four lines and knows nothing about any vendor:</p>
+
+    <pre><code>self.loader   = get_instance(self.config, "loader",   "class")
+self.fetcher  = get_instance(self.config, "fetcher",  "class")
+self.cleaner  = get_instance(self.config, "cleaner",  "class")
+self.inserter = get_instance(self.config, "inserter", "class")</code></pre>
+
+    <div class="callout">
+      <div class="callout-title">Why this matters</div>
+      <p><strong>Switching vendors is a config edit.</strong> Point <code>fetcher.class</code> and <code>cleaner.class</code> at a different vendor's implementations, and the same Orchestrator runs an entirely different pipeline. That's why the four abstract base classes exist — not architectural decoration, but the thing that makes a YAML file able to rewire the application.</p>
+      <p style="margin-top: 1rem; font-size: 0.95rem;">The cost: a typo in <code>module:</code> is not a compile error. It's an <code>ImportError</code> at startup. The config is real code — it just fails later than code does.</p>
+    </div>
+
+    <h3 style="margin-top: 2rem;">The rest of the config</h3>
+    <p>The same file carries four more blocks — the vendor parameters, the destination, the date range, and the missing-data policy:</p>
+
+    <pre><code>provider:        # which vendor, which asset class, and its vendor-specific settings
+database:        # which database, schema, raw table, and clean table to write
+time_range:      # what window to fetch (blank = fill in whatever's missing)
+missing_data:    # what to do about gaps</code></pre>
+
+    <p>Two of those deserve a note now, because they'll matter to you later:</p>
+    <ul>
+      <li><strong>The <code>provider</code> block decides the roll.</strong> For futures we request a <em>continuous contract</em> from the vendor, and settings here choose how it's stitched — on volume, on open interest, or on the calendar — and which contract in the sequence. The roll is resolved on the vendor's side, not ours; everything downstream receives an already-stitched series. (<a href="qd-week2.html">W2</a> covers why futures need stitching at all.) It's worth sitting with how much rests on those two lines.</li>
+      <li><strong><code>missing_data</code> is a policy, not a default.</strong> Fill gaps forward, fill them with zero, interpolate, or drop the row — it's a config switch, and different pipelines choose differently depending on what a gap <em>means</em> for that asset class. A missing bar in a thin contract is not the same event as a missing bar in a liquid one, and the config is where that judgement gets recorded.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">How it actually runs</h2>
+    <p>One symbol's journey through the pipeline, in order:</p>
+
+    <div class="flow-box"><span class="acc">Orchestrator.run()</span>
+    │
+    ├─ <span class="hl">loader.load_symbols()</span>        → {"6E": "FUTURE", "ZC": "FUTURE", ...}
+    ├─ <span class="hl">determine_date_range()</span>       → (start, end)
+    │
+    └─ for every symbol, <span class="acc">all at once</span> (asyncio.gather):
+         │
+         ├─ 1. <span class="hl">fetcher.fetch_data()</span>   → raw DataFrame from the vendor
+         ├─ 2. <span class="hl">inserter.insert_data()</span> → <span class="acc">RAW table</span>   ← note the order
+         ├─ 3. <span class="hl">cleaner.clean()</span>        → normalized rows
+         └─ 4. <span class="hl">inserter.insert_data()</span> → <span class="acc">CLEAN table</span></div>
+
+    <p>The code is almost exactly that shape:</p>
+
+    <pre><code># src/orchestrator.py  (abridged)
+
+raw_data = await self.fetcher.fetch_data(symbol=..., start_date=..., end_date=...)
+
+self.inserter.connect()
+
+# Insert raw data  — BEFORE cleaning
+self.inserter.insert_data(
+    data=raw_data.to_dict(orient="records"),
+    schema=self.config["database"]["target_schema"],
+    table=self.config["database"]["raw_table"],       # ohlcv_1d_raw
+)
+
+# Clean data
+cleaned_data = self.cleaner.clean(raw_data)
+
+# Insert cleaned data
+self.inserter.insert_data(
+    data=cleaned_data,
+    schema=self.config["database"]["target_schema"],
+    table=self.config["database"]["table"],           # ohlcv_1d
+)</code></pre>
+
+    <h3 style="margin-top: 2rem;">Why raw goes in first</h3>
+    <p>This is the design decision in the pipeline most worth internalizing, and it costs us a whole extra table per dataset.</p>
+    <p><strong>Vendor data costs money and can't be re-pulled for free.</strong> Our vendors bill per request. If we fetched, cleaned, and stored only the cleaned result, then a bug in the cleaner would mean the original is gone — and getting it back means paying for it again, assuming the vendor still serves that window at all.</p>
+    <p>Writing raw first buys three things:</p>
+    <ul>
+      <li><strong>Recoverability.</strong> A cleaning bug is fixable by re-running the cleaner over <code>ohlcv_1d_raw</code>. No vendor call, no cost.</li>
+      <li><strong>An audit trail.</strong> When a number looks wrong, you can compare what we stored against what the vendor actually sent. That distinguishes "the vendor was wrong" from "we broke it" — and those have very different fixes.</li>
+      <li><strong>A cheap correctness check.</strong> Raw and clean sitting side by side means the cleaner's behavior is inspectable with a query rather than a debugger.</li>
+    </ul>
+
+    <div class="callout">
+      <div class="callout-title">The general principle</div>
+      <p>Store what you received before you store what you concluded. Raw data is expensive and irreplaceable; derived data is cheap and reproducible. Never let a bug in the cheap thing destroy the expensive thing.</p>
+    </div>
+
+    <h3 style="margin-top: 2rem;">Two more properties worth knowing</h3>
+    <ul>
+      <li><strong>Symbols run concurrently, not sequentially.</strong> <code>asyncio.gather</code> fires every symbol at once. For a small futures universe that's fine; for a universe of several hundred names it's enough to cause connection-timeout storms, so a fetcher facing a large universe caps its own concurrency. <em>Concurrency that's free at one scale is an outage at another</em> — the code didn't change, the universe grew.</li>
+      <li><strong>One symbol failing doesn't kill the run.</strong> Each symbol is wrapped in its own <code>try/except</code> — a failure is logged and the other symbols continue. The failed symbol just gets picked up on the next run, because the date range is derived from what's already in the table.</li>
+    </ul>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">More than one pipeline</h2>
+    <p>Here's the thing new engineers most often get wrong: <strong>there isn't "the" pipeline.</strong> There are several.</p>
+    <p>We buy data from more than one vendor — <strong>Databento</strong> for futures and <strong>Tiingo</strong> for equities — and each asset class gets its own configuration. Same Orchestrator, same four roles, different everything else: its own universe file, its own fetcher and cleaner, its own destination database and schema, its own missing-data policy.</p>
+    <p>You don't need to memorize which is which; those details change, and the config is the authority. What matters is the habit:</p>
+
+    <div class="callout">
+      <div class="callout-title">Always know which pipeline you're in</div>
+      <p>Before you debug anything — a missing symbol, a stale table, a number that looks wrong — <strong>open the config and find out which database and schema you're actually talking about.</strong> More than one pipeline writes similar-looking tables to different places. Hours get lost querying an empty table that was never the one being filled.</p>
+    </div>
+
+    <h3 style="margin-top: 2rem;">Where universes come from</h3>
+    <p>Some universe files are hand-maintained. Others are generated by a script — for equities, by taking a published index's constituent list and merging it with a baseline of ETFs and a few curated names.</p>
+    <p>Generating it is the better engineering: it's reproducible, and it catches ticker changes a human would miss. Either way, the file is a real input with real consequences — <strong>the universe definition decides what the fund can and cannot see</strong>, before any strategy code runs. <a href="qd-week8.html">Week 8</a> looks at how you test that.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Where the data lands</h2>
+    <p>Postgres, with the TimescaleDB extension — a Postgres add-on built for time-series data, which is exactly what OHLCV bars are. It gives us time-partitioned tables that stay fast as they grow.</p>
+    <p>Two things to know at this stage:</p>
+    <ul>
+      <li><strong>Every dataset has a raw table and a clean table</strong> — <code>&lt;name&gt;_raw</code> alongside <code>&lt;name&gt;</code>. Strategies read the clean one. The raw one is the safety net.</li>
+      <li><strong>data-ngin writes to tables, it doesn't create them.</strong> Schema and table setup happens outside the repo. If a table doesn't exist, the pipeline fails — it won't build it for you.</li>
+    </ul>
+    <p>That database is also the <strong>entire interface to the rest of the fund</strong>. data-ngin doesn't call the trade engine; it doesn't push, notify, or hand off. It writes rows. The trade engine reads them. Neither repo mentions the other anywhere — the shared table schema <em>is</em> the contract. <a href="qd-week6.html">Week 6</a> picks up on the other side of that boundary.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Things that surprise people</h2>
+    <div class="mistakes-list">
+      <h4 style="margin-top: 0;">Five</h4>
+      <ul>
+        <li><strong>Assuming there's one vendor, or one pipeline.</strong> Several configs, several pipelines, more than one vendor. Read the config before you assume which one you're looking at.</li>
+        <li><strong>Assuming <code>config.yaml</code> is <em>the</em> config.</strong> More than one pipeline writes similar-looking tables to different databases. Check <code>db_name</code> and <code>target_schema</code> before you go hunting for a table that's "missing."</li>
+        <li><strong>Thinking the config is inert.</strong> <code>class:</code> and <code>module:</code> strings get imported. A typo there is an application that doesn't start.</li>
+        <li><strong>Expecting the roll logic to be ours.</strong> It isn't. We ask the vendor for a continuous contract and it arrives pre-stitched. Don't go looking for roll code in data-ngin — it's a config setting, not an algorithm we own.</li>
+        <li><strong>Expecting the app to stand up its own database.</strong> It won't. The pipeline writes to tables; it doesn't create them, and the database lives elsewhere. Ask your QD lead for access rather than trying to build one.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <a href="qd.html" class="week-nav-button">← QD Hub</a>
+    <a href="qd-week6.html" class="week-nav-button">Week 6: The Trade Engine →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — QD Training Program // Internal Use Only
+</footer>
+
+<script>
+/* ── Hero canvas: OHLC bars streaming in from the right ───────── */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('w5-canvas');
+  const ctx    = canvas.getContext('2d');
+
+  const PITCH = 16;
+  let W, H, bars = [], px = 0, lastTs = null;
+
+  function seedPrice() { return 0.45 + Math.random() * 0.1; }
+
+  function makeBar(prev) {
+    const drift = (Math.random() - 0.5) * 0.055;
+    const close = Math.min(0.92, Math.max(0.08, prev + drift));
+    const hi    = Math.max(prev, close) + Math.random() * 0.03;
+    const lo    = Math.min(prev, close) - Math.random() * 0.03;
+    return { o: prev, c: close, h: hi, l: lo, a: 0 };
+  }
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+    bars = [];
+    px = seedPrice();
+    const n = Math.ceil(W / PITCH) + 2;
+    for (let i = 0; i < n; i++) { const b = makeBar(px); b.a = 1; px = b.c; bars.push(b); }
+  }
+
+  let acc = 0;
+  function frame(ts) {
+    if (lastTs === null) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    acc += dt;
+    while (acc > 260) {
+      acc -= 260;
+      const b = makeBar(px);
+      px = b.c;
+      bars.push(b);
+      if (bars.length > Math.ceil(W / PITCH) + 3) bars.shift();
+    }
+
+    ctx.clearRect(0, 0, W, H);
+
+    const toY = v => H - (0.12 + v * 0.76) * H;
+
+    for (let i = 0; i < bars.length; i++) {
+      const b = bars[i];
+      b.a = Math.min(1, b.a + dt * 0.004);
+
+      const x = i * PITCH + PITCH * 0.5;
+      // fade the leading edge so new bars arrive rather than pop
+      const edge = Math.min(1, (W - x) / 90);
+      const a = b.a * Math.max(0, edge) * 0.55;
+      if (a <= 0.01) continue;
+
+      const up = b.c >= b.o;
+      ctx.strokeStyle = up
+        ? `rgba(255, 125, 42, ${a.toFixed(3)})`
+        : `rgba(255, 238, 215, ${(a * 0.55).toFixed(3)})`;
+      ctx.lineWidth = 1.2;
+
+      // wick
+      ctx.beginPath();
+      ctx.moveTo(x, toY(b.h));
+      ctx.lineTo(x, toY(b.l));
+      ctx.stroke();
+
+      // body
+      const yo = toY(b.o), yc = toY(b.c);
+      const top = Math.min(yo, yc);
+      const hgt = Math.max(1.5, Math.abs(yc - yo));
+      if (up) {
+        ctx.fillStyle = `rgba(255, 125, 42, ${(a * 0.35).toFixed(3)})`;
+        ctx.fillRect(x - 3.5, top, 7, hgt);
+        ctx.strokeRect(x - 3.5, top, 7, hgt);
+      } else {
+        ctx.strokeRect(x - 3.5, top, 7, hgt);
+      }
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
+
+<script src="cursor.js"></script>
+</body>
+</html>

@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 8: Testing &amp; Validation — QD Training</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="Delta.png">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">QD Training Hub</span>
+  </div>
+  <div class="nav-links">
+    <a href="qd.html">Home</a>
+    <a href="qd-week1.html">W1</a>
+    <a href="qd-week2.html">W2</a>
+    <a href="qd-week3.html">W3</a>
+    <a href="qd-week4.html">W4</a>
+    <a href="qd-week5.html">W5</a>
+    <a href="qd-week6.html">W6</a>
+    <a href="qd-week7.html">W7</a>
+    <a href="qd-week8.html" class="active">W8</a>
+    <a href="qd-week9.html">W9</a>
+    <a href="qd-week10.html">W10</a>
+  </div>
+</nav>
+
+<!-- ── Hero ───────────────────────────────────────────────────── -->
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="w8-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Week 08 &mdash; QD Specialization</div>
+    <h1>Testing &amp;<br>Validation</h1>
+    <div class="week-hero-pill">Six test patterns</div>
+    <p class="week-hero-objective">A backtest that passes is not evidence of anything. Six tests that tell you whether the data underneath it is telling the truth.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="section">
+    <h2 class="section-title">What this week covers</h2>
+    <p>Here is what makes testing quantitative systems different from testing almost any other software: <strong>a broken data pipeline usually produces a <em>better</em> backtest, not a crash.</strong></p>
+    <p>Leak tomorrow's price into today's signal and the Sharpe goes up. Drop the companies that went bankrupt and the returns go up. Use a vendor's current value where a historical one belongs and the fit improves. Every one of those bugs looks exactly like success. Nothing throws. The chart looks great.</p>
+    <p>In ordinary software, bugs make things visibly worse, so users report them. Here, the highest-impact bugs make the numbers <em>more attractive</em> — which means <strong>nobody will ever report them to you.</strong> They are caught by tests written specifically to look for them, or they are not caught at all.</p>
+    <p>Six patterns that do the catching:</p>
+    <ul>
+      <li><strong>Unit tests against known values</strong> — the function computes what it claims to compute.</li>
+      <li><strong>Look-ahead detection</strong> — the signal at time <em>t</em> cannot see past <em>t</em>.</li>
+      <li><strong>Point-in-time tests</strong> — historical data is what was <em>known then</em>, not what's true now.</li>
+      <li><strong>Roll-schedule tests</strong> — continuous contracts survive their expiries.</li>
+      <li><strong>Golden-output tests</strong> — a known-correct result stays correct.</li>
+      <li><strong>Survivorship checks</strong> — the universe includes the dead.</li>
+    </ul>
+    <p>These are the standard hazards of the field — every quant shop meets them, and the tests below are the standard answers.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PATTERN 1
+  ════════════════════════════════════════════════════════════ -->
+
+  <div class="section">
+    <h2 class="section-title">1 &mdash; Unit tests against known values</h2>
+    <p>The foundation, and the least glamorous. Take a function whose answer you can work out independently — by hand, from a textbook, from a published worked example — and assert it produces that answer.</p>
+    <p>The point isn't proving the function works today. You already believe it works today; that's why you committed it. The point is <strong>regression protection</strong>: six months from now someone optimizes this function and changes its behavior at a boundary they didn't think about. The test is what tells them.</p>
+
+    <pre><code>from math import isclose
+
+
+def test_rolling_zscore_known_values():
+    # A 5-point window of 1..5: mean 3, sample std 1.5811.
+    # Final point z = (5 - 3) / 1.5811 = 1.2649
+    s = pd.Series([1, 2, 3, 4, 5], dtype=float)
+    z = rolling_zscore(s, window=5)
+
+    assert pd.isna(z.iloc[:4]).all()            # not enough history yet
+    assert isclose(z.iloc[4], 1.26491, abs_tol=1e-5)
+
+
+def test_black_scholes_call_matches_textbook():
+    # Hull, worked example: S=42, K=40, r=0.10, sigma=0.20, T=0.5 -> 4.76
+    px = black_scholes_call(S=42, K=40, r=0.10, sigma=0.20, T=0.5)
+    assert isclose(px, 4.76, abs_tol=0.01)
+</code></pre>
+
+    <p>Notice where the expected values come from: <strong>somewhere other than the code under test.</strong> A test whose expected value was produced by running the function proves only that the function is deterministic. Hand calculation, a textbook, or a second independent implementation are what make it a real check.</p>
+
+    <h3 style="margin-top: 2rem;">Test the edges, not the middle</h3>
+    <p>The happy path is the case you already coded correctly. Bugs live at the boundaries:</p>
+
+    <pre><code>def test_rolling_zscore_zero_variance_does_not_return_inf():
+    # A halted symbol prints the same price all week. std = 0 -> x/0.
+    # This MUST NOT silently produce inf, which would become a giant position.
+    s = pd.Series([7.0] * 10)
+    z = rolling_zscore(s, window=5)
+
+    assert not np.isinf(z).any(), "zero-variance window produced inf"
+    assert pd.isna(z.iloc[4:]).all(), "flat window should be NaN, not a signal"
+</code></pre>
+
+    <p>That test is worth more than the previous two combined, and it shows the shape of the whole week. A halt produces a flat price window; a flat window has zero variance; zero variance divides by zero; and <code>inf</code> becomes the largest position the sizing logic will permit. The strategy does that on the <em>worst possible day</em> — the one where the exchange halted the symbol.</p>
+    <p>The market data itself supplies the edge cases: halts, holidays, early closes, expiries, delistings, limit-up days, zero-volume sessions. You don't have to invent adversarial inputs. You have to remember they exist.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PATTERN 2
+  ════════════════════════════════════════════════════════════ -->
+
+  <div class="section">
+    <h2 class="section-title">2 &mdash; Look-ahead detection</h2>
+    <p>Look-ahead is the leak where a signal at time <em>t</em> is computed using information that didn't exist until after <em>t</em>. It is the most common serious bug in backtesting and the hardest to catch by reading code, because it almost always enters through an index alignment that looks completely innocent.</p>
+
+    <h3 style="margin-top: 1.5rem;">The shift test</h3>
+    <p>Take the feature your signal consumes and <strong>shift its timestamps forward one bar</strong> — simulating it arriving one bar later than you assumed. Re-run. <strong>The result must change.</strong></p>
+    <p>If a one-bar delay changes nothing, the signal was never reading the feature at the boundary you believed. Either it's reading a stale copy, or it isn't reading the feature at all, or the alignment silently absorbs the shift. All three mean the backtest measures something other than the strategy you described.</p>
+
+    <pre><code>def test_signal_is_sensitive_to_feature_timing():
+    bars = load_fixture("sample_bars.parquet")
+
+    base    = build_signal(bars)
+    delayed = build_signal(bars.assign(feature=bars.feature.shift(1)))
+
+    # If a one-bar delay in the input doesn't move the output,
+    # the signal is not consuming the feature where we think it is.
+    assert not base.equals(delayed), \
+        "signal unchanged when feature delayed one bar — check alignment"
+</code></pre>
+
+    <h3 style="margin-top: 2rem;">The future-perturbation test</h3>
+    <p>The shift test proves the signal reads the feature at <em>some</em> boundary. This one proves the boundary is the <em>right</em> one — it's the stronger test, and the one that actually catches leakage.</p>
+    <p>Pick a cutoff <em>t</em>. Replace every data point <strong>after</strong> <em>t</em> with garbage. Recompute the signal <strong>at</strong> <em>t</em>. It must be bit-identical to before, because nothing after <em>t</em> is allowed to influence it.</p>
+
+    <pre><code>def test_no_future_information_leaks_into_signal():
+    bars   = load_fixture("sample_bars.parquet")
+    cutoff = pd.Timestamp("2022-06-15")
+
+    clean = build_signal(bars).loc[:cutoff]
+
+    # Corrupt the future beyond all recognition.
+    poisoned = bars.copy()
+    poisoned.loc[poisoned.index > cutoff, ["close", "feature"]] = -999_999.0
+
+    leaked = build_signal(poisoned).loc[:cutoff]
+
+    pd.testing.assert_series_equal(
+        clean, leaked,
+        obj="signal at/before cutoff changed when FUTURE data was corrupted",
+    )
+</code></pre>
+
+    <div class="callout">
+      <div class="callout-title">Why this catches what code review misses</div>
+      <p>Look-ahead rarely arrives as an obvious <code>shift(-1)</code>. It arrives as a <code>.rolling(20, center=True)</code> that reaches ten bars forward. As a <code>fillna(method="bfill")</code> pulling tomorrow's price back into today's gap. As a <code>.resample("1D").last()</code> stamped at the day's open. As a normalization fitted over the full sample — including the test period — before the split.</p>
+      <p style="margin-top: 1rem; font-size: 0.95rem;">Every one of those reads naturally, survives review, and fails this test instantly.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PATTERN 3
+  ════════════════════════════════════════════════════════════ -->
+
+  <div class="section">
+    <h2 class="section-title">3 &mdash; Point-in-time tests</h2>
+    <p>A subtler leak, and one that arrives from the vendor rather than from your code.</p>
+    <p>Many data providers serve the <strong>current</strong> value of a historical field. Ask for a company's Q3 2021 earnings and you may get the number <em>as restated in 2023</em> — not the number the market actually traded on in October 2021. Ask for an index's constituents "as of 2015" and some vendors hand back today's list. Your backtest then trades on information that did not exist, using a dataset that looks entirely plausible.</p>
+    <p>The property to test: <strong>a value stamped at date D must equal what was knowable at date D</strong>, including its revision history.</p>
+
+    <pre><code>def test_fundamentals_are_as_reported_not_as_restated():
+    # This company restated FY2021 revenue upward in 2023. A point-in-time
+    # store must still return the ORIGINAL number when asked what was
+    # knowable in Oct 2021.
+    known_then = pit_store.get(sym, "revenue_q3_2021", as_of="2021-10-20")
+    known_now  = pit_store.get(sym, "revenue_q3_2021", as_of="2024-01-01")
+
+    assert known_then == ORIGINAL_FIGURE,  "as-of-2021 read returned a restated value"
+    assert known_now  == RESTATED_FIGURE,  "restatement missing from current view"
+    assert known_then != known_now,        "store has no revision history at all"
+
+
+def test_index_membership_is_as_of_date():
+    members = universe.constituents(as_of="2015-06-30")
+
+    assert DELISTED_IN_2016 in members,   "point-in-time universe is back-filled from today"
+    assert IPO_IN_2019 not in members,    "future constituent leaked into 2015 universe"
+</code></pre>
+
+    <p>The third assertion in the first test is the important one. <code>known_then != known_now</code> fails if the store has no revision history — if it serves one value for every as-of date. That's the failure that looks like success: every query returns a number, nothing errors, and every number is quietly from the future.</p>
+
+    <div class="callout">
+      <div class="callout-title">Ask before you build on it</div>
+      <p>"Is this vendor point-in-time?" is a question to settle <em>before</em> an analyst spends six weeks on a dataset. A vendor that back-fills restatements isn't necessarily unusable — but it needs to be known and documented, not discovered when live results come in at a third of the backtest.</p>
+      <p style="margin-top: 1rem; font-size: 0.95rem;">"It has a date column" is not the same as "it's point-in-time." Verify with a restatement you can check independently.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PATTERN 4
+  ════════════════════════════════════════════════════════════ -->
+
+  <div class="section">
+    <h2 class="section-title">4 &mdash; Roll-schedule and contract-spec tests</h2>
+    <p>Futures expire. A "continuous contract" is a fiction — successive contracts stitched into one series — and the stitch is where the bugs live.</p>
+    <p>Two contracts trade at different prices for entirely structural reasons: carry, storage, seasonality. Join them naively and you manufacture a gap that never happened. A backtest reads that gap as a return, and if the roll is quarterly, you've invented a tradeable signal that fires like clockwork four times a year.</p>
+    <p>Whether the stitching is done by your code or by the vendor, the test is the same — walk the series through its seams and assert they're clean:</p>
+
+    <pre><code>def test_no_synthetic_jumps_in_continuous_series():
+    df = load_continuous(sym, start, end)
+    rets = df.close.pct_change().abs()
+
+    # This contract does not move 15% in a day. If it "did", we are
+    # looking at a roll seam, not a market event.
+    spikes = rets[rets &gt; MAX_PLAUSIBLE_DAILY_MOVE]
+    assert spikes.empty, f"{len(spikes)} suspected roll seams: {list(spikes.index.date)}"
+
+
+def test_roll_behavior_matches_the_roll_we_asked_for():
+    # Volume-based rolls cluster near expiry as liquidity migrates.
+    # If the seams land on the 1st of the month like clockwork, the
+    # series is calendar-rolled and the setting doesn't mean what we think.
+    seams = detect_seams(load_continuous(sym, start, end))
+    days  = {s.day for s in seams}
+    assert len(days) &gt; 3, f"seams cluster on days {days} — looks calendar-rolled"
+
+
+def test_contract_multiplier_matches_the_exchange():
+    spec = load_contract_spec(sym)
+    assert spec.multiplier == EXPECTED_MULTIPLIER
+    assert spec.currency   == "USD"
+</code></pre>
+
+    <p>The second test is worth understanding as a general technique. When behavior lives in a dependency you configure rather than code you wrote, you can't step through it — so you <strong>assert on the fingerprint it leaves in the output</strong>. That applies far beyond rolls.</p>
+
+    <p>The third looks trivial and catches a genuinely nasty class of bug. A wrong multiplier scales every P&amp;L figure by a constant. Nothing crashes. The equity curve has the right <em>shape</em> — it's just wrong by orders of magnitude, and Sharpe, being scale-invariant, looks completely normal. Contract specs are reference data, and reference data earns an assertion precisely because it looks too boring to check.</p>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PATTERN 5
+  ════════════════════════════════════════════════════════════ -->
+
+  <div class="section">
+    <h2 class="section-title">5 &mdash; Golden-output regression tests</h2>
+    <p>Once a backtest result has been checked and believed, <strong>freeze it</strong>. Commit the fixture and the expected numbers. Every future change must reproduce them exactly, or explain itself.</p>
+    <p>This is the test that protects you from your own refactors. Change how missing bars are handled, and six strategies quietly shift — nobody notices for a month, because each one still "looks fine."</p>
+
+    <pre><code>GOLDEN = {
+    "sharpe":       1.242_1,
+    "annual_ret":   0.187_3,
+    "max_dd":       0.142_8,
+    "n_trades":     418,
+    "final_equity": 1_487_233.19,
+}
+
+
+def test_reference_backtest_matches_golden_output():
+    result = run_backtest(
+        strategy="reference_v3",
+        fixture="fixtures/sample_2015_2023.parquet",  # frozen data, in-repo
+        seed=42,                                      # no wall-clock, no RNG drift
+    )
+
+    for metric, expected in GOLDEN.items():
+        actual = getattr(result, metric)
+        assert isclose(actual, expected, rel_tol=1e-6), (
+            f"{metric}: {actual} != golden {expected}\n"
+            f"If this change is intentional, update GOLDEN in the same commit "
+            f"and say why in the message."
+        )
+</code></pre>
+
+    <p>Three things make a golden test trustworthy, and it's worthless without all three:</p>
+    <ul>
+      <li><strong>The fixture is frozen and committed.</strong> A golden test pointed at a live database changes when the data changes, and teaches you nothing.</li>
+      <li><strong>The run is deterministic.</strong> Fixed seed, no <code>datetime.now()</code>, no dependence on dict ordering, no parallel reduction that sums in a different order each run.</li>
+      <li><strong>The failure message says what to do.</strong> A golden test <em>should</em> fail when behavior intentionally changes. The message has to distinguish "you broke something" from "update the number."</li>
+    </ul>
+
+    <div class="callout">
+      <div class="callout-title">The failure mode of golden tests</div>
+      <p>Someone updates <code>GOLDEN</code> to match their new output without checking why it moved. The test passes and now protects nothing.</p>
+      <p style="margin-top: 1rem; font-size: 0.95rem;">The rule that prevents it: <strong>a change to <code>GOLDEN</code> requires an explanation in the commit message.</strong> If you can't explain the delta, you don't yet understand your own change.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PATTERN 6
+  ════════════════════════════════════════════════════════════ -->
+
+  <div class="section">
+    <h2 class="section-title">6 &mdash; Survivorship-bias checks</h2>
+    <p>Build a universe from the companies that exist <em>today</em> and you have quietly excluded every company that went bankrupt, got delisted, or was acquired. Those are precisely the worst performers in history. The backtest then reports the returns of a portfolio that only ever held survivors — a portfolio nobody could have constructed at the time, because the information needed to build it didn't exist yet.</p>
+    <p>The tell is an equity curve that looks <em>too good and too smooth</em>: no sharp idiosyncratic losses, because every name that blew up was removed before the test began.</p>
+    <p>What makes this one worth real attention is <em>where</em> it enters. Not in a strategy, not in a backtest engine — in how a list of symbols was assembled. It's a property of the universe definition, which is why reading the strategy code will never reveal it.</p>
+
+    <pre><code>def test_universe_contains_delisted_names():
+    universe = build_universe(start="2010-01-01", end="2020-01-01")
+
+    # Names that were in the index during the window and are gone now.
+    for dead in KNOWN_DELISTINGS_IN_WINDOW:
+        assert dead in universe.symbols, \
+            f"{dead} absent — universe appears to be survivor-only"
+
+
+def test_universe_does_not_shrink_going_back_in_time():
+    # A point-in-time universe stays roughly stable as you walk back.
+    # A survivor-biased one shrinks, because fewer of TODAY's names existed.
+    n_2010 = len(build_universe(as_of="2010-01-01").symbols)
+    n_2020 = len(build_universe(as_of="2020-01-01").symbols)
+
+    assert n_2010 &gt; n_2020 * 0.7, \
+        f"universe collapses going back ({n_2010} in 2010 vs {n_2020} in 2020)"
+
+
+def test_delisted_name_has_a_terminal_return():
+    # A bankrupt name must end with a real loss, not merely stop reporting.
+    px = load_prices(BANKRUPT_SYM, start="2010-01-01", end="2020-01-01").dropna()
+
+    assert len(px) &gt; 0, "delisted name has no data at all"
+    assert px.iloc[-1] &lt; px.iloc[0] * 0.1, \
+        "delisting recorded without the loss that preceded it"
+</code></pre>
+
+    <p>That third test catches the half-fixed case, which is the one you'll actually meet. The universe includes delisted names — good — but their price series simply <em>stops</em> on the delisting date instead of recording the collapse. The backtest holds the position, sees no more data, and marks it at the last good price. A bankruptcy becomes a flat line instead of a &minus;95% return.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Common mistakes</h2>
+    <div class="mistakes-list">
+      <h4 style="margin-top: 0;">Six ways testing goes wrong</h4>
+      <ul>
+        <li><strong>Treating a good backtest as evidence the pipeline is right.</strong> It's the opposite. Every serious data bug in this list <em>improves</em> the backtest. A result that looks too good is a reason to test harder, not to ship.</li>
+        <li><strong>Only testing the happy path.</strong> Halts, holidays, zero variance, missing bars, expiries, delistings. The middle of the distribution is the part you already got right.</li>
+        <li><strong>Writing expected values by running the code.</strong> That proves the function is deterministic, not correct. Expected values have to come from somewhere else — hand calculation, a textbook, a second implementation.</li>
+        <li><strong>Updating <code>GOLDEN</code> to make the test pass.</strong> If you can't explain why the number moved, you don't understand your change. Explain the delta in the commit message or don't make it.</li>
+        <li><strong>Trusting a vendor's history to be point-in-time.</strong> Ask, then verify with a restatement you can check. "It has a date column" is not the same claim.</li>
+        <li><strong>Assuming a delisted name in the universe means survivorship is handled.</strong> Check that the name's <em>terminal return</em> is real. A bankruptcy recorded as a flat line is survivorship bias wearing a disguise.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <a href="qd-week7.html" class="week-nav-button">← Week 7: Systems &amp; Infrastructure</a>
+    <a href="qd-week9.html" class="week-nav-button">Week 9: Project Time →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — QD Training Program // Internal Use Only
+</footer>
+
+<script>
+/* ── Hero canvas: a test suite running — cells resolve pass/fail ── */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('w8-canvas');
+  const ctx    = canvas.getContext('2d');
+
+  const CELL = 13, GAP = 5, PITCH = CELL + GAP;
+
+  let W, H, cols, rows, cells = [];
+  let cursor = 0, acc = 0, holdRemain = 0, phase = 'running', lastTs = null;
+
+  function build() {
+    cols = Math.ceil(W / PITCH) + 1;
+    rows = Math.ceil(H / PITCH) + 1;
+    cells = new Array(cols * rows);
+    for (let i = 0; i < cells.length; i++) {
+      cells[i] = { state: 0, fail: Math.random() < 0.07, a: 0 };
+    }
+    cursor = 0;
+    phase  = 'running';
+  }
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+    build();
+  }
+
+  function frame(ts) {
+    if (lastTs === null) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    ctx.clearRect(0, 0, W, H);
+
+    if (phase === 'running') {
+      acc += dt;
+      const per = 9;
+      while (acc > per && cursor < cells.length) { acc -= per; cells[cursor++].state = 1; }
+      if (cursor >= cells.length) { phase = 'holding'; holdRemain = 2200; }
+    } else if (phase === 'holding') {
+      holdRemain -= dt;
+      if (holdRemain <= 0) phase = 'fading';
+    } else {
+      let done = true;
+      for (const c of cells) {
+        c.a = Math.max(0, c.a - dt * 0.0011);
+        if (c.a > 0) done = false;
+      }
+      if (done) build();
+    }
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        const cell = cells[r * cols + c];
+        if (!cell) continue;
+
+        if (cell.state === 1 && phase !== 'fading') {
+          cell.a = Math.min(1, cell.a + dt * 0.0042);
+        }
+
+        const x = c * PITCH + GAP, y = r * PITCH + GAP;
+
+        if (cell.a <= 0.02) {
+          ctx.strokeStyle = 'rgba(255, 238, 215, 0.055)';
+          ctx.lineWidth = 1;
+          ctx.strokeRect(x + 0.5, y + 0.5, CELL - 1, CELL - 1);
+          continue;
+        }
+
+        const a = cell.a;
+        if (cell.fail) {
+          ctx.fillStyle = `rgba(192, 57, 43, ${(a * 0.85).toFixed(3)})`;
+          ctx.fillRect(x, y, CELL, CELL);
+          ctx.strokeStyle = `rgba(230, 90, 70, ${a.toFixed(3)})`;
+          ctx.lineWidth = 1;
+          ctx.strokeRect(x + 0.5, y + 0.5, CELL - 1, CELL - 1);
+        } else {
+          ctx.fillStyle = `rgba(255, 125, 42, ${(a * 0.20).toFixed(3)})`;
+          ctx.fillRect(x, y, CELL, CELL);
+          ctx.strokeStyle = `rgba(255, 125, 42, ${(a * 0.42).toFixed(3)})`;
+          ctx.lineWidth = 1;
+          ctx.strokeRect(x + 0.5, y + 0.5, CELL - 1, CELL - 1);
+        }
+      }
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
+
+<script src="cursor.js"></script>
+</body>
+</html>

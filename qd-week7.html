@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 7: Systems &amp; Infrastructure — QD Training</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <link rel="icon" type="image/png" href="Delta.png">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">QD Training Hub</span>
+  </div>
+  <div class="nav-links">
+    <a href="qd.html">Home</a>
+    <a href="qd-week1.html">W1</a>
+    <a href="qd-week2.html">W2</a>
+    <a href="qd-week3.html">W3</a>
+    <a href="qd-week4.html">W4</a>
+    <a href="qd-week5.html">W5</a>
+    <a href="qd-week6.html">W6</a>
+    <a href="qd-week7.html" class="active">W7</a>
+    <a href="qd-week8.html">W8</a>
+    <a href="qd-week9.html">W9</a>
+    <a href="qd-week10.html">W10</a>
+  </div>
+</nav>
+
+<!-- ── Hero ───────────────────────────────────────────────────── -->
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="w7-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Week 07 &mdash; QD Specialization</div>
+    <h1>Systems &amp;<br>Infrastructure</h1>
+    <div class="week-hero-pill">Design boundaries · run it unattended</div>
+    <p class="week-hero-objective">Weeks 5 and 6 showed you the two engines. This week: how a new piece plugs into them, and how any of it runs at 7am without you.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="section">
+    <h2 class="section-title">What this week covers</h2>
+    <p>You've now seen both engines. This week is the skills that apply to working inside them — and the part nobody teaches you in a class, because it only matters when code runs without a human watching.</p>
+    <p>Two halves. First, <strong>system design</strong>: how a new component plugs into an existing engine, where its boundaries sit, and which tradeoffs are different because the system is live. Second, <strong>running it</strong>: where the code executes, how it gets scheduled, and how it gets credentials without you pasting them into a file.</p>
+    <p>By Friday you should be able to:</p>
+    <ul>
+      <li>Describe the <strong>interface</strong> between a component you're adding and the system it plugs into — and say what crosses that line.</li>
+      <li>Name the three tradeoffs that only matter because the system is live: <strong>latency, failure handling, data freshness</strong>.</li>
+      <li>Read one of our <strong>Airflow DAGs</strong> and say what runs, when, and what happens if it fails.</li>
+      <li>Get an API key into running code with <strong>no credential in the repository</strong>.</li>
+    </ul>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PART 1 — SYSTEM DESIGN
+  ════════════════════════════════════════════════════════════ -->
+
+  <div class="section">
+    <h2 class="section-title" style="color: var(--accent); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; font-family: 'IBM Plex Sans', sans-serif;">Part 1 — System Design</h2>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Designing at the component level</h2>
+    <p>You will almost never build a system from scratch here. You'll add a <em>component</em> to a system that already runs: a new fetcher, a new cleaner, a new strategy, a new risk check. The design question is never "how would I build this?" It's <strong>"where does this plug in, and what does it promise?"</strong></p>
+
+    <p>A well-built system has already answered that question for you. It has an abstract base class per role, and adding a capability means implementing one — a new vendor, a new destination, a new strategy. <a href="qd-week5.html">Week 5</a> showed the shape: find the role your work belongs to, implement that interface, and register it in config. If you find yourself editing the controller, stop and check whether you've picked the wrong seam.</p>
+
+    <p>Whatever you add, it answers four questions:</p>
+
+    <table class="comparison-table">
+      <thead>
+        <tr><th>Question</th><th>Concretely</th></tr>
+      </thead>
+      <tbody>
+        <tr><td><strong>What triggers it?</strong></td><td>A schedule, or a call from the controller that owns it.</td></tr>
+        <tr><td><strong>What does it read?</strong></td><td>Which tables and columns — and what it assumes is already true about them.</td></tr>
+        <tr><td><strong>What does it produce?</strong></td><td>A table, a column, a position. One owner, one writer.</td></tr>
+        <tr><td><strong>What happens when it fails?</strong></td><td>Retry, skip, or halt. Silence is not one of the options.</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout">
+      <div class="callout-title">The one-writer rule</div>
+      <p>Give every table exactly one component that writes it. Everything else reads. It's the cheapest design constraint you can adopt, and it pays for itself the first time a number looks wrong — because there is exactly one place it could have come from.</p>
+      <p style="margin-top: 1rem; font-size: 0.95rem;">Two writers to one table is a bug you haven't hit yet. It stays invisible until the day both run at once.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Interfaces and boundaries</h2>
+    <p>An interface is the promise your component makes to everything downstream. It isn't the code — it's the <em>shape</em> of what crosses the line, and it's the part you can't change casually once something depends on it.</p>
+
+    <p>The biggest interface you'll meet here is a table:</p>
+
+    <pre><code>producer  ──writes──▶  a table  ──reads──▶  consumer</code></pre>
+
+    <p>The schema is the contract. Integrating through shared storage is common and sensible — it lets systems in different languages and different repositories evolve separately. It's also a <strong>database boundary</strong>, which behaves differently from an interface inside one codebase. There, a function signature is compiler-enforced: change it and the build breaks. Across a table, the agreement is the schema, and neither side's compiler can see the other.</p>
+
+    <p>So the guarantees are maintained deliberately:</p>
+    <ul>
+      <li><strong>Narrow.</strong> The fewer columns and assumptions that cross, the less breaks when either side changes.</li>
+      <li><strong>Explicit about time.</strong> Every interface in a trading system carries a timestamp and a meaning for that timestamp. "The daily bar for the 14th" — is that the session that opened on the 14th or closed on it? Write it down.</li>
+      <li><strong>Stable under replay.</strong> Re-run your component over the same historical window and you get the same answer. If it depends on "now," it isn't replayable, and it can't be backtested.</li>
+    </ul>
+
+    <div class="callout">
+      <div class="callout-title">Coupling you don't notice</div>
+      <p>The most expensive coupling isn't a function call — it's a shared assumption nobody wrote down. <em>"Futures symbols arrive already rolled"</em> is an interface between a setting in the pipeline's config and every strategy in the trade engine. It never appears in a signature, so the only way it stays true is that someone knows it and writes it down. When you add a component, the assumptions it makes about its inputs are part of what you're shipping — say them out loud.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Three tradeoffs that are different because it's live</h2>
+    <p>General software engineering has opinions about all three. A live trading system pushes each one somewhere unusual — that's what makes this the QD-specific part of the job.</p>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">Latency</h3>
+      <p>Not "fast" — <strong>fast enough for the horizon you trade</strong>. Our strategies hold positions for weeks. Nothing in our stack is latency-sensitive in the way a market-making desk would recognize, and pretending otherwise would be cargo-culting.</p>
+      <p>What actually matters is <strong>ordering</strong>: the data has to be in the table before the engine reads it. That's not a latency budget, it's a scheduling gap — and we buy it with hours of slack, not milliseconds.</p>
+      <p style="color: var(--text-secondary); font-size: 0.9rem;"><strong>The trap:</strong> optimizing latency nobody needs. Ask what the strategy's horizon is before you spend a week shaving time off a daily job. The honest answer — "this doesn't matter" — is worth more than the optimization.</p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">Failure handling</h3>
+      <p>The question isn't <em>whether</em> a vendor API times out — it will. The question is what your component does about it. Three options:</p>
+      <ul style="font-size: 0.95rem;">
+        <li><strong>Retry</strong> — for transient faults, where the data will be identical when it arrives. Network blips. Use exponential backoff with jitter, capped at a few attempts.</li>
+        <li><strong>Skip and flag</strong> — for things that are legitimately absent: a holiday, an early close, a symbol with no data today.</li>
+        <li><strong>Halt loudly</strong> — for anything you can't classify. A partial write is worse than no write.</li>
+      </ul>
+      <p>Which one is right depends on <strong>what the component feeds</strong>, and the split is worth thinking through rather than defaulting. An ingestion job can usually afford to skip one symbol and log it — the gap self-heals on the next run. A job that <em>feeds trading decisions</em> usually can't, because incomplete data there doesn't produce an error; it produces a confident wrong answer that everything downstream trusts.</p>
+      <p style="color: var(--text-secondary); font-size: 0.9rem;"><strong>The trap:</strong> a bare <code>except: pass</code>. It converts a loud failure into a silent one, and a silently stale input will keep feeding decisions for weeks before anyone notices. Note that a deliberate skip is still <em>logged</em> — skipping and hiding are different things.</p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">Data freshness</h3>
+      <p>Stale data doesn't throw. That's what makes it the dangerous one. A crashed job gets noticed; a job that <em>succeeds</em> while the table quietly stops updating gets noticed by nobody, and the engine happily trades on last week's number.</p>
+      <p>Nothing in the chain misbehaves: an incremental pipeline asks for everything after its latest row, a vendor returns nothing, the request succeeds, and zero rows is a valid answer. No error is raised anywhere, so freshness has to be <em>asserted</em> rather than assumed:</p>
+      <pre style="margin-top: 1rem;"><code>latest = data_access.get_latest_date_for(schema, table)
+
+if latest is None or (today - latest) > MAX_STALENESS:
+    raise StaleDataError(f"{table}: newest row is {latest}, expected {today}")</code></pre>
+      <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;"><strong>The trap:</strong> assuming "the job ran" means "the data is current." Those are different claims, and only one of them is worth anything.</p>
+    </div>
+  </div>
+
+  <!-- ═══════════════════════════════════════════════════════
+       PART 2 — DEPLOYMENT & RUNTIME
+  ════════════════════════════════════════════════════════════ -->
+
+  <div class="section">
+    <h2 class="section-title" style="color: var(--accent); font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.12em; font-family: 'IBM Plex Sans', sans-serif;">Part 2 — Deployment &amp; Runtime</h2>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Where code actually runs</h2>
+    <p>Your laptop is not the runtime. This sounds obvious and is the source of roughly half of all "but it worked for me" incidents.</p>
+    <p>Our stack runs on <strong>AWS EC2</strong>, in containers, 24/7. Code that runs on your machine has your environment variables, your Python version, your packages, your network access, your clock, and your filesystem. The server has none of those.</p>
+
+    <p>Three properties the runtime has that your laptop doesn't:</p>
+    <ul>
+      <li><strong>It's always on.</strong> That's the point — your laptop being closed can't be why a table is stale.</li>
+      <li><strong>It's small and shared.</strong> Genuinely small — our scheduler host has run on well under a gigabyte of RAM while carrying the scheduler, the web UI, and every pipeline. Memory is a real constraint here, and it shows up in real design decisions (below).</li>
+      <li><strong>Nobody is watching it.</strong> There's no terminal. If your code prints something and nothing captures it, that output never existed.</li>
+    </ul>
+
+    <div class="callout">
+      <div class="callout-title">Ask before you assume</div>
+      <p>Where things run, what's installed, and who has access change over time and aren't worth memorizing from a training page. Ask your QD lead for current access and the deployment runbook. What's worth carrying is the <em>mindset</em>: the runtime is a different machine than yours, and it will punish every assumption you didn't check.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Scheduling: code that runs without you</h2>
+    <p>The canonical QD job: <em>"pull yesterday's data every morning before we need it."</em> Nobody types that command. It's scheduled.</p>
+    <p>We do this two different ways, and the difference is instructive.</p>
+
+    <h3 style="margin-top: 2rem;">Airflow &mdash; the data pipeline</h3>
+    <p><strong>Airflow is a scheduler.</strong> That's the one-sentence version, and it's most of what you need this week.</p>
+    <p>You describe your job in a Python file: what to run, how often, what to do if it fails. Airflow's scheduler reads that file, fires the job on schedule, records whether each run succeeded, retries what it's told to retry, and gives you a web UI showing green and red squares per day. That's the deal — <em>you</em> write the work, <em>Airflow</em> decides when it happens and remembers what happened.</p>
+
+    <p>Three words you'll see constantly:</p>
+    <ul>
+      <li><strong>DAG</strong> — the Python file describing a schedulable job. It stands for "directed acyclic graph," because tasks can depend on each other and cycles would never finish. <em>All three of ours have exactly one task</em>, so the graph part isn't doing much work here yet.</li>
+      <li><strong>Operator</strong> — one unit of work. Ours are all <code>PythonOperator</code>: "call this function."</li>
+      <li><strong>Task instance</strong> — one operator on one date. This is the thing that succeeds or fails, and the square you see in the UI.</li>
+    </ul>
+
+    <p>We run one DAG per data pipeline. Each fires early in the morning, a few minutes apart, and does one thing: run that pipeline's Orchestrator against its config. A DAG per pipeline, a task per DAG.</p>
+
+    <p>Here's the shape of one, lightly simplified. It's shorter than you'd expect:</p>
+
+    <pre><code>local_tz = pendulum.timezone("America/New_York")
+
+default_args = {
+    "owner": "airflow",
+    "depends_on_past": False,
+    "email_on_failure": True,
+    "email_on_retry": False,
+    "retries": 1,
+    "retry_delay": timedelta(minutes=5),
+}
+
+def run_pipeline(**kwargs):
+    import asyncio                                    # ← note: imports inside the function
+    from utils.dynamic_loader import load_config
+    from src.orchestrator import Orchestrator
+
+    config = load_config(CONFIG_PATH)
+    orchestrator = Orchestrator(config=config)
+    asyncio.run(orchestrator.run())
+
+with DAG(
+    "data_pipeline_dag",
+    default_args=default_args,
+    schedule_interval="15 7 * * 1-5",   # weekdays 7:15 AM ET
+    start_date=datetime(2024, 12, 1, tzinfo=local_tz),
+    catchup=False,
+    max_active_runs=1,
+    tags=["data_pipeline"],
+) as dag:
+    PythonOperator(task_id="run_pipeline", python_callable=run_pipeline)</code></pre>
+
+    <p>Six details in that file are load-bearing. Read them in order:</p>
+
+    <ul>
+      <li><strong><code>schedule_interval</code> is cron syntax.</strong> Five fields — minute, hour, day, month, weekday. <code>15 7 * * 1-5</code> is "7:15, Monday through Friday." <code>1-5</code> and not <code>*</code> because markets are closed on weekends, and a run that finds no data is at best noise.</li>
+
+      <li><strong><code>America/New_York</code>, not UTC.</strong> The schedule is pinned to the market's timezone, so 7:15 AM ET stays 7:15 AM ET through daylight saving. This is a deliberate choice and the right one for market data: the thing we care about — the exchange session — moves with New York, so our schedule should too. Had we written it in UTC, the job would silently drift an hour twice a year relative to the open.</li>
+
+      <li><strong><code>catchup=False</code>.</strong> Airflow's default is the opposite: turn it on and a DAG with an old <code>start_date</code> will, on first deploy, try to run every day since — hundreds of runs, at once, on the smallest machine we own. <code>catchup=False</code> says "only run from now on." Backfills are a deliberate act, not a side effect of deploying.</li>
+
+      <li><strong><code>max_active_runs=1</code>.</strong> Never two copies of this pipeline at once. If yesterday's run is somehow still going, today's waits.</li>
+
+      <li><strong><code>retries: 1</code> + <code>retry_delay: 5 minutes</code>.</strong> One retry, five minutes later. This is the "transient failure" bet — a vendor blip resolves in five minutes; a real bug doesn't, and burning ten retries on it just delays the email.</li>
+
+      <li><strong><code>email_on_failure: True</code>.</strong> The whole alerting story. There's no dashboard and no pager — if a DAG fails, an email goes out, and someone has to read it.</li>
+    </ul>
+
+    <h3 style="margin-top: 2.5rem;">The imports inside the function</h3>
+    <p>That's the detail most worth understanding, because it's a real constraint leaving a fingerprint on real code.</p>
+    <p>Airflow's scheduler <strong>re-parses every DAG file, constantly</strong> — that's how it notices changes. Parsing means executing everything at module level. So a top-level <code>import pandas</code> means pandas gets imported over and over, forever, just to work out what time it is.</p>
+    <p>On a small host, that's enough to blow Airflow's DAG-import timeout — at which point Airflow decides the DAG is broken and <em>stops scheduling it</em>. Your pipeline doesn't crash. It silently never runs.</p>
+    <p>Hence the pattern: keep the DAG file's module level trivially cheap, and defer the heavy imports into the task function, which only executes when the task actually runs. The comment in our DAGs says so outright.</p>
+
+    <div class="callout">
+      <div class="callout-title">And the staggering</div>
+      <p>7:00, 7:05, 7:15 — the DAGs are deliberately spaced a few minutes apart. Same reason: several pipelines starting simultaneously on a machine with under a gigabyte of RAM is memory pressure, and one of the DAGs says so in a comment right next to its schedule.</p>
+      <p style="margin-top: 1rem; font-size: 0.95rem;">This is what infrastructure constraints look like in practice. Not an architecture diagram — a five-minute offset and a comment explaining it. When you see an odd-looking number in a config, assume it's load-bearing until you learn otherwise.</p>
+    </div>
+
+    <h3 style="margin-top: 2.5rem;">cron &mdash; the trade engine</h3>
+    <p>Not everything here runs under Airflow. A job that fires once a day can just as well run on plain cron:</p>
+
+    <pre><code>30 9 * * *   sh /app/scripts/run_live_trend.sh >> /var/log/cron.log 2>&amp;1</code></pre>
+
+    <p>One line, one job, once a day at 09:30. Note what you give up versus Airflow: no run history, no retry policy, no UI, no failure email. And note the two details that still matter:</p>
+    <ul>
+      <li><strong><code>&gt;&gt; ... 2&gt;&amp;1</code></strong> — send stdout <em>and</em> stderr to a log file. Without <code>2&gt;&amp;1</code>, the error messages — the only part you actually want — go nowhere. Cron's default is to email them to a local mailbox nobody reads.</li>
+      <li><strong>Cron has no <code>PATH</code>.</strong> Not your shell's, anyway. This is the single most common cron failure: a bare <code>python</code> that works in your terminal and doesn't exist in cron's environment. Use absolute paths for everything.</li>
+    </ul>
+
+    <p>Why have both? Airflow earns its keep when you have several jobs, want retries, and benefit from run history. <strong>Cron is fine when one line is genuinely all you need</strong> — reaching for a scheduler to run a single daily binary is more machinery than problem. Match the tool to the job rather than standardizing for its own sake.</p>
+
+    <h3 style="margin-top: 2rem;">Ordering between jobs</h3>
+    <p>When one job's output is another's input, something has to sequence them. The blunt approach is <strong>a time gap</strong>: run the producer early, the consumer hours later, and rely on the slack. It's simple and it usually works.</p>
+    <p>What it costs is worth naming. A gap is not a dependency — the consumer doesn't <em>know</em> the producer succeeded, it just reads whatever is there and trusts it. Overrun the gap and the consumer runs on yesterday's data with no complaint from anyone. The alternative is an explicit dependency, where the consumer waits for a real signal. Either is defensible; drifting into the first without noticing you chose it is not.</p>
+
+    <h3 style="margin-top: 2rem;">Make it safe to run twice</h3>
+    <p>Schedulers retry. Humans re-run things by hand. A job that corrupts data when it runs twice is a job that will corrupt data.</p>
+    <p>The property you want is <strong>idempotency</strong> — running it again produces the same end state, not a doubled one. For a database write, that's usually one clause:</p>
+
+    <pre><code>-- Not this: a re-run silently doubles rows
+INSERT INTO some_table (...) VALUES (...);
+
+-- This: a re-run changes nothing
+INSERT INTO some_table (...) VALUES (...)
+ON CONFLICT DO NOTHING;</code></pre>
+
+    <p>Idempotency is what makes "just re-run it" a safe first response to a failure — and that matters more than it sounds, because it's the difference between a 3am incident you can act on and one you have to reason about first.</p>
+    <p>Know what the clause means, though: <code>DO NOTHING</code> skips rows that already exist, so <strong>a re-run fills gaps but never overwrites</strong>. <code>DO UPDATE</code> would be the opposite choice. Which one you want depends on whether a later fetch of the same day should be treated as a correction or as a duplicate.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Secrets and API keys</h2>
+    <p>Your code needs vendor API keys and the database password. None of them go in the repository — not in a config file, not in a notebook, not in a docstring, not "temporarily."</p>
+
+    <p><strong>Why this is absolute:</strong> git history is permanent. A key committed and deleted in the next commit is still in the history, still on every clone, and still on the remote. Removing it means rewriting history for everyone. And a leaked vendor key is a bill someone else runs up on the fund's subscription.</p>
+
+    <p>The mechanism is a <code>.env</code> file that is never committed. What <em>is</em> committed is <code>.env.template</code> — the shape, with placeholders and nothing real:</p>
+
+    <pre><code># .env.template  (committed — placeholders only)
+
+VENDOR_API_KEY=vendor-api-key
+
+DB_HOST=db-host
+DB_PORT=db-port
+DB_USER=db-user
+DB_PASSWORD=db-password
+DB_NAME=db-name</code></pre>
+
+    <p>You copy it to <code>.env</code>, fill in real values, and <code>.env</code> is gitignored. Code reads them from the environment:</p>
+
+    <pre><code>from dotenv import load_dotenv
+import os
+
+load_dotenv()
+key = os.environ["VENDOR_API_KEY"]      # KeyError immediately if unset</code></pre>
+
+    <p>The template is doing real work here, and it's a pattern worth reusing. It documents <em>which</em> variables the app needs without containing a single secret — so a new engineer can set up in minutes, and the list of required config never drifts out of date, because the app fails loudly the moment one is missing.</p>
+
+    <p>Use <code>os.environ["KEY"]</code>, not <code>os.environ.get("KEY")</code>. The bracket form fails immediately and loudly when the variable is missing. <code>.get()</code> returns <code>None</code>, which surfaces later as a confusing auth error — or worse, as a request that quietly returns no rows.</p>
+
+    <div class="callout">
+      <div class="callout-title">If you commit a key</div>
+      <p>Say so immediately — that day. The fix is to rotate the key, and rotation is routine. The failure mode that actually costs the fund is a key sitting in history for months because someone was embarrassed. Nobody is in trouble for reporting it; the only bad outcome is silence.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Common mistakes</h2>
+    <div class="mistakes-list">
+      <h4 style="margin-top: 0;">Seven ways infrastructure work goes wrong</h4>
+      <ul>
+        <li><strong>Catching every exception and continuing.</strong> <code>except: pass</code> turns a loud failure into a stale table that gets traded on for weeks. A deliberate skip still logs — skipping and hiding are different.</li>
+        <li><strong>Assuming the server is your laptop.</strong> Different environment, different packages, no <code>.env</code>, a fraction of the memory. "Works for me" is not a deployment.</li>
+        <li><strong>Heavy imports at the top of a DAG file.</strong> The scheduler re-parses constantly; blow the import timeout and Airflow silently stops scheduling your pipeline. It won't crash — it just never runs.</li>
+        <li><strong>Leaving <code>catchup</code> on.</strong> The default is <code>True</code>. Deploy a DAG with an old <code>start_date</code> and it will try to run every day since, all at once, on the smallest machine we own.</li>
+        <li><strong>Treating exit code zero as success.</strong> A job that wrote zero rows exits zero and shows green. Check the data, not the process.</li>
+        <li><strong>Assuming a re-run fixes bad data.</strong> <code>ON CONFLICT DO NOTHING</code> means a re-run won't overwrite what's already there. Re-running fills gaps; it does not correct rows.</li>
+        <li><strong>Hardcoding a key "just to test."</strong> Test commits get merged. Git history is permanent, and the key is live the moment it lands.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <a href="qd-week6.html" class="week-nav-button">← Week 6: The Trade Engine</a>
+    <a href="qd-week8.html" class="week-nav-button">Week 8: Testing &amp; Validation →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — QD Training Program // Internal Use Only
+</footer>
+
+<script>
+/* ── Hero canvas: pipeline graph with packets in flight ───────── */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('w7-canvas');
+  const ctx    = canvas.getContext('2d');
+
+  let W, H, nodes = [], packets = [];
+
+  function layout() {
+    const N = 5;
+    nodes = [];
+    for (let i = 0; i < N; i++) {
+      nodes.push({
+        x: W * (0.10 + 0.20 * i),
+        y: H * 0.5 + Math.sin(i * 1.25 + 0.6) * H * 0.17,
+        pulse: 0,
+      });
+    }
+  }
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+    layout();
+  }
+
+  function spawn() {
+    packets.push({ seg: 0, t: 0, speed: 0.00055 + Math.random() * 0.00045 });
+  }
+
+  let acc = 0;
+  let lastTs = null;
+
+  function frame(ts) {
+    if (lastTs === null) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    ctx.clearRect(0, 0, W, H);
+
+    ctx.lineWidth = 1.2;
+    ctx.strokeStyle = 'rgba(255, 238, 215, 0.13)';
+    for (let i = 0; i < nodes.length - 1; i++) {
+      ctx.beginPath();
+      ctx.moveTo(nodes[i].x, nodes[i].y);
+      ctx.lineTo(nodes[i + 1].x, nodes[i + 1].y);
+      ctx.stroke();
+    }
+
+    acc += dt;
+    if (acc > 900) { acc = 0; spawn(); }
+
+    for (let p = packets.length - 1; p >= 0; p--) {
+      const pk = packets[p];
+      pk.t += dt * pk.speed;
+      if (pk.t >= 1) {
+        pk.t = 0;
+        pk.seg++;
+        if (pk.seg >= nodes.length - 1) { packets.splice(p, 1); continue; }
+        nodes[pk.seg].pulse = 1;
+      }
+      const a = nodes[pk.seg], b = nodes[pk.seg + 1];
+      const x = a.x + (b.x - a.x) * pk.t;
+      const y = a.y + (b.y - a.y) * pk.t;
+
+      const g = ctx.createRadialGradient(x, y, 0, x, y, 11);
+      g.addColorStop(0, 'rgba(255, 165, 80, 0.85)');
+      g.addColorStop(1, 'rgba(255, 125, 42, 0)');
+      ctx.beginPath();
+      ctx.arc(x, y, 11, 0, 6.283185);
+      ctx.fillStyle = g;
+      ctx.fill();
+
+      ctx.beginPath();
+      ctx.arc(x, y, 2.4, 0, 6.283185);
+      ctx.fillStyle = 'rgba(255, 200, 150, 0.95)';
+      ctx.fill();
+    }
+
+    for (const n of nodes) {
+      if (n.pulse > 0) n.pulse = Math.max(0, n.pulse - dt * 0.0016);
+      const r = 5 + n.pulse * 4;
+
+      if (n.pulse > 0) {
+        ctx.beginPath();
+        ctx.arc(n.x, n.y, r + 7 * n.pulse, 0, 6.283185);
+        ctx.strokeStyle = `rgba(255, 125, 42, ${(n.pulse * 0.5).toFixed(3)})`;
+        ctx.lineWidth = 1;
+        ctx.stroke();
+      }
+
+      ctx.beginPath();
+      ctx.arc(n.x, n.y, r, 0, 6.283185);
+      ctx.fillStyle = '#0e0d0c';
+      ctx.fill();
+      ctx.strokeStyle = `rgba(255, 125, 42, ${(0.45 + n.pulse * 0.55).toFixed(3)})`;
+      ctx.lineWidth = 1.6;
+      ctx.stroke();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
+
+<script src="cursor.js"></script>
+</body>
+</html>
