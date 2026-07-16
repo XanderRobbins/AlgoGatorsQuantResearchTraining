@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 3: FX & Commodity Markets — QD Training</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="icon" type="image/png" href="Delta.png">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">QD Training Hub</span>
+  </div>
+  <div class="nav-links">
+    <a href="qd.html">Home</a>
+    <a href="qd-week1.html">W1</a>
+    <a href="qd-week2.html">W2</a>
+    <a href="qd-week3.html" class="active">W3</a>
+    <a href="qd-week4.html">W4</a>
+    <a href="qd.html#week-5">W5</a>
+    <a href="qd.html#week-6">W6</a>
+  </div>
+</nav>
+
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="w3-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Week 03 &mdash; Phase 1: Foundations</div>
+    <h1>FX &amp; Commodity<br>Markets</h1>
+    <div class="week-hero-pill">Section 1 — Hypothesis</div>
+    <p class="week-hero-objective">Understand what drives prices in FX and commodity markets. Know the structural and behavioral forces that create edges in the markets where AlgoGators trades most actively.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="ip-anchor">
+    <span class="ip-anchor-label">IP Anchor</span>
+    <span class="ip-anchor-section">Section 1 — Hypothesis</span>
+    <span class="ip-anchor-desc">You can only write a hypothesis about markets you understand. This week builds the FX and commodity foundation.</span>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">What this week covers</h2>
+    <p>Markets are not interchangeable. FX is driven by interest rate differentials and central bank policy. Commodities have storage costs, seasonal patterns, and convenience yields that shape their term structures. This week walks through the core mechanics of both asset classes, how prices are determined, and where AlgoGators finds edges. Next week covers fixed income and equity factors.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">FX markets</h2>
+
+    <h3 style="margin-top: 1.5rem;">Core mechanics</h3>
+    <p>FX spot rates are determined by supply and demand for each currency. The forward rate (price locked in today for delivery in the future) incorporates the spot rate plus the cost of carry — primarily the interest rate differential between the two currencies.</p>
+
+    <p><strong>Covered Interest Parity:</strong> The relationship between spot, forward, and interest rates.</p>
+    \[ F = S \cdot \frac{1 + r_d}{1 + r_f} \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where F = forward rate, S = spot rate, r_d = domestic interest rate, r_f = foreign interest rate.</p>
+
+    <p style="margin-top: 1.5rem;">If you borrow low-yield currency and lend high-yield currency, you're paid the interest differential. This is the <strong>carry trade</strong> — and it's structurally persistent because the interest differential reflects real economic differences.</p>
+
+    <h3 style="margin-top: 1.5rem;">What drives FX rates</h3>
+    <ul>
+      <li><strong>Interest rate differentials:</strong> Higher rates attract capital. A currency with higher rates should trade at a forward discount (future depreciation) to equalize returns. (This is interest parity.)</li>
+      <li><strong>Inflation:</strong> Purchasing power parity: currencies with higher inflation should depreciate. Long-term anchor on spot rates.</li>
+      <li><strong>Current account flows:</strong> A country with a trade surplus (exports > imports) accumulates foreign currency. Currencies strengthen on current account surpluses.</li>
+      <li><strong>Central bank intervention:</strong> Dramatic moves come from policy shifts. ECB rate hikes in 2022–2023 drove EUR appreciation.</li>
+    </ul>
+
+    <h3 style="margin-top: 1.5rem;">The edge: Uncovered Interest Parity failure</h3>
+    <p>Theory says: if interest rates in Country A are 3% and in Country B are 1%, the currency of B should depreciate by roughly 2% per year to equalize returns. This is <em>covered</em> interest parity.</p>
+    <p>But <em>uncovered</em> interest parity (the weaker version: speculators fully arbitrage the forward market) fails empirically. The high-yield currency often appreciates, not depreciates. Carry trades (borrow low, lend high) have been profitable for decades. This is a structural edge — hedgers need to pay speculators a risk premium to take on currency risk.</p>
+
+    <h3 style="margin-top: 1.5rem;">Key FX instruments</h3>
+    <div class="card">
+      <p><strong>Spot:</strong> Delivery in 2 business days. The reference price. Most liquid in EUR/USD, USD/JPY, GBP/USD, USD/CHF, AUD/USD.</p>
+      <p style="margin-top: 0.5rem;"><strong>Forwards:</strong> OTC bilateral agreement locking in an exchange rate for future delivery. Carry risk from interest rate differentials. Counterparty risk (no exchange clearinghouse).</p>
+      <p style="margin-top: 0.5rem;"><strong>FX Futures:</strong> Exchange-traded forwards. CME offers EUR, GBP, JPY, AUD, CAD futures. Standardized contract sizes (EUR: 125,000 per contract). Daily mark-to-market. Clearinghouse eliminates counterparty risk.</p>
+      <p style="margin-top: 0.5rem;"><strong>Cross rates:</strong> Pairs that don't involve USD (e.g., EUR/GBP, EUR/JPY). Higher spreads, sometimes lower liquidity.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Commodity futures</h2>
+
+    <h3 style="margin-top: 1.5rem;">Core mechanics</h3>
+    <p>Commodity futures have a term structure (different prices for different delivery months). The shape of this term structure — whether it slopes upward (contango) or downward (backwardation) — tells you something important about supply and demand.</p>
+
+    <div class="card">
+      <p><strong>Contango:</strong> Forward prices are higher than spot. Incentive to store the commodity now and sell later (at the higher future price). Storage costs are worth it.</p>
+      <p><strong>Backwardation:</strong> Forward prices are lower than spot. Incentive to sell now (spot) rather than store. Usually signals supply tightness or high convenience value.</p>
+    </div>
+
+    <h3 style="margin-top: 1.5rem;">Cost of carry</h3>
+    <p>The fair value of a commodity forward is determined by storage costs and convenience yield:</p>
+    \[ F = S \cdot e^{(r + u - c)T} \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where u = cost of storage, c = convenience yield (benefits of holding physical commodity), r = interest rate, T = time to maturity.</p>
+
+    <p style="margin-top: 1.5rem;"><strong>Roll yield:</strong> A strategy that is long front-month futures and rolls into the next contract before expiry. In backwardation (front > back), rolling captures positive yield. In contango (front &lt; back), rolling costs money.</p>
+
+    <h3 style="margin-top: 1.5rem;">What drives commodity prices</h3>
+    <ul>
+      <li><strong>Supply and demand:</strong> Weather, production, geopolitical shocks. Real, physical constraint.</li>
+      <li><strong>Inventory levels:</strong> High inventory signals low convenience yield (storage is easy). Low inventory signals high convenience yield (supply is tight).</li>
+      <li><strong>Seasonality:</strong> Crop cycles are predictable. Planting, growing, harvest seasons drive seasonal price swings.</li>
+      <li><strong>Speculation vs. hedging:</strong> Hedgers (producers, consumers) are net long or short based on their physical needs. Speculators take the other side. When speculators become crowded long, prices often reverse.</li>
+    </ul>
+
+    <h3 style="margin-top: 1.5rem;">The edge: Roll yield and seasonality</h3>
+    <p>Both are structural. Roll yield is determined by physical costs (storage, convenience). Seasonality is driven by harvest cycles. These don't change just because traders learn about them. AlgoGators operates in both — roll yield strategies are core to the commodity book, and satellite weather data gives us a seasonal signal advantage.</p>
+
+    <h3 style="margin-top: 1.5rem;">Commodity contract mechanics</h3>
+    <div class="card">
+      <p style="font-weight: 600; margin-bottom: 0.75rem;">Example: CBOT Corn Futures (ZC)</p>
+      <table style="font-size: 0.88rem; width: 100%;">
+        <tbody>
+          <tr><td style="padding: 0.3rem 0; color: var(--text-secondary); width: 40%;">Underlying</td><td>No. 2 Yellow Corn</td></tr>
+          <tr><td style="padding: 0.3rem 0; color: var(--text-secondary);">Contract Size</td><td>5,000 bushels</td></tr>
+          <tr><td style="padding: 0.3rem 0; color: var(--text-secondary);">Price Quotation</td><td>Cents per bushel</td></tr>
+          <tr><td style="padding: 0.3rem 0; color: var(--text-secondary);">Tick Size</td><td>¼ cent/bushel = $12.50/contract</td></tr>
+          <tr><td style="padding: 0.3rem 0; color: var(--text-secondary);">Delivery Months</td><td>Mar, May, Jul, Sep, Dec</td></tr>
+          <tr><td style="padding: 0.3rem 0; color: var(--text-secondary);">Last Trading Day</td><td>Business day prior to 15th of delivery month</td></tr>
+          <tr><td style="padding: 0.3rem 0; color: var(--text-secondary);">Settlement</td><td>Physical delivery</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Chart: Term structure shapes</h2>
+    <div class="chart-container">
+      <canvas id="termStructureChart"></canvas>
+    </div>
+    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">Commodity futures term structures. Corn (orange) in backwardation: front-month contracts at a premium. This signals supply tightness and produces positive roll yield. Wheat (blue) in contango: forward prices are higher. Rolling these contracts will lose money.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Common mistakes</h2>
+    <div class="mistakes-list">
+      <h4 style="margin-top: 0;">Five false assumptions about FX and commodity markets</h4>
+      <ul>
+        <li><strong>Assuming FX forwards already price in your edge.</strong> If the forward market is efficient, you can't profit from interest rate differentials alone. The edge must come from mispricing of the forward, not the differential itself. UIP failure is the edge — not CIP (which holds tightly).</li>
+        <li><strong>Commodity strategy without accounting for roll yield drag.</strong> Roll costs compound. A strategy with 12% gross Sharpe can have 8% net Sharpe after roll costs. Always model this.</li>
+        <li><strong>Confusing futures prices with spot prices.</strong> A futures contract expiring in 6 months is NOT the same as the spot asset. The futures price is pinned to spot + carry at expiry, but before expiry they can diverge significantly.</li>
+        <li><strong>Ignoring seasonality as a confounder.</strong> When you see a pattern in corn prices, always check whether it's seasonal (known to market) vs. something incremental. Seasonal patterns are known — your edge must beat the seasonal baseline.</li>
+        <li><strong>Not understanding the roll schedule for your contract.</strong> Different commodity contracts roll at different times. Getting caught in a contract on first-notice day means unexpected physical delivery risk. Know your contract's roll rules cold.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <a href="qd-week2.html" class="week-nav-button">← Week 2: Derivatives &amp; Mechanics</a>
+    <a href="qd-week4.html" class="week-nav-button">Week 4: Fixed Income &amp; Equity Factors →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — QD Training Program // Internal Use Only
+</footer>
+
+<script>
+  const ctx = document.getElementById('termStructureChart').getContext('2d');
+
+  const maturities = ['Front', '2nd', '3rd', '4th', 'Far'];
+
+  // Corn in backwardation
+  const cornPrices = [420, 415, 410, 408, 406];
+
+  // Wheat in contango
+  const wheatPrices = [620, 625, 628, 630, 632];
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: maturities,
+      datasets: [
+        {
+          label: 'Corn (Backwardation — positive roll)',
+          data: cornPrices,
+          borderColor: '#FF9500',
+          borderWidth: 3,
+          pointRadius: 5,
+          pointBackgroundColor: '#FF9500',
+          tension: 0.3,
+          fill: false
+        },
+        {
+          label: 'Wheat (Contango — negative roll)',
+          data: wheatPrices,
+          borderColor: '#4a86e8',
+          borderWidth: 3,
+          pointRadius: 5,
+          pointBackgroundColor: '#4a86e8',
+          tension: 0.3,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: { color: '#888888', font: { family: "'IBM Plex Mono'" } }
+        }
+      },
+      scales: {
+        x: {
+          ticks: { color: '#888888' },
+          grid: { color: '#1f1f1f' }
+        },
+        y: {
+          min: 390,
+          max: 645,
+          grid: { color: '#1f1f1f' },
+          ticks: { color: '#888888' },
+          title: { display: true, text: 'Contract Price ($/unit)', color: '#888' }
+        }
+      }
+    }
+  });
+</script>
+
+<script>
+/* Week 3 — multi-series streaming line chart (FX / commodity pairs) */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('w3-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  const SERIES_COUNT = 5;
+  const POINTS = 180;
+const ALPHAS  = [0.45, 0.30, 0.22, 0.18, 0.13];
+  const WIDTHS  = [1.8,  1.2,  1.0,  0.8,  0.7];
+
+  const series = [];
+
+  function makeSeries() {
+    const mom  = { v: 0 };
+    const pts  = [];
+    let p = 0.25 + Math.random() * 0.50;
+    for (let i = 0; i < POINTS; i++) {
+      mom.v = mom.v * 0.7 + (Math.random() - 0.49) * 0.030;
+      mom.v = Math.max(-0.05, Math.min(0.05, mom.v));
+      p = Math.max(0.08, Math.min(0.92, p + mom.v));
+      pts.push(p);
+    }
+    return { pts, mom, offset: 0, phase: Math.random() * 1000 };
+  }
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+  }
+
+  for (let i = 0; i < SERIES_COUNT; i++) series.push(makeSeries());
+
+  let lastTs = null;
+
+  function frame(ts) {
+    if (!lastTs) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    ctx.clearRect(0, 0, W, H);
+
+    const dx = W / (POINTS - 1);
+
+    series.forEach((s, si) => {
+      s.offset += dt * 0.010 * (0.8 + si * 0.12);
+      while (s.offset >= dx) {
+        s.offset -= dx;
+        s.mom.v = s.mom.v * 0.7 + (Math.random() - 0.49) * 0.030;
+        s.mom.v = Math.max(-0.05, Math.min(0.05, s.mom.v));
+        const last = s.pts[s.pts.length - 1];
+        const next = Math.max(0.08, Math.min(0.92, last + s.mom.v));
+        s.pts.shift();
+        s.pts.push(next);
+      }
+
+      ctx.beginPath();
+      ctx.lineWidth   = WIDTHS[si];
+      ctx.strokeStyle = `rgba(255,125,42,${ALPHAS[si]})`;
+      ctx.lineJoin    = 'round';
+
+      for (let i = 0; i < s.pts.length; i++) {
+        const x = i * dx - s.offset;
+        const y = s.pts[i] * H;
+        if (i === 0) ctx.moveTo(x, y);
+        else         ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    });
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
+
+<script src="cursor.js"></script>
+</body>
+</html>
