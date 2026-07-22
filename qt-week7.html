@@ -20,11 +20,11 @@
   </div>
   <div class="nav-links">
     <a href="qt.html">Home</a>
-    <a href="week1.html">W1</a>
-    <a href="week2.html">W2</a>
-    <a href="week3.html">W3</a>
-    <a href="week4.html">W4</a>
-    <a href="week5.html">W5</a>
+    <a href="qt-week1.html">W1</a>
+    <a href="qt-week2.html">W2</a>
+    <a href="qt-week3.html">W3</a>
+    <a href="qt-week4.html">W4</a>
+    <a href="qt-week5.html">W5</a>
     <a href="qt-week6.html">W6</a>
     <a href="qt-week7.html" class="active">W7</a>
     <a href="qt-week8.html">W8</a>
@@ -48,7 +48,7 @@
 
   <div class="section">
     <h2 class="section-title">What this week covers</h2>
-    <p><a href="week4.html">W4</a> introduced the major equity factors — Market, Size (SMB), Value (HML), Momentum (UMD), Quality, Low Vol — and noted that they have multi-year drawdowns. This week is how to actually <em>use</em> them: regress portfolio returns on factor returns to read off exposures and separate alpha from beta.</p>
+    <p><a href="qt-week4.html">W4</a> introduced the major equity factors — Market, Size (SMB), Value (HML), Momentum (UMD), Quality, Low Vol — and noted that they have multi-year drawdowns. This week is how to actually <em>use</em> them: regress portfolio returns on factor returns to read off exposures and separate alpha from beta.</p>
     <p>By Friday you should be able to:</p>
     <ul>
       <li>Write down the <strong>Fama-French three-factor model</strong> and explain how SMB and HML are <em>constructed</em> (not just defined).</li>
@@ -117,7 +117,7 @@
 
   <div class="section">
     <h2 class="section-title">How Fama-French actually builds SMB and HML</h2>
-    <p><a href="week4.html">W4</a> told you what SMB and HML <em>mean</em> ("Small Minus Big", "High Minus Low book-to-market"). The factor returns Fama and French publish on their <a href="https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html">data library</a> are not just SMB = small-cap index minus large-cap index. They come from a specific <strong>2×3 sort</strong> that isolates each premium from the other.</p>
+    <p><a href="qt-week4.html">W4</a> told you what SMB and HML <em>mean</em> ("Small Minus Big", "High Minus Low book-to-market"). The factor returns Fama and French publish on their <a href="https://mba.tuck.dartmouth.edu/pages/faculty/ken.french/data_library.html">data library</a> are not just SMB = small-cap index minus large-cap index. They come from a specific <strong>2×3 sort</strong> that isolates each premium from the other.</p>
 
     <p>Every June, the universe (NYSE + AMEX + NASDAQ common stocks) is sorted on two characteristics simultaneously:</p>
     <ol>
@@ -141,7 +141,7 @@
     <p>The Fama-French recipe generalizes. Any cross-sectional stock characteristic can be turned into a factor by sorting and going long-short.</p>
 
     <ol>
-      <li><strong>Pick a characteristic.</strong> It must be (a) measurable from public data, (b) cross-sectionally varying — every stock has a different value, (c) tied to an economic mechanism you can defend (recall <a href="week1.html">W1</a>: hypothesis before backtest).</li>
+      <li><strong>Pick a characteristic.</strong> It must be (a) measurable from public data, (b) cross-sectionally varying — every stock has a different value, (c) tied to an economic mechanism you can defend (recall <a href="qt-week1.html">W1</a>: hypothesis before backtest).</li>
       <li><strong>Rank and sort.</strong> At each rebalance, rank the universe on the characteristic. The split is a design choice — median (2 buckets), 30/70 (3 buckets, the Fama-French convention), 10/90, or quintiles/deciles. Finer sorts give cleaner separation between top and bottom; coarser sorts give larger, more diversified buckets.</li>
       <li><strong>Form the long-short portfolio.</strong> Long the top quintile (or decile), short the bottom. Value-weight within each quintile. The factor return is the spread.
       \[ F_{t}^{\mathrm{custom}} = R_{\mathrm{top}, t} - R_{\mathrm{bottom}, t} \]
@@ -201,7 +201,7 @@ print(model.summary())</code></pre>
     <p>Three notes on the regression itself:</p>
     <ul>
       <li><strong>Use monthly, not daily, data.</strong> Daily factor returns are noisier and microstructure effects dominate. The Fama-French data library publishes monthly series specifically because of this.</li>
-      <li><strong>Use Newey-West standard errors.</strong> <a href="week5.html">W5</a> covered the autocorrelation problem; the HAC adjustment here is the fix. Without it, the t-stats on the betas are wrong.</li>
+      <li><strong>Use Newey-West standard errors.</strong> <a href="qt-week5.html">W5</a> covered the autocorrelation problem; the HAC adjustment here is the fix. Without it, the t-stats on the betas are wrong.</li>
       <li><strong>Lookback ≥ 60 months.</strong> Five years of monthly data is the Fama-MacBeth standard; 36 months is the bare minimum. With fewer observations the betas have standard errors larger than the betas themselves.</li>
     </ul>
   </div>
@@ -268,7 +268,7 @@ print(model.summary())</code></pre>
       <p>Given the decomposition above, the QT takeaway is:</p>
       <ul style="margin-top: 0.6rem;">
         <li>Report the betas in the monthly tear sheet, not just total return — investors should know the portfolio is mostly a market + momentum bet.</li>
-        <li>If a peer momentum factor enters a drawdown (e.g., the 2009 momentum crash referenced in <a href="week4.html">W4</a>), this portfolio is expected to lose roughly 0.35× the factor return, before any idiosyncratic effects.</li>
+        <li>If a peer momentum factor enters a drawdown (e.g., the 2009 momentum crash referenced in <a href="qt-week4.html">W4</a>), this portfolio is expected to lose roughly 0.35× the factor return, before any idiosyncratic effects.</li>
         <li>To claim alpha, the portfolio needs a positive intercept with t-stat &gt; 2 on a 36+ month window. Right now it doesn't have one — keep collecting data and re-run quarterly.</li>
       </ul>
     </div>
@@ -281,7 +281,7 @@ print(model.summary())</code></pre>
       <ul>
         <li><strong>Confusing alpha with beta.</strong> A portfolio loading 0.5 on momentum during a +20% momentum year will look great. That's not alpha — it's a paid exposure. The alpha is what's left after subtracting the expected return from each factor exposure.</li>
         <li><strong>Using too short a window.</strong> Fewer than 36 monthly observations and the standard errors on the betas swamp the estimates. The Fama-French publishes monthly precisely so you accumulate enough history.</li>
-        <li><strong>Ignoring multicollinearity.</strong> <a href="week5.html">W5</a> covered VIF. Quality, low-vol, and profitability factors are highly correlated. Adding them all at once produces unstable coefficients even though \( R^2 \) goes up.</li>
+        <li><strong>Ignoring multicollinearity.</strong> <a href="qt-week5.html">W5</a> covered VIF. Quality, low-vol, and profitability factors are highly correlated. Adding them all at once produces unstable coefficients even though \( R^2 \) goes up.</li>
         <li><strong>Treating betas as static.</strong> Loadings shift across regimes — a trend strategy has \( \beta_{\mathrm{MOM}} \approx 0.6 \) in trending markets and \( \beta_{\mathrm{MOM}} \approx 0.1 \) in chop. Rolling-window regression (e.g., 36-month windows updated monthly) is the standard fix.</li>
       </ul>
     </div>

@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 1: What Is a Research Edge? — QT Training</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="icon" type="image/png" href="Delta.png">
+
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">QT Training Hub</span>
+  </div>
+  <div class="nav-links">
+    <a href="qt.html">Home</a>
+    <a href="qt-week1.html" class="active">W1</a>
+    <a href="qt-week2.html">W2</a>
+    <a href="qt-week3.html">W3</a>
+    <a href="qt-week4.html">W4</a>
+    <a href="qt-week5.html">W5</a>
+    <a href="qt-week6.html">W6</a>
+    <a href="qt-week7.html">W7</a>
+    <a href="qt-week8.html">W8</a>
+    <a href="qt-week9.html">W9</a>
+    <a href="qt-week10.html">W10</a>
+  </div>
+</nav>
+
+<!-- ── Hero ───────────────────────────────────────────────────── -->
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="w1-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Week 01 &mdash; Phase 1: Foundations</div>
+    <h1>What Is a<br>Research Edge?</h1>
+    <div class="week-hero-pill">Foundation for all four IP sections</div>
+    <p class="week-hero-objective">Understand the difference between a signal and an edge, and why most backtests fail to prove either.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="ip-anchor">
+    <span class="ip-anchor-label">IP Anchor</span>
+    <span class="ip-anchor-section">Foundation for all four IP sections</span>
+    <span class="ip-anchor-desc">Every hypothesis must explain WHY, not just THAT. This week frames the entire research process.</span>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">What this week covers</h2>
+    <p>An edge is a systematic, repeatable source of alpha grounded in an economic or behavioral reason. This week separates genuine edges from coincidences, distinguishes between two types of inefficiency, clarifies what QR owns (and doesn't), and explains why the base rate of real signals is so low that you need a hypothesis BEFORE you test.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">What "edge" actually means</h2>
+    <p>An edge is <em>not</em> a pattern. An edge is a reason the pattern exists.</p>
+    <p>If you backtest 100 trading signals, roughly 5 will produce positive returns at p &lt; 0.05 by pure chance. The ones that do are noise, not edges. The difference between noise and signal is whether you can write down the economic cause in one clear sentence.</p>
+    <p>Consider three examples:</p>
+    <ul>
+      <li><strong>Not an edge:</strong> "Corn prices go up in July and August." This is an observation. It might be noise. Why does it happen?</li>
+      <li><strong>An edge:</strong> "Growing-season weather anomalies predict corn yield surprises, which are not fully priced until USDA reports are released." This explains the mechanism.</li>
+      <li><strong>Not an edge:</strong> "The S&amp;P 500 has positive momentum in Q4." Observation, but not a mechanism.</li>
+      <li><strong>An edge:</strong> "Investors systematically underreact to earnings news, causing prices to drift in the direction of the surprise over 3–12 months (underreaction effect). Short-selling constraints prevent arbitrageurs from eliminating this." This explains why the pattern exists and why it persists.</li>
+    </ul>
+    <p><strong>The test:</strong> If you can't explain in one sentence why the pattern exists, you don't have a hypothesis — you have a coincidence.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Two types of edge</h2>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">Behavioral Inefficiency</h3>
+      <p>Market participants systematically misbehave. They anchor to historical prices, they have a disposition effect (reluctance to realize losses), they herd. These behavioral biases are well-documented.</p>
+      <p><strong>Example:</strong> Momentum edge. Investors underreact to earnings surprises. Prices drift in the direction of the surprise for months.</p>
+      <p><strong>Why it degrades:</strong> As the pattern becomes well-known, arbitrageurs move in and compress the edge. Once everyone knows about momentum, it's smaller than it was. Behavioral edges are an arms race against the field learning the same thing you did.</p>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">Structural Inefficiency</h3>
+      <p>Market structure itself forces suboptimal behavior. Producers must hedge crops every year (can't avoid it). Index funds must rebalance on scheduled dates. Futures contracts require rolling (and the roll carries a cost). These are not behavioral choices — they are structural constraints.</p>
+      <p><strong>Example:</strong> Commodity contango roll yield. Futures in contango (forward prices higher than spot) mean rolling long positions captures negative roll yield. This is structurally persistent because supply and storage costs are real.</p>
+      <p><strong>Why it persists:</strong> Structural inefficiencies are more durable because they don't disappear when the pattern becomes known. The underlying constraint doesn't go away.</p>
+    </div>
+
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>Dimension</th>
+          <th>Behavioral Inefficiency</th>
+          <th>Structural Inefficiency</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Cause</strong></td>
+          <td>Systematic misbehavior (anchoring, herding, disposition effect)</td>
+          <td>Market structure constraints (hedging, rebalancing, storage, rolling)</td>
+        </tr>
+        <tr>
+          <td><strong>Example</strong></td>
+          <td>Momentum, post-earnings drift</td>
+          <td>Roll yield, index rebalancing effects, CTA positioning</td>
+        </tr>
+        <tr>
+          <td><strong>Degradation</strong></td>
+          <td>Compresses as pattern becomes known (arms race)</td>
+          <td>Persists; constraint doesn't disappear</td>
+        </tr>
+        <tr>
+          <td><strong>Arbitrage resistance</strong></td>
+          <td>Lower (competing hedge funds can attack it)</td>
+          <td>Higher (can't eliminate the underlying constraint)</td>
+        </tr>
+        <tr>
+          <td><strong>Typical Sharpe*</strong></td>
+          <td>0.8–1.5 (live)</td>
+          <td>1.0–2.0+ (live)</td>
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">What QR does and doesn't own</h2>
+
+    <div class="card">
+      <h3 style="margin-top: 0; color: var(--success);">QR Responsibility</h3>
+      <ul style="font-size: 0.95rem;">
+        <li><strong>Hypothesis:</strong> The economic mechanism and predicted relationship (Section 1)</li>
+        <li><strong>Data:</strong> Identifying, sourcing, and cleaning the data; QD approval gate (Section 2)</li>
+        <li><strong>Methodology:</strong> Signal construction, model assumptions, parameter definitions (Section 3)</li>
+        <li><strong>Backtest:</strong> Running the test, reporting results, and validating assumptions (Section 4)</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top: 0; color: var(--text-secondary);">QT Responsibility</h3>
+      <ul style="font-size: 0.95rem;">
+        <li><strong>Risk sizing:</strong> How large a position given your edge and the portfolio? How much capital?</li>
+        <li><strong>Position limits:</strong> What's the maximum per-position limit? Sector concentration?</li>
+        <li><strong>Portfolio fit:</strong> Does this strategy correlate with existing strategies? Does it diversify or concentrate risk?</li>
+        <li><strong>Liquidity:</strong> Can we actually execute this at scale without moving the market?</li>
+      </ul>
+    </div>
+
+    <div class="card">
+      <h3 style="margin-top: 0; color: var(--text-secondary);">QD Responsibility</h3>
+      <ul style="font-size: 0.95rem;">
+        <li><strong>Implementation:</strong> Writing the code to execute your signal</li>
+        <li><strong>Data engineering:</strong> Ingesting data, building pipelines, ensuring data quality</li>
+        <li><strong>Live execution:</strong> Orders, fills, market impact, infrastructure</li>
+      </ul>
+      <p style="font-size: 0.9rem; color: var(--text-secondary); margin-top: 1rem;"><em>Why the separation?</em> QR documents what should be true. QD implements it. QT manages risk and ensures it fits the portfolio. Written IP only — no code handoff between QR and QD.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Signal vs. noise</h2>
+    <p>The core statistical problem: most patterns are noise. How do you tell the difference?</p>
+    <p>Fisher's Fundamental Problem: If you run 100 tests, about 5 will produce p-values &lt; 0.05 by chance alone, even if all your hypotheses are false. This is not a mistake — it's mathematics.</p>
+    <p>The solution is not to use a lower p-value threshold. The solution is to <strong>specify the hypothesis before running the test</strong>.</p>
+    <p style="font-style: italic;">When you look at the data first and then form a hypothesis based on what you see, you are already looking at the result. The test cannot tell you whether this result is real or chance.</p>
+
+    <p style="margin-top: 2rem;"><strong>What does a real signal look like?</strong></p>
+    <p>A signal that predicts returns should show up repeatedly across different time periods, subsets of the data, and slightly different model specifications. If your backtest result only appears with one specific set of parameters, on the exact data you optimized on, it's probably noise.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Math: The Sharpe Ratio</h2>
+    <p>The Sharpe ratio is the standard metric for risk-adjusted return. But it assumes the excess returns are normally distributed, which is rarely true for real trading strategies.</p>
+    \[ \text{Sharpe} = \frac{E[R_p] - R_f}{\sigma_p} \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where: E[R_p] = expected return of the portfolio, R_f = risk-free rate, σ_p = standard deviation (volatility) of the portfolio. Multiply by √252 to annualize from daily data.</p>
+    <p style="margin-top: 1.5rem;">The critical insight: <strong>A backtest Sharpe is almost always higher than live Sharpe.</strong> Why? Because the backtest uses historical data you already know the outcome of. You've implicitly optimized to that exact outcome. The Sharpe ratio you get in backtest is biased upward.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Chart: Three equity curves</h2>
+    <div class="chart-container">
+      <canvas id="equityChart"></canvas>
+    </div>
+    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;"><strong>What you're looking at:</strong> Three fictional strategies run on the same historical data. Blue is a true edge with consistent upward slope and controlled drawdowns. Orange looks even better — too smooth — likely overfitting. Green is pure noise — random walk with no edge. Watch how equity curves can deceive: the orange curve looks best but is the most dangerous.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Worked example: NasaPowerCouncil</h2>
+    <p>A model hypothesis grounded in economic mechanism:</p>
+    <div class="card">
+      <p><strong>Economic mechanism:</strong> NASA POWER satellite data measures soil moisture and temperature at daily resolution for any location on Earth. These deviations from seasonal norms predict crop yields. Corn prices are partially driven by expected yields. USDA yield reports lag the growing season by weeks. If satellite anomalies predict yield surprises before USDA releases them, there is an information edge.</p>
+      <p><strong>Predicted relationship:</strong> When growing-season soil moisture is abnormally high relative to the 20-year seasonal average (weighted by crop development stage), corn futures returns should be negative over the next 5–10 trading days (lower expected yields = lower prices). When abnormally dry, corn should appreciate.</p>
+      <p><strong>Falsifiability:</strong> This hypothesis is falsified if (a) satellite GDD deviations have IC &lt; 0.02 with forward corn returns, or (b) the backtest Sharpe ratio on hold-out 2023 data is &lt; 0.5.</p>
+    </div>
+    <p style="margin-top: 1.5rem;">Note the difference: this is not "I tested satellite data and it predicts corn." That's result-first (data mining). This is "Here's the economic reason satellite data should predict corn. Here's the signal. Here's how I'll test it."</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Common mistakes</h2>
+    <div class="mistakes-list">
+      <h4 style="margin-top: 0;">Five ways to build noise instead of an edge</h4>
+      <ul>
+        <li><strong>Writing the hypothesis after seeing the backtest.</strong> This guarantees overfitting. Specify the direction, threshold, and time horizon <em>before</em> you see the data.</li>
+        <li><strong>Confusing correlation with causation.</strong> Just because two things move together doesn't mean one causes the other. The economic mechanism must explain <em>why</em>.</li>
+        <li><strong>Claiming edge without explaining why it hasn't been arbitraged away.</strong> If the edge is obvious, where are the competitors? If they're not there, why not?</li>
+        <li><strong>Thinking a high backtest Sharpe means you have an edge.</strong> Sharpe 3.0 in backtest suggests severe overfitting. Sharpe 1.0–1.5 in hold-out validation is what matters.</li>
+        <li><strong>Scope creep into QT territory.</strong> Don't write about position sizing strategies or how large to make the bet. That's QT's problem. Write the signal and the hypothesis.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <a href="qt.html" class="week-nav-button">← QT Hub</a>
+    <a href="qt-week2.html" class="week-nav-button">Week 2: Derivatives & Mechanics →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — QT Training Program // Internal Use Only
+</footer>
+
+<script>
+/* ── Animated equity curve hero canvas ─────────────────────── */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('w1-canvas');
+  const ctx    = canvas.getContext('2d');
+
+  let W, H;
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+  }
+
+  function makeCurve(isSignal, delayMs) {
+    const N = 700;
+    const pts = new Float32Array(N);
+    let y = 0.45 + (Math.random() - 0.5) * 0.2;
+    pts[0] = y;
+    for (let i = 1; i < N; i++) {
+      const drift = isSignal ? (Math.random() - 0.476) * 0.013 : (Math.random() - 0.5) * 0.016;
+      y = Math.max(0.06, Math.min(0.94, y + drift));
+      pts[i] = y;
+    }
+    return {
+      isSignal,
+      pts,
+      alpha: 0,
+      progress: 0,
+      phase: 'waiting',
+      delay: delayMs,
+      lingerMs: 900 + Math.random() * 600,
+      lingerRemain: 0,
+      speed: 0.00045 + Math.random() * 0.0002,
+      maxAlpha: isSignal ? 0.52 : (0.10 + Math.random() * 0.08),
+    };
+  }
+
+  const curves = [];
+
+  function initCurves() {
+    curves.length = 0;
+    curves.push(makeCurve(true,  400));
+    curves.push(makeCurve(false, 0));
+    curves.push(makeCurve(false, 600));
+    curves.push(makeCurve(false, 1400));
+    curves.push(makeCurve(false, 2200));
+    curves.push(makeCurve(false, 800));
+    curves.push(makeCurve(false, 1800));
+  }
+
+  let lastTs = null;
+
+  function frame(ts) {
+    if (lastTs === null) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    ctx.clearRect(0, 0, W, H);
+
+    for (const c of curves) {
+      if (c.phase === 'waiting') {
+        c.delay -= dt;
+        if (c.delay <= 0) c.phase = 'drawing';
+      }
+
+      if (c.phase === 'drawing') {
+        c.alpha    = Math.min(c.maxAlpha, c.alpha + dt * 0.003);
+        c.progress = Math.min(1, c.progress + c.speed * dt);
+        if (c.progress >= 1) {
+          c.phase        = 'lingering';
+          c.lingerRemain = c.lingerMs;
+        }
+      }
+
+      if (c.phase === 'lingering') {
+        c.lingerRemain -= dt;
+        if (c.lingerRemain <= 0) c.phase = 'fading';
+      }
+
+      if (c.phase === 'fading') {
+        c.alpha -= dt * 0.002;
+        if (c.alpha <= 0) {
+          const newC = makeCurve(c.isSignal, 200 + Math.random() * 2500);
+          Object.assign(c, newC);
+        }
+      }
+
+      if (c.alpha <= 0 || c.progress < 0.002) continue;
+
+      const visCount = Math.max(2, Math.floor(c.progress * W));
+      const N        = c.pts.length;
+
+      ctx.beginPath();
+      ctx.lineWidth   = c.isSignal ? 1.6 : 0.8;
+      ctx.strokeStyle = c.isSignal
+        ? `rgba(255,125,42,${c.alpha.toFixed(3)})`
+        : `rgba(255,238,215,${c.alpha.toFixed(3)})`;
+
+      for (let i = 0; i < visCount; i++) {
+        const x  = (i / (W - 1)) * W;
+        const yi = Math.floor((i / (W - 1)) * (N - 1));
+        const y  = c.pts[yi] * H;
+        i === 0 ? ctx.moveTo(x, y) : ctx.lineTo(x, y);
+      }
+      ctx.stroke();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(() => { resize(); initCurves(); }).observe(hero);
+  resize();
+  initCurves();
+  requestAnimationFrame(frame);
+})();
+</script>
+
+<script>
+  const ctx = document.getElementById('equityChart').getContext('2d');
+
+  // Generate sample data
+  const days = Array.from({length: 252}, (_, i) => i);
+
+  // True edge: steady upward
+  const trueEdge = days.map(i => {
+    return 100 + (i * 0.15) - (Math.random() * 1);
+  });
+
+  // Overfitted: too smooth
+  const overfitted = days.map(i => {
+    return 100 + (i * 0.25) - (i * i * 0.0001);
+  });
+
+  // Noise: random walk (must use a loop — can't self-reference inside map())
+  const noise = [100];
+  for (let i = 1; i < days.length; i++) {
+    noise.push(noise[i - 1] + (Math.random() - 0.5) * 2);
+  }
+
+  new Chart(ctx, {
+    type: 'line',
+    data: {
+      labels: days,
+      datasets: [
+        {
+          label: 'True Edge (Sharpe ~1.1)',
+          data: trueEdge,
+          borderColor: '#4a86e8',
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: false,
+          tension: 0.3
+        },
+        {
+          label: 'Overfitted (Sharpe ~3.2 — suspicious)',
+          data: overfitted,
+          borderColor: '#FF9500',
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: false,
+          tension: 0.3
+        },
+        {
+          label: 'Pure Noise (Sharpe ~0.1)',
+          data: noise,
+          borderColor: '#2a9d5c',
+          borderWidth: 2,
+          pointRadius: 0,
+          fill: false,
+          tension: 0.3
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: {
+          labels: { color: '#888888', font: { family: "'IBM Plex Mono'" } }
+        }
+      },
+      scales: {
+        x: { display: false },
+        y: {
+          grid: { color: '#1f1f1f' },
+          ticks: { color: '#888888' },
+          title: { display: true, text: 'Cumulative Value', color: '#888' }
+        }
+      },
+      backgroundColor: 'transparent'
+    }
+  });
+</script>
+
+<script src="cursor.js"></script>
+</body>
+</html>

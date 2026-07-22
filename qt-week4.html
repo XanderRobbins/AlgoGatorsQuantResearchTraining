@@ -1,0 +1,298 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Week 4: Fixed Income & Equity Factors — QT Training</title>
+  <link rel="stylesheet" href="styles.css">
+  <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="icon" type="image/png" href="Delta.png">
+</head>
+<body>
+
+<nav>
+  <div class="nav-brand">
+    <img src="ALGO.png" alt="AlgoGators" class="nav-logo-img">
+    <span class="nav-divider">|</span>
+    <span class="nav-section">QT Training Hub</span>
+  </div>
+  <div class="nav-links">
+    <a href="qt.html">Home</a>
+    <a href="qt-week1.html">W1</a>
+    <a href="qt-week2.html">W2</a>
+    <a href="qt-week3.html">W3</a>
+    <a href="qt-week4.html" class="active">W4</a>
+    <a href="qt-week5.html">W5</a>
+    <a href="qt-week6.html">W6</a>
+    <a href="qt-week7.html">W7</a>
+    <a href="qt-week8.html">W8</a>
+    <a href="qt-week9.html">W9</a>
+    <a href="qt-week10.html">W10</a>
+  </div>
+</nav>
+
+<div class="week-hero">
+  <canvas class="week-hero-canvas" id="w4-canvas"></canvas>
+  <div class="week-hero-inner">
+    <div class="week-hero-badge">Week 04 &mdash; Phase 1: Foundations</div>
+    <h1>Fixed Income &amp;<br>Equity Factors</h1>
+    <div class="week-hero-pill">Section 1 — Hypothesis</div>
+    <p class="week-hero-objective">Understand yield curve mechanics and equity factor models. Know the structural forces and documented anomalies that have driven returns — and their limitations.</p>
+  </div>
+</div>
+
+<div class="container">
+
+  <div class="ip-anchor">
+    <span class="ip-anchor-label">IP Anchor</span>
+    <span class="ip-anchor-section">Section 1 — Hypothesis</span>
+    <span class="ip-anchor-desc">You can only write a hypothesis about markets you understand. This week completes the market foundations with fixed income and equity factors.</span>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">What this week covers</h2>
+    <p>This week completes the market foundations. Fixed income pricing is driven by yield curve expectations, inflation, and credit. Equity systematic research targets documented "factors" — sources of return variation that have persisted across decades and geographies. Both topics feed directly into hypothesis writing: without knowing what drives these markets, you can't explain why an edge should exist.</p>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Fixed income</h2>
+
+    <h3 style="margin-top: 1.5rem;">Core mechanics</h3>
+    <p>Bond prices move inversely to yields. A bond's yield reflects the market's expected return given maturity, credit risk, and inflation expectations. The yield curve (how yields vary by maturity) encodes the market's view of the future.</p>
+
+    <h3 style="margin-top: 1.5rem;">The yield curve</h3>
+    <ul>
+      <li><strong>Normal (upward sloping):</strong> Long-term rates higher than short-term. Investors demand a premium for giving up liquidity. Most common in normal times.</li>
+      <li><strong>Flat:</strong> Short and long rates nearly equal. Transition zone. Market uncertainty about the future.</li>
+      <li><strong>Inverted (downward sloping):</strong> Short-term rates higher than long-term. Signals recession expectations. The "2s10s" spread (2-year minus 10-year yield) has historically inverted before recessions.</li>
+    </ul>
+
+    <h3 style="margin-top: 1.5rem;">Duration</h3>
+    <p>Duration measures how sensitive a bond is to interest rate changes. A bond with 5-year duration loses 5% in value for every 1% rise in yield. Higher duration = more sensitivity.</p>
+
+    <p style="margin-top: 1rem;">Modified duration formula:</p>
+    \[ D_{\text{mod}} = \frac{D_{\text{Macaulay}}}{1 + y/m} \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where y = yield to maturity, m = number of coupon periods per year. Price change ≈ −D_mod × Δy × Price.</p>
+
+    <h3 style="margin-top: 1.5rem;">What drives the yield curve</h3>
+    <ul>
+      <li><strong>Fed policy:</strong> The Fed controls short-term rates directly. Market expectations about future rate changes drive the curve.</li>
+      <li><strong>Inflation expectations:</strong> If inflation is rising, bond investors demand higher yields to compensate.</li>
+      <li><strong>Term premium:</strong> Investors demand extra return for the uncertainty of long-term bonds. The term premium varies over time.</li>
+      <li><strong>Credit spreads:</strong> Corporate bonds trade at a spread over Treasuries. Spreads widen in risk-off environments, tighten in risk-on.</li>
+    </ul>
+
+    <h3 style="margin-top: 1.5rem;">The edge: Carry and curve positioning</h3>
+    <p>Fixed income edges typically come from: (1) carry (buying yield from bonds above the repo rate), (2) curve positioning (being long or short specific parts of the curve), (3) credit selection (finding bonds that will outperform). These are harder to systematize than commodity or FX edges, which is why systematic fixed income is more challenging.</p>
+
+    <div class="card">
+      <p><strong>Fixed income instruments at AlgoGators:</strong></p>
+      <ul style="font-size: 0.95rem; margin-top: 0.5rem;">
+        <li>US Treasury futures (ZN = 10-year, ZF = 5-year, ZB = 30-year) via CBOT</li>
+        <li>Eurodollar futures for short-end positioning (SOFR transition)</li>
+        <li>Credit spreads via CDX indices (less common in the systematic book)</li>
+      </ul>
+      <p style="margin-top: 0.75rem; font-size: 0.9rem; color: var(--text-secondary);">All futures — same clearinghouse mechanics you learned in Week 2. Daily mark-to-market, initial margin, variation margin.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Equity factors</h2>
+
+    <p>Systematic research in equities often targets known "factors" — sources of return variation that persist across time and markets.</p>
+
+    <h3 style="margin-top: 1.5rem;">Fama-French three-factor model</h3>
+    \[ R_i - R_f = \alpha + \beta_m (R_m - R_f) + \beta_{SMB} \cdot SMB + \beta_{HML} \cdot HML + \varepsilon \]
+    <p style="font-size: 0.9rem; color: var(--text-secondary);">Where R_i = stock return, R_f = risk-free rate, R_m = market return, SMB = Small Minus Big (return spread between small and large caps), HML = High Minus Low (return spread between high book-to-market and low book-to-market stocks).</p>
+
+    <h3 style="margin-top: 1.5rem;">Major factors</h3>
+    <ul>
+      <li><strong>Market beta:</strong> Higher correlation to the market means higher expected return (compensated for systematic risk).</li>
+      <li><strong>Size:</strong> Small-cap stocks have higher expected returns than large-cap (historically). But this relationship is time-varying and sometimes disappears.</li>
+      <li><strong>Value (HML):</strong> High book-to-market stocks (value stocks) outperform low book-to-market (growth) over long periods. But value underperformed massively 2010–2020.</li>
+      <li><strong>Momentum (UMD):</strong> Stocks with strong recent returns continue to outperform. One of the most robust factors.</li>
+      <li><strong>Quality:</strong> High-quality stocks (profitability, low leverage, stable earnings) tend to outperform. Behavioral: investors overpay for quality.</li>
+      <li><strong>Low volatility (min-vol):</strong> Low-volatility stocks outperform high-volatility. Counterintuitive but empirical fact. Probably due to behavioral over-leverage (investors overweight high-vol, pushing down their returns).</li>
+    </ul>
+
+    <h3 style="margin-top: 1.5rem;">Important caveat</h3>
+    <p>Factors are documented empirical phenomena, not guaranteed. Each has multi-year drawdown periods. Momentum crashed hard in 2009 (mean reversion), value underperformed 2010–2020, low-vol underperformed 2021–2022. The persistence of factors is an active research question. Some are behavioral (will compress as more people learn), others may be risk compensations (will persist).</p>
+
+    <div class="card">
+      <h3 style="margin-top: 0;">Factor decomposition example</h3>
+      <p>Suppose you're looking at a stock with the following characteristics relative to peers:</p>
+      <ul style="font-size: 0.9rem;">
+        <li>12-month momentum: +32% (strong momentum signal)</li>
+        <li>P/B ratio: 1.2x (low = value-like)</li>
+        <li>Market cap: $800M (small-cap)</li>
+        <li>Trailing ROE: 18% (high quality)</li>
+        <li>30-day realized vol: 22% (moderate)</li>
+      </ul>
+      <p style="margin-top: 0.75rem;">This stock would score positively on momentum, value, size, and quality factors simultaneously. Multi-factor overlap can amplify returns — or expose you to a correlated factor drawdown.</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Comparing all four asset classes</h2>
+
+    <table class="comparison-table">
+      <thead>
+        <tr>
+          <th>Dimension</th>
+          <th>FX</th>
+          <th>Commodities</th>
+          <th>Fixed Income</th>
+          <th>Equity Factors</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong>Primary driver</strong></td>
+          <td>Rate differentials, policy</td>
+          <td>Physical supply/demand, storage</td>
+          <td>Yield curve, inflation</td>
+          <td>Risk premia, behavioral bias</td>
+        </tr>
+        <tr>
+          <td><strong>Main structural edge</strong></td>
+          <td>Carry (UIP failure)</td>
+          <td>Roll yield, seasonality</td>
+          <td>Carry, curve shape</td>
+          <td>Value, momentum, quality</td>
+        </tr>
+        <tr>
+          <td><strong>Edge persistence</strong></td>
+          <td>High (structural risk premium)</td>
+          <td>High (physical constraints)</td>
+          <td>Moderate (rate regime dependent)</td>
+          <td>Moderate (can compress)</td>
+        </tr>
+        <tr>
+          <td><strong>Key risk</strong></td>
+          <td>Sudden policy shifts, carry unwinds</td>
+          <td>Roll cost in contango, delivery</td>
+          <td>Duration risk, curve inversions</td>
+          <td>Factor drawdowns, crowding</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">Common mistakes</h2>
+    <div class="mistakes-list">
+      <h4 style="margin-top: 0;">Five false assumptions about fixed income and equity factors</h4>
+      <ul>
+        <li><strong>Treating equity factors as guaranteed sources of return.</strong> Value had a 10+ year drawdown. Momentum crashed in 2009. Document the worst drawdown you can find in history, and ask whether live performance will be worse.</li>
+        <li><strong>Ignoring duration when discussing fixed income positions.</strong> A "long Treasuries" position in 30-year bonds has radically different risk than a "long Treasuries" position in 2-year notes. Duration is the risk unit, not notional.</li>
+        <li><strong>Confusing factor alpha with factor beta.</strong> A stock with high momentum exposure isn't necessarily alpha — it's just loading on the momentum factor. Real alpha is the residual after controlling for factor loadings.</li>
+        <li><strong>Forgetting that factor crowding creates crash risk.</strong> When everyone is long the same factor (e.g., all quant funds long momentum), a de-risking event forces simultaneous selling. Factor crashes are correlated with crowding. Check COT-equivalent positioning data for factors.</li>
+        <li><strong>Building a fixed income carry strategy without modeling repo rates.</strong> Carry in fixed income is yield minus repo cost. If repo rates spike (e.g., repo squeeze in 2019), carry strategies go negative. Always compute net carry, not gross.</li>
+      </ul>
+    </div>
+  </div>
+
+  <div class="week-nav">
+    <a href="qt-week3.html" class="week-nav-button">← Week 3: FX &amp; Commodity Markets</a>
+    <a href="qt-week5.html" class="week-nav-button">Week 5: Statistics →</a>
+  </div>
+
+</div>
+
+<footer>
+  AlgoGators Investment Fund — QT Training Program // Internal Use Only
+</footer>
+
+<script>
+/* Week 4 — data pipeline DAG with flowing particles (reused for market flows) */
+(function () {
+  const hero   = document.querySelector('.week-hero');
+  const canvas = document.getElementById('w4-canvas');
+  const ctx    = canvas.getContext('2d');
+  let W, H;
+
+  function resize() {
+    const r = hero.getBoundingClientRect();
+    W = canvas.width  = Math.round(r.width);
+    H = canvas.height = Math.round(r.height);
+  }
+
+  /* node positions (normalized) */
+  const NODES = [
+    { x: 0.07, y: 0.50 },
+    { x: 0.27, y: 0.28 },
+    { x: 0.27, y: 0.72 },
+    { x: 0.50, y: 0.50 },
+    { x: 0.73, y: 0.28 },
+    { x: 0.73, y: 0.72 },
+    { x: 0.93, y: 0.50 },
+  ];
+  const EDGES = [[0,1],[0,2],[1,3],[2,3],[3,4],[3,5],[4,6],[5,6]];
+
+  /* particles */
+  const particles = [];
+  for (const [f, t] of EDGES) {
+    for (let k = 0; k < 2; k++) {
+      particles.push({ f, t, pos: Math.random(), speed: 0.00016 + Math.random() * 0.00010 });
+    }
+  }
+
+  let lastTs = null;
+
+  function frame(ts) {
+    if (!lastTs) lastTs = ts;
+    const dt = Math.min(ts - lastTs, 40);
+    lastTs = ts;
+
+    ctx.clearRect(0, 0, W, H);
+
+    /* edges */
+    ctx.lineWidth = 1;
+    for (const [f, t] of EDGES) {
+      const a = NODES[f], b = NODES[t];
+      ctx.beginPath();
+      ctx.moveTo(a.x * W, a.y * H);
+      ctx.lineTo(b.x * W, b.y * H);
+      ctx.strokeStyle = 'rgba(255,238,215,0.07)';
+      ctx.stroke();
+    }
+
+    /* nodes */
+    for (const n of NODES) {
+      ctx.beginPath();
+      ctx.arc(n.x * W, n.y * H, 5, 0, 6.283);
+      ctx.fillStyle = 'rgba(255,125,42,0.45)';
+      ctx.fill();
+      ctx.beginPath();
+      ctx.arc(n.x * W, n.y * H, 9, 0, 6.283);
+      ctx.strokeStyle = 'rgba(255,125,42,0.18)';
+      ctx.lineWidth = 1;
+      ctx.stroke();
+    }
+
+    /* flowing particles */
+    for (const p of particles) {
+      p.pos = (p.pos + p.speed * dt) % 1;
+      const a = NODES[p.f], b = NODES[p.t];
+      const x = (a.x + (b.x - a.x) * p.pos) * W;
+      const y = (a.y + (b.y - a.y) * p.pos) * H;
+      ctx.beginPath();
+      ctx.arc(x, y, 2.4, 0, 6.283);
+      ctx.fillStyle = `rgba(255,125,42,${0.55 - p.pos * 0.25})`;
+      ctx.fill();
+    }
+
+    requestAnimationFrame(frame);
+  }
+
+  new ResizeObserver(resize).observe(hero);
+  resize();
+  requestAnimationFrame(frame);
+})();
+</script>
+
+<script src="cursor.js"></script>
+</body>
+</html>
