@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 1: Getting Started — QD Training</title>
+  <title>Week 1: Organization &amp; Development Setup — QD Training</title>
   <link rel="stylesheet" href="styles.css">
   <script src="qd-navigation.js" defer></script>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
@@ -83,6 +83,66 @@
       font-weight: 600;
       margin-bottom: 1rem;
     }
+
+    .repo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+      gap: 0.9rem;
+      margin: 1.5rem 0;
+    }
+
+    .repo-card {
+      padding: 1rem;
+      border: 1px solid rgba(255, 92, 0, 0.2);
+      border-radius: 6px;
+      background: rgba(255, 255, 255, 0.65);
+      transition: border-color 0.2s ease, transform 0.2s ease;
+    }
+
+    .repo-card:hover {
+      border-color: #FF7D2A;
+      transform: translateY(-2px);
+    }
+
+    .repo-card-header {
+      display: flex;
+      align-items: baseline;
+      justify-content: space-between;
+      gap: 1rem;
+      margin-bottom: 0.75rem;
+    }
+
+    .repo-link {
+      color: #2a2a2a;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 1rem;
+      font-weight: 700;
+    }
+
+    .repo-guide {
+      color: #b54200;
+      font-size: 0.78rem;
+      font-weight: 700;
+      white-space: nowrap;
+    }
+
+    .repo-card p {
+      margin: 0.4rem 0;
+      color: #2a2a2a;
+      font-size: 0.85rem;
+      line-height: 1.5;
+    }
+
+    .repo-card code {
+      display: block;
+      margin-top: 0.35rem;
+      padding: 0.45rem 0.55rem;
+      border-radius: 4px;
+      background: rgba(20, 20, 22, 0.08);
+      color: #141416;
+      font-size: 0.76rem;
+      overflow-wrap: anywhere;
+    }
   </style>
 </head>
 <body>
@@ -99,10 +159,10 @@
 <!-- ── Hero ───────────────────────────────────────────────────── -->
 <div class="week-hero" style="background: linear-gradient(135deg, rgba(255, 92, 0, 0.06) 0%, rgba(255, 92, 0, 0.02) 100%), #141416;">
   <div class="week-hero-inner">
-    <div class="week-hero-badge">Week 01 &mdash; Getting Started</div>
-    <h1>Welcome to<br>AlgoGators</h1>
-    <div class="week-hero-pill">Your first week setup guide</div>
-    <p class="week-hero-objective">Complete essential onboarding tasks to get access to platforms, tools, and be ready to contribute.</p>
+    <div class="week-hero-badge">Week 01 &mdash; Onboarding</div>
+    <h1>Organization &amp;<br>Development Setup</h1>
+    <div class="week-hero-pill">Accounts, repositories, and introductions</div>
+    <p class="week-hero-objective">Finish the administrative setup, join the team platforms, and get the complete AlgoGators development stack running locally.</p>
   </div>
 </div>
 
@@ -110,16 +170,16 @@
 
   <div class="ip-anchor">
     <span class="ip-anchor-label">Overview</span>
-    <span class="ip-anchor-section">Two-week onboarding timeline</span>
-    <span class="ip-anchor-desc">Complete all setup tasks by end of Week 1 to ensure full platform access and integration with the team.</span>
+    <span class="ip-anchor-section">Week 1 completion standard</span>
+    <span class="ip-anchor-desc">Complete every checklist, verify all six active repositories locally, and meet personally with John Riley before Week 2.</span>
   </div>
 
   <div class="section">
     <h2 class="section-title">Welcome to the Fund</h2>
     <div class="welcome-box">
       <p><strong>Mission:</strong> AlgoGators democratizes quantitative finance by providing real-world experience in algorithmic trading, data science, software development, and portfolio management.</p>
-      <p><strong>Your Goal:</strong> Over the next six weeks, you'll transition from research fundamentals (Weeks 1–4 with Xander) to building systems that power our trading operations (Weeks 5–6 with Jonah and John).</p>
-      <p><strong>Week 1 Focus:</strong> Get set up with access, tools, and understanding of our organization. This week is about removing blockers and ensuring you're fully equipped to learn effectively.</p>
+      <p><strong>Your Goal:</strong> Start Week 2 with no organizational or technical blockers. You should know where the team works, how work is tracked, and how each active repository runs on your computer.</p>
+      <p><strong>Week 1 Focus:</strong> Complete the administrative requirements, join the AlgoGators systems, bring the development stack online locally, and establish your working relationship with John Riley.</p>
       <div class="timeline-badge">Expected completion: End of Week 1</div>
     </div>
   </div>
@@ -142,14 +202,14 @@
   </div>
 
   <div class="section">
-    <h2 class="section-title">Technical & Platform Access</h2>
+    <h2 class="section-title">Team Platforms &amp; Introductions</h2>
     <div class="checklist-section">
-      <h3>Set up this week (may take 2–4 hours)</h3>
+      <h3>Join the organization</h3>
       <ul class="checklist-items">
-        <li><strong>Join communication channels:</strong> iMessage team chat, fund chat, Discord server</li>
+        <li><strong>Accept your Jira invitation</strong>, complete your profile, open the team board, and confirm you can view your onboarding work.</li>
+        <li><strong>Join the AlgoGators WhatsApp and Discord</strong>, use a recognizable name, and post a short introduction in the appropriate onboarding channel.</li>
         <li><strong>Confirm OneDrive access</strong> to shared research, backtests, and documentation folders</li>
-        <li><strong>Join our GitHub organization</strong> and review the codebase (start with README files)</li>
-        <li><strong>Obtain API keys</strong> from data providers (Bloomberg, Refinitiv, FactSet, etc. — check with your mentor)</li>
+        <li><strong>Meet personally with John Riley</strong> for a Week 1 onboarding conversation covering the team, the development stack, expectations, and where to ask for help.</li>
         <li><strong>Secure database credentials</strong> for PostgreSQL access (coordinate with your Team Lead)</li>
         <li><strong>Install & configure your development environment:</strong>
           <ul style="margin-top: 0.5rem; padding-left: 1.5rem;">
@@ -162,7 +222,86 @@
         </li>
       </ul>
       <p style="font-size: 0.9rem; color: #2a2a2a; margin-top: 1.5rem; border-top: 1px solid rgba(255, 92, 0, 0.15); padding-top: 1.5rem; font-weight: 500;">
-        <em>Why this matters:</em> You can't contribute without these tools. Most blockers come from incomplete setup, so prioritize this. Don't hesitate to ask your mentor for help.
+        <em>Why this matters:</em> These are the systems where the team communicates, assigns work, and solves blockers. Complete the invitations early so you can ask for help while setting up the repositories.
+      </p>
+    </div>
+  </div>
+
+  <div class="section">
+    <h2 class="section-title">GitHub &amp; Local Repository Setup</h2>
+    <div class="checklist-section">
+      <h3>Get all six active repositories running locally</h3>
+      <ul class="checklist-items">
+        <li><strong>Join the AlgoGators GitHub organization</strong>, enable two-factor authentication, and configure Git with your GitHub account.</li>
+        <li><strong>Clone each repository below</strong> into one organized AlgoGators workspace on your computer.</li>
+        <li><strong>Follow each README from a clean checkout</strong>, install its dependencies, and run its documented local start, test, or example command.</li>
+        <li><strong>Record the working command and any blocker in Jira</strong>. A repository counts as complete when you can run its application, service, tests, or included example locally without an unexplained error.</li>
+      </ul>
+
+      <div class="repo-grid" aria-label="Active AlgoGators repositories">
+        <article class="repo-card">
+          <div class="repo-card-header">
+            <a class="repo-link" href="https://github.com/AlgoGators/algogators" target="_blank" rel="noopener">algogators</a>
+            <a class="repo-guide" href="https://github.com/AlgoGators/algogators#readme" target="_blank" rel="noopener">README &rarr;</a>
+          </div>
+          <p>Monorepo scaffold. Verify its path-filtered CI configuration:</p>
+          <code>just check-paths</code>
+        </article>
+
+        <article class="repo-card">
+          <div class="repo-card-header">
+            <a class="repo-link" href="https://github.com/AlgoGators/AlgoTerminal" target="_blank" rel="noopener">AlgoTerminal</a>
+            <a class="repo-guide" href="https://github.com/AlgoGators/AlgoTerminal#readme" target="_blank" rel="noopener">README &rarr;</a>
+          </div>
+          <p>Create a virtual environment, install the package, and launch the terminal:</p>
+          <code>pip install -e .</code>
+          <code>algoterminal</code>
+        </article>
+
+        <article class="repo-card">
+          <div class="repo-card-header">
+            <a class="repo-link" href="https://github.com/AlgoGators/AlgoLens" target="_blank" rel="noopener">AlgoLens</a>
+            <a class="repo-guide" href="https://github.com/AlgoGators/AlgoLens#readme" target="_blank" rel="noopener">README &rarr;</a>
+          </div>
+          <p>Run both the frontend and API in separate terminals:</p>
+          <code>cd algolens-frontend &amp;&amp; npm install &amp;&amp; npm run dev</code>
+          <code>cd algolens-api &amp;&amp; pip install -r requirements.txt &amp;&amp; python app.py</code>
+        </article>
+
+        <article class="repo-card">
+          <div class="repo-card-header">
+            <a class="repo-link" href="https://github.com/AlgoGators/algosystem" target="_blank" rel="noopener">algosystem</a>
+            <a class="repo-guide" href="https://github.com/AlgoGators/algosystem#readme" target="_blank" rel="noopener">README &rarr;</a>
+          </div>
+          <p>Install development dependencies and verify the CLI:</p>
+          <code>poetry install --with dev</code>
+          <code>poetry run algosystem benchmarks</code>
+        </article>
+
+        <article class="repo-card">
+          <div class="repo-card-header">
+            <a class="repo-link" href="https://github.com/AlgoGators/data-ngin" target="_blank" rel="noopener">data-ngin</a>
+            <a class="repo-guide" href="https://github.com/AlgoGators/data-ngin#readme" target="_blank" rel="noopener">README &rarr;</a>
+          </div>
+          <p>Install the Poetry environment and run the local test suite:</p>
+          <code>poetry install</code>
+          <code>poetry run pytest tests/</code>
+        </article>
+
+        <article class="repo-card">
+          <div class="repo-card-header">
+            <a class="repo-link" href="https://github.com/AlgoGators/trade-ngin" target="_blank" rel="noopener">trade-ngin</a>
+            <a class="repo-guide" href="https://github.com/AlgoGators/trade-ngin#readme" target="_blank" rel="noopener">README &rarr;</a>
+          </div>
+          <p>Configure and build the C++ project, then run its tests:</p>
+          <code>cmake -S . -B build -DCMAKE_BUILD_TYPE=Debug</code>
+          <code>cmake --build build</code>
+          <code>ctest --test-dir build --output-on-failure</code>
+        </article>
+      </div>
+
+      <p style="font-size: 0.9rem; color: #2a2a2a; margin-top: 1.5rem; border-top: 1px solid rgba(255, 92, 0, 0.15); padding-top: 1.5rem; font-weight: 500;">
+        <em>Completion check:</em> Show John Riley your local workspace, the command used for each repository, and any remaining Jira blockers before the end of Week 1.
       </p>
     </div>
   </div>
@@ -171,7 +310,7 @@
     <h2 class="section-title">What's Next</h2>
     <div class="card">
       <h3 style="margin-top: 0; color: #FF7D2A;">Week 2 Preview: Derivatives & Contract Mechanics</h3>
-      <p>Once you're set up, Weeks 2–4 will focus on research fundamentals. You'll learn the economic concepts behind profitable trading, how markets work, and how to structure a hypothesis. By Week 5, you'll be ready to apply these ideas in our data systems.</p>
+      <p>Once your administrative work, platform access, and local repositories are complete, Weeks 2–4 focus on research fundamentals. By Week 5, you will already have the development stack needed to apply those ideas in AlgoGators systems.</p>
     </div>
   </div>
 
