@@ -62,3 +62,13 @@ test("Weeks 1–4 share the onboarding presentation layer", () => {
     );
   }
 });
+
+test("Weeks 1–4 do not repeat the onboarding path at the bottom", () => {
+  for (const [week, page] of weeks) {
+    assert.doesNotMatch(
+      page,
+      /class="week-path"/,
+      `Week ${week} still includes the bottom onboarding path`,
+    );
+  }
+});
