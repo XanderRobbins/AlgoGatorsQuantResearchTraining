@@ -3,12 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Week 2: Derivatives & Contract Mechanics — QD Training</title>
+  <title>Week 2: Database Setup &amp; Data Deliverable — QD Training</title>
   <link rel="stylesheet" href="styles.css">
+  <link rel="stylesheet" href="qd-onboarding.css">
   <script src="qd-navigation.js" defer></script>
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;600;700&family=IBM+Plex+Sans:wght@400;600;700&display=swap" rel="stylesheet">
-  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
   <link rel="icon" type="image/png" href="Delta.png">
 </head>
 <body>
@@ -23,467 +22,88 @@
 </nav>
 
 <div class="week-hero">
-  <canvas class="week-hero-canvas" id="w2-canvas"></canvas>
   <div class="week-hero-inner">
-    <div class="week-hero-badge">Week 02 &mdash; Phase 1: Foundations</div>
-    <h1>Derivatives &amp;<br>Contract Mechanics</h1>
-    <div class="week-hero-pill">Section 1 — Hypothesis</div>
-    <p class="week-hero-objective">Understand how futures and forward contracts actually work. Know margin mechanics, the clearinghouse's role, and the contract specifications that determine every trade AlgoGators makes.</p>
+    <div class="week-hero-badge">Week 02 &mdash; Guided Onboarding</div>
+    <h1>Database Setup &amp;<br>Data Deliverable</h1>
+    <div class="week-hero-pill">Finish setup, connect to data, then use the pipeline</div>
+    <p class="week-hero-objective">Complete the second half of the technical setup, connect through pgAdmin, and learn the data pipeline by completing a focused self-directed deliverable.</p>
   </div>
 </div>
 
-<div class="container">
-
+<main class="container">
   <div class="ip-anchor">
-    <span class="ip-anchor-label">IP Anchor</span>
-    <span class="ip-anchor-section">Section 1 — Hypothesis</span>
-    <span class="ip-anchor-desc">You cannot write a credible hypothesis about a futures strategy if you don't understand the instrument. This week is the mechanical foundation for everything that follows.</span>
+    <span class="ip-anchor-label">Week 2 Goal</span>
+    <span class="ip-anchor-section">Finish the tedious setup work</span>
+    <span class="ip-anchor-desc">Setup is intentionally split across two weeks so analysts have time to solve machine-specific issues without rushing.</span>
   </div>
 
-  <div class="section">
-    <h2 class="section-title">What this week covers</h2>
-    <p>AlgoGators trades primarily in futures markets — corn, wheat, FX, equity index, and interest rate contracts. Before you can write a hypothesis about why a signal should predict returns in these markets, you need to understand the plumbing: how forward and futures contracts are structured, how margin works, what the clearinghouse does, and what contract specifications actually say. This week builds that foundation.</p>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Forward contracts</h2>
-
-    <p>A forward contract is the simplest derivative. Two parties agree today on a price, quantity, and delivery date for an asset. Settlement happens at maturity.</p>
-
-    <div class="card">
-      <h3 style="margin-top: 0;">Key characteristics</h3>
-      <ul style="font-size: 0.95rem;">
-        <li><strong>OTC (over-the-counter):</strong> Traded bilaterally between two parties, not on an exchange. No standardization — parties agree on any terms they want.</li>
-        <li><strong>No daily mark-to-market:</strong> The contract is not settled until maturity. If the price moves against you for 90 days, you don't post collateral along the way (in a vanilla forward). You settle everything at expiry.</li>
-        <li><strong>Counterparty risk:</strong> Because there's no central clearinghouse, if your counterparty defaults before delivery, you lose your gain. This is the core risk of forwards vs. futures.</li>
-        <li><strong>Custom terms:</strong> You can agree to any delivery date, quantity, or specification. This is why forwards are common in corporate hedging (a company that knows it will receive €10M in exactly 87 days can hedge that exact amount).</li>
+  <div class="onboarding-grid">
+    <article class="onboarding-card onboarding-card--meeting" data-onboarding-component="xander-meeting" data-duration-minutes="60">
+      <div class="onboarding-card-header">
+        <div>
+          <span class="step-label">Step 1</span>
+          <h2>Meet with Xander</h2>
+        </div>
+        <span class="duration-badge">1 hour</span>
+      </div>
+      <p>Review Week 1 blockers, confirm that the core repositories are usable, and connect the setup work to the Data Deliverable.</p>
+      <ul class="onboarding-checklist">
+        <li>Resolve or assign every remaining Week 1 blocker.</li>
+        <li>Review how the data engine, PostgreSQL, and pgAdmin fit together.</li>
+        <li>Confirm where to submit the Data Deliverable.</li>
       </ul>
-    </div>
+    </article>
 
-    <h3 style="margin-top: 1.5rem;">Example: FX Forward</h3>
-    <div class="card" style="background: var(--bg-elevated); font-size: 0.9rem;">
-      <p style="color: var(--accent); font-weight: 600;">SCENARIO: FX Forward Hedge</p>
-      <p style="margin-top: 1rem;">A US exporter will receive €5,000,000 in 90 days. Today's spot EUR/USD is 1.0850. The exporter is worried EUR will weaken before they receive payment.</p>
-      <p style="margin-top: 0.75rem;"><strong>The forward:</strong> They enter an OTC forward contract with their bank, agreeing to sell €5M at 1.0820 in 90 days (the forward rate incorporates the US-EU interest rate differential — see Week 3).</p>
-      <p style="margin-top: 0.75rem;"><strong>Result:</strong> In 90 days, regardless of what spot EUR/USD is, the exporter exchanges €5M for $5,410,000 (5,000,000 × 1.0820). The exchange rate risk is eliminated.</p>
-      <p style="margin-top: 0.75rem;"><strong>Risk remaining:</strong> If the bank defaults before delivery, the exporter has credit exposure. This is counterparty risk — eliminated by futures.</p>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Futures contracts</h2>
-
-    <p>Futures are exchange-traded, standardized forward contracts. They solve the two main problems of OTC forwards: counterparty risk and illiquidity.</p>
-
-    <div class="card">
-      <h3 style="margin-top: 0;">How futures differ from forwards</h3>
-      <table style="font-size: 0.88rem; width: 100%; margin-top: 0.5rem;">
-        <thead>
-          <tr>
-            <th style="text-align: left; padding: 0.5rem 0.75rem;">Feature</th>
-            <th style="text-align: left; padding: 0.5rem 0.75rem;">Forward</th>
-            <th style="text-align: left; padding: 0.5rem 0.75rem;">Future</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td style="padding: 0.4rem 0.75rem; color: var(--text-secondary);">Traded on</td>
-            <td style="padding: 0.4rem 0.75rem;">OTC (bilateral)</td>
-            <td style="padding: 0.4rem 0.75rem;">Exchange (CME, ICE, CBOT)</td>
-          </tr>
-          <tr>
-            <td style="padding: 0.4rem 0.75rem; color: var(--text-secondary);">Standardized</td>
-            <td style="padding: 0.4rem 0.75rem;">No — custom terms</td>
-            <td style="padding: 0.4rem 0.75rem;">Yes — fixed specs</td>
-          </tr>
-          <tr>
-            <td style="padding: 0.4rem 0.75rem; color: var(--text-secondary);">Settlement</td>
-            <td style="padding: 0.4rem 0.75rem;">At maturity only</td>
-            <td style="padding: 0.4rem 0.75rem;">Daily mark-to-market</td>
-          </tr>
-          <tr>
-            <td style="padding: 0.4rem 0.75rem; color: var(--text-secondary);">Counterparty risk</td>
-            <td style="padding: 0.4rem 0.75rem;">Yes (bilateral credit risk)</td>
-            <td style="padding: 0.4rem 0.75rem;">No (clearinghouse)</td>
-          </tr>
-          <tr>
-            <td style="padding: 0.4rem 0.75rem; color: var(--text-secondary);">Margin required</td>
-            <td style="padding: 0.4rem 0.75rem;">Usually no upfront margin</td>
-            <td style="padding: 0.4rem 0.75rem;">Initial + variation margin</td>
-          </tr>
-          <tr>
-            <td style="padding: 0.4rem 0.75rem; color: var(--text-secondary);">Liquidity</td>
-            <td style="padding: 0.4rem 0.75rem;">Low (custom terms)</td>
-            <td style="padding: 0.4rem 0.75rem;">High (standardized)</td>
-          </tr>
-        </tbody>
-      </table>
-    </div>
-
-    <h3 style="margin-top: 1.5rem;">The major futures exchanges</h3>
-    <ul>
-      <li><strong>CME (Chicago Mercantile Exchange):</strong> FX futures, S&P 500 (ES), NASDAQ (NQ), interest rate futures (Eurodollar, SOFR).</li>
-      <li><strong>CBOT (Chicago Board of Trade, part of CME Group):</strong> Agricultural futures — corn (ZC), wheat (ZW), soybeans (ZS). US Treasury futures (ZN, ZB, ZF).</li>
-      <li><strong>COMEX (also CME Group):</strong> Metals — gold (GC), silver (SI), copper (HG).</li>
-      <li><strong>ICE (Intercontinental Exchange):</strong> Energy — WTI crude (CL), natural gas (NG), Brent crude. Soft commodities — cocoa, coffee, sugar.</li>
-      <li><strong>Eurex:</strong> European equity and interest rate futures (Euro Stoxx 50, Bund futures).</li>
-    </ul>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Contract specifications</h2>
-
-    <p>Every futures contract has a fixed specification. You need to know yours cold before writing any signal on it — because the contract size, tick, and settlement type determine the P&L math.</p>
-
-    <div class="card">
-      <p style="font-weight: 600; margin-bottom: 0.75rem; color: var(--accent);">E-mini S&P 500 Futures (ES)</p>
-      <table style="font-size: 0.88rem; width: 100%;">
-        <tbody>
-          <tr><td style="padding: 0.3rem 0; color: var(--text-secondary); width: 38%;">Underlying</td><td>S&P 500 Index</td></tr>
-          <tr><td style="padding: 0.3rem 0; color: var(--text-secondary);">Contract Size</td><td>$50 × S&P 500 Index value</td></tr>
-          <tr><td style="padding: 0.3rem 0; color: var(--text-secondary);">At 5,000 index</td><td>Notional = $250,000 per contract</td></tr>
-          <tr><td style="padding: 0.3rem 0; color: var(--text-secondary);">Tick Size</td><td>0.25 index points = $12.50 per contract</td></tr>
-          <tr><td style="padding: 0.3rem 0; color: var(--text-secondary);">Delivery Months</td><td>Mar, Jun, Sep, Dec (quarterly cycle)</td></tr>
-          <tr><td style="padding: 0.3rem 0; color: var(--text-secondary);">Last Trading Day</td><td>3rd Friday of delivery month</td></tr>
-          <tr><td style="padding: 0.3rem 0; color: var(--text-secondary);">Settlement</td><td>Cash settled to special opening quotation (SOQ)</td></tr>
-          <tr><td style="padding: 0.3rem 0; color: var(--text-secondary);">Initial Margin (approx)</td><td>~$12,500 per contract (set by CME, changes)</td></tr>
-        </tbody>
-      </table>
-    </div>
-
-    <p style="margin-top: 1.5rem;">Why does this matter? If you write "I will trade S&P futures," but you don't know the notional is $250,000, you have no idea whether a 1% move is a $2,500 P&L or a $25 P&L. You cannot write a hypothesis about position sizing (even at a high level) without this.</p>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Margin mechanics</h2>
-
-    <p>Margin is the deposit you put up to hold a futures position. It is <em>not</em> a down payment — it's collateral ensuring you can cover daily losses. This is fundamentally different from stock margin loans.</p>
-
-    <div class="card">
-      <h3 style="margin-top: 0;">Three margin concepts</h3>
-
-      <p><strong>Initial margin:</strong> The deposit required to open a position. Set by the exchange (CME, ICE) based on contract volatility. Changes periodically. For ES futures, approximately $12,500 per contract as of recent years.</p>
-
-      <p style="margin-top: 1rem;"><strong>Maintenance margin:</strong> The minimum account balance required to keep the position open. Typically 75–80% of initial margin. If your account falls below this, you receive a margin call.</p>
-
-      <p style="margin-top: 1rem;"><strong>Variation margin (daily P&L):</strong> Every day at settlement, your account is credited or debited the daily gain or loss on your position. This is mark-to-market. If you're long 1 ES contract and the S&P 500 falls 10 points, you lose 10 × $50 = $500, which is immediately debited from your account.</p>
-    </div>
-
-    <h3 style="margin-top: 1.5rem;">Worked example: ES futures margin call</h3>
-    <div class="card" style="background: var(--bg-elevated); font-size: 0.9rem;">
-      <p style="color: var(--accent); font-weight: 600;">SCENARIO: Buying 1 ES Contract</p>
-
-      <p style="margin-top: 1rem;"><strong>Day 0:</strong> You buy 1 ES contract at 5,000. Initial margin = $12,500. Account balance after deposit = $12,500.</p>
-
-      <p style="margin-top: 0.75rem;"><strong>Day 1:</strong> S&P 500 drops 20 points (5,000 → 4,980). Daily P&L = −20 × $50 = −$1,000. Account balance = $12,500 − $1,000 = $11,500.</p>
-
-      <p style="margin-top: 0.75rem;"><strong>Day 2:</strong> S&P drops another 30 points (4,980 → 4,950). Daily P&L = −30 × $50 = −$1,500. Account balance = $11,500 − $1,500 = $10,000.</p>
-
-      <p style="margin-top: 0.75rem;"><strong>Day 3:</strong> S&P drops 15 points more (4,950 → 4,935). Daily P&L = −$750. Account = $9,250. Maintenance margin = $10,000 (80% of $12,500). <strong>Account is below maintenance — margin call issued.</strong></p>
-
-      <p style="margin-top: 0.75rem;"><strong>Margin call:</strong> You must deposit $12,500 − $9,250 = $3,250 by next morning to bring account back to initial margin, OR close the position.</p>
-
-      <p style="margin-top: 0.75rem; color: var(--text-secondary); font-size: 0.88rem;">Total loss so far: $1,000 + $1,500 + $750 = $3,250 on $12,500 initial margin = 26% loss in 3 days. The S&P fell 65 points, or 1.3%. Leverage amplified this dramatically.</p>
-    </div>
-
-    <p style="margin-top: 1.5rem;"><strong>The key insight:</strong> Futures are highly leveraged. A $250,000 notional position requires only $12,500 initial margin (20:1 leverage). Small adverse moves compound into significant account drawdowns. This is why understanding margin mechanics is non-negotiable before trading futures.</p>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">The clearinghouse</h2>
-
-    <p>The clearinghouse is what makes futures safe to trade despite their leverage. Every futures exchange has one.</p>
-
-    <div class="card">
-      <h3 style="margin-top: 0;">How it works: Novation</h3>
-      <p>When you buy a futures contract and a seller sells it, the clearinghouse steps in between. Through a process called <strong>novation</strong>, the clearinghouse becomes:</p>
-      <ul style="margin-top: 0.5rem; font-size: 0.95rem;">
-        <li>The <strong>seller</strong> to every buyer</li>
-        <li>The <strong>buyer</strong> to every seller</li>
+    <article class="onboarding-card" data-onboarding-component="database-setup">
+      <span class="step-label">Step 2</span>
+      <h2>Database &amp; Remaining Setup</h2>
+      <ul class="onboarding-checklist">
+        <li>Install and open pgAdmin.</li>
+        <li>Add the team PostgreSQL server using credentials supplied through the approved internal channel.</li>
+        <li>Confirm that you can connect, view the assigned database, and inspect the expected schemas.</li>
+        <li>Finish any remaining development tools or dependencies left from Week 1.</li>
+        <li>Confirm that data-ngin can reach the local or approved team database configuration.</li>
       </ul>
-      <p style="margin-top: 0.75rem;">You no longer have a contract with the original counterparty. You have a contract with the clearinghouse (CME Clearing, ICE Clear, etc.). If the original counterparty defaults, it's the clearinghouse's problem, not yours.</p>
-    </div>
+    </article>
 
-    <h3 style="margin-top: 1.5rem;">Why daily settlement eliminates credit risk accumulation</h3>
-    <p>Forwards accumulate credit risk over their life. If you enter a 90-day forward and your counterparty defaults on day 88, you've lost 88 days of potential gains. Futures eliminate this by settling every day. The maximum credit exposure you have to the clearinghouse is one day's P&L — and the clearinghouse holds your margin to cover exactly that.</p>
-
-    <div class="card">
-      <p><strong>Clearinghouse default fund:</strong> In the event of a member default too large for their margin to cover, the clearinghouse draws on a "guaranty fund" contributed by all clearing members. This has never been exhausted at a major exchange — the 2008 financial crisis came close at some exchanges, but daily settlement had already netted most positions down.</p>
-    </div>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Open interest vs. volume</h2>
-
-    <p>These are the two most important market structure metrics for futures. They're often confused.</p>
-
-    <div class="card">
-      <p><strong>Volume:</strong> The number of contracts traded in a given day. A buy and a matching sell = 1 contract of volume. High volume means active participation.</p>
-
-      <p style="margin-top: 0.75rem;"><strong>Open interest (OI):</strong> The total number of outstanding contracts that have not been settled or closed. Every contract in open interest represents one long and one short that haven't netted out. OI changes when new positions are opened (OI increases) or existing positions are closed (OI decreases).</p>
-    </div>
-
-    <h3 style="margin-top: 1.5rem;">Signal interpretation</h3>
-    <table class="comparison-table">
-      <thead>
-        <tr>
-          <th>Price</th>
-          <th>Open Interest</th>
-          <th>Interpretation</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Rising</td>
-          <td>Rising</td>
-          <td>New money entering on long side — bullish confirmation</td>
-        </tr>
-        <tr>
-          <td>Rising</td>
-          <td>Falling</td>
-          <td>Short covering (not new longs) — weaker signal</td>
-        </tr>
-        <tr>
-          <td>Falling</td>
-          <td>Rising</td>
-          <td>New money entering on short side — bearish confirmation</td>
-        </tr>
-        <tr>
-          <td>Falling</td>
-          <td>Falling</td>
-          <td>Long liquidation (not new shorts) — weaker signal</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Basis: spot vs. futures convergence</h2>
-
-    <p>Basis = spot price − futures price. At expiry, the two must converge (or delivery becomes an arbitrage). Before expiry, basis reflects carrying costs and convenience yield.</p>
-
-    <p style="margin-top: 1rem;"><strong>Why basis matters for hedgers:</strong> If you're a corn producer who hedges by shorting corn futures, your hedge is imperfect if the basis changes between entry and close. You locked in the basis at entry; if basis widens or narrows, your hedge gain/loss differs from your cash position gain/loss. This is <em>basis risk</em>.</p>
-
-    <div class="chart-container" style="margin-top: 1.5rem;">
-      <canvas id="basisChart"></canvas>
-    </div>
-    <p style="color: var(--text-secondary); font-size: 0.9rem; margin-top: 1rem;">Futures price (orange) and spot price (blue) converge as expiry approaches. The basis (gap between them) compresses to zero at delivery. The rate of convergence determines roll yield — in contango, futures are above spot and the long holder loses as futures fall toward spot.</p>
-  </div>
-
-  <div class="section">
-    <h2 class="section-title">Options: a brief introduction</h2>
-
-    <p>Options appear in AlgoGators research as signals (options flow, implied volatility skew) even when we don't trade options directly. Here's the minimum you need.</p>
-
-    <div class="card">
-      <p><strong>Call option:</strong> The right (not obligation) to buy the underlying at a fixed price (the strike) before a given date. You pay a premium upfront. If the underlying rises above the strike, you profit.</p>
-      <p style="margin-top: 0.75rem;"><strong>Put option:</strong> The right (not obligation) to sell the underlying at the strike price. Useful for downside protection. If the underlying falls below the strike, you profit.</p>
-
-      <p style="margin-top: 1rem;"><strong>Premium components:</strong></p>
-      <ul style="font-size: 0.95rem;">
-        <li><strong>Intrinsic value:</strong> How far in-the-money the option is right now. A call at strike 100 on a stock at 105 has $5 intrinsic value.</li>
-        <li><strong>Time value:</strong> The remaining value from uncertainty before expiry. Decays to zero at expiry (theta decay).</li>
+    <article class="onboarding-card onboarding-card--wide onboarding-card--deliverable" data-onboarding-component="data-deliverable" data-estimated-hours="1-2">
+      <div class="onboarding-card-header">
+        <div>
+          <span class="step-label">Step 3</span>
+          <h2>Complete the Data Deliverable</h2>
+        </div>
+        <span class="duration-badge">1–2 hours</span>
+      </div>
+      <p>The deliverable is the lesson: it is designed to teach the pipeline through direct use, so no additional in-person lecture is required. Assignment instructions and submission details are provided separately.</p>
+      <ul class="onboarding-checklist">
+        <li>Work through the supplied Data Deliverable from a functioning local environment.</li>
+        <li>Use the pipeline and database tools instead of recreating the process manually.</li>
+        <li>Submit the requested output and note any unclear behavior or blocker.</li>
       </ul>
+    </article>
+  </div>
 
-      <p style="margin-top: 1rem;"><strong>Implied volatility (IV):</strong> The market's expectation of future volatility, backed out of option prices. When IV is high, options are expensive (fear premium). When IV is low, options are cheap. The VIX is the 30-day implied volatility of S&P 500 options.</p>
-    </div>
+  <div class="support-panel">
+    <h2>Setup help remains available</h2>
+    <p>Use the in-person period after a team meeting for pgAdmin, PostgreSQL, dependency, and permissions issues. Bring the exact error and the command that produced it.</p>
+  </div>
 
-    <p style="margin-top: 1.5rem; font-size: 0.9rem; color: var(--text-secondary);">Options are a deep topic. Options flow data — put/call ratios, implied volatility skew — can serve as signals in commodity and equity strategies. You don't need to trade options to use them as information.</p>
+  <div class="completion-standard">
+    <strong>Week 2 completion standard:</strong> pgAdmin opens and connects successfully, the remaining local setup blockers are resolved or assigned, and the Data Deliverable has been submitted.
   </div>
 
   <div class="section">
-    <h2 class="section-title">Common mistakes</h2>
-    <div class="mistakes-list">
-      <h4 style="margin-top: 0;">Five futures mechanics failures</h4>
-      <ul>
-        <li><strong>Treating a futures position like a stock position.</strong> Stocks don't have daily margin flows. Futures do. A "buy and hold" in futures means funding variation margin every day it moves against you. Your effective P&L is not just entry price vs. exit price — it includes the path-dependent cash flows.</li>
-        <li><strong>Not knowing your contract's notional value.</strong> 1 corn futures contract = 5,000 bushels. If corn is at $4.50/bushel, 1 contract = $22,500 notional. You must know this before sizing any position or interpreting any P&L.</li>
-        <li><strong>Confusing open interest with volume.</strong> High volume today doesn't mean lots of positions are open. High OI means lots of positions are accumulated. They measure different things.</li>
-        <li><strong>Thinking "short futures" means you sold something you own.</strong> Shorting futures is just selling contracts you don't own, expecting to buy them back cheaper. There's no "borrowing" involved — you're opening a new contract with the clearinghouse on the short side.</li>
-        <li><strong>Ignoring roll costs in long-term futures strategies.</strong> If you hold a continuous long position in any futures market, you roll contracts as they expire. In contango markets, you consistently buy the expensive far contract and sell the cheap near contract. This roll cost directly reduces your returns and must be modeled explicitly.</li>
-      </ul>
+    <h2 class="section-title">Four-week onboarding path</h2>
+    <div class="week-path" aria-label="Four-week onboarding path">
+      <span>W1 · Core setup</span>
+      <span class="current">W2 · Database + data</span>
+      <span>W3 · Systems</span>
+      <span>W4 · Jira kickoff</span>
     </div>
   </div>
+</main>
 
-  <div class="week-nav">
-    <a href="qd-week1.html" class="week-nav-button">← Week 1: What Is an Edge?</a>
-    <a href="qd-week3.html" class="week-nav-button">Week 3: FX &amp; Commodity Markets →</a>
-  </div>
-
-</div>
-
-<footer>
-  AlgoGators Investment Fund — QD Training Program // Internal Use Only
-</footer>
-
-<script>
-(function () {
-  const ctx = document.getElementById('basisChart').getContext('2d');
-
-  const days = Array.from({length: 90}, (_, i) => i);
-  const spot = 420; // constant spot price for simplicity
-
-  // Futures starts at premium (contango), converges to spot by day 90
-  const futures = days.map(i => {
-    const daysToExpiry = 90 - i;
-    const contangoPremium = 12 * (daysToExpiry / 90); // starts $12 premium, goes to 0
-    const noise = (Math.random() - 0.5) * 1.5;
-    return spot + contangoPremium + noise;
-  });
-
-  const spotLine = days.map(() => spot + (Math.random() - 0.5) * 1.2);
-
-  new Chart(ctx, {
-    type: 'line',
-    data: {
-      labels: days.map(d => `Day ${d + 1}`),
-      datasets: [
-        {
-          label: 'Futures Price (contango premium decaying)',
-          data: futures,
-          borderColor: '#FF9500',
-          borderWidth: 2.5,
-          pointRadius: 0,
-          fill: false,
-          tension: 0.3
-        },
-        {
-          label: 'Spot Price',
-          data: spotLine,
-          borderColor: '#4a86e8',
-          borderWidth: 2,
-          pointRadius: 0,
-          fill: false,
-          tension: 0.3
-        }
-      ]
-    },
-    options: {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          labels: { color: '#888888', font: { family: "'IBM Plex Mono'" } }
-        }
-      },
-      scales: {
-        x: {
-          ticks: {
-            color: '#888888',
-            maxTicksLimit: 10
-          },
-          grid: { color: '#1f1f1f' }
-        },
-        y: {
-          grid: { color: '#1f1f1f' },
-          ticks: { color: '#888888' },
-          title: { display: true, text: 'Price (cents/bushel)', color: '#888' }
-        }
-      }
-    }
-  });
-})();
-</script>
-
-<script>
-/* Week 2 — scrolling candlestick chart */
-(function () {
-  const hero   = document.querySelector('.week-hero');
-  const canvas = document.getElementById('w2-canvas');
-  const ctx    = canvas.getContext('2d');
-  let W, H;
-
-  const BAR_W = 26, STEP = 36;
-
-  function resize() {
-    const r = hero.getBoundingClientRect();
-    W = canvas.width  = Math.round(r.width);
-    H = canvas.height = Math.round(r.height);
-    initBars();
-  }
-
-  let momentum = 0;
-
-  function rndBar(prevClose) {
-    momentum = momentum * 0.6 + (Math.random() - 0.48) * 0.045;
-    momentum = Math.max(-0.065, Math.min(0.065, momentum));
-    const close = Math.max(0.12, Math.min(0.88, prevClose + momentum));
-    const open  = prevClose;
-    const wick  = Math.random() * 0.040;
-    const high  = Math.min(0.95, Math.max(open, close) + wick);
-    const low   = Math.max(0.05, Math.min(open, close) - wick);
-    return { open, close, high, low };
-  }
-
-  let bars = [], offset = 0;
-
-  function initBars() {
-    bars = [];
-    const count = Math.ceil(W / STEP) + 4;
-    let p = 0.38 + Math.random() * 0.24;
-    for (let i = 0; i < count; i++) {
-      const b = rndBar(p);
-      b.alpha = Math.min(0.55, i / 10);
-      bars.push(b);
-      p = b.close;
-    }
-  }
-
-  let lastTs = null;
-
-  function frame(ts) {
-    if (!lastTs) lastTs = ts;
-    const dt = Math.min(ts - lastTs, 40);
-    lastTs = ts;
-
-    offset += dt * 0.010;
-    while (offset >= STEP) {
-      offset -= STEP;
-      bars.shift();
-      const last = bars[bars.length - 1];
-      const nb   = rndBar(last.close);
-      nb.alpha   = 0;
-      bars.push(nb);
-    }
-
-    bars.forEach(b => { b.alpha = Math.min(0.55, b.alpha + dt * 0.003); });
-
-    ctx.clearRect(0, 0, W, H);
-
-    for (let i = 0; i < bars.length; i++) {
-      const b   = bars[i];
-      const x   = i * STEP - offset;
-      if (x < -STEP || x > W + STEP) continue;
-
-      const up    = b.close >= b.open;
-      const bTop  = Math.min(b.open, b.close) * H;
-      const bBot  = Math.max(b.open, b.close) * H;
-      const bH    = Math.max(1.5, bBot - bTop);
-      const col   = up
-        ? `rgba(255,125,42,${b.alpha.toFixed(3)})`
-        : `rgba(255,238,215,${(b.alpha * 0.55).toFixed(3)})`;
-      const midX  = x + BAR_W / 2;
-
-      ctx.strokeStyle = col;
-      ctx.lineWidth   = 1.5;
-      ctx.beginPath();
-      ctx.moveTo(midX, b.high * H);
-      ctx.lineTo(midX, b.low  * H);
-      ctx.stroke();
-
-      ctx.fillStyle = col;
-      ctx.fillRect(x, bTop, BAR_W, bH);
-    }
-
-    requestAnimationFrame(frame);
-  }
-
-  new ResizeObserver(resize).observe(hero);
-  resize();
-  requestAnimationFrame(frame);
-})();
-</script>
-
+<footer>AlgoGators Investment Fund — QD Training Program // Internal Use Only</footer>
 <script src="cursor.js"></script>
 </body>
 </html>
