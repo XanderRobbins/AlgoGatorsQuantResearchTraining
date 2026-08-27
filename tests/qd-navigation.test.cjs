@@ -54,8 +54,8 @@ test("every QD page mounts the shared navigation without legacy hash links", () 
     );
     assert.match(
       page,
-      /<script src="qd-navigation\.js" defer><\/script>/,
-      `${pageName} must load the shared navigation module`,
+      /<script src="qd-navigation\.js\?v=[^"]+" defer><\/script>/,
+      `${pageName} must load a cache-versioned shared navigation module`,
     );
     assert.doesNotMatch(
       page,
