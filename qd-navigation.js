@@ -11,7 +11,7 @@
 })(typeof globalThis !== "undefined" ? globalThis : this, function createNavigation() {
   function currentWeek(pathname) {
     const filename = String(pathname || "").split("/").pop();
-    const match = /^qd-week(10|[1-9])\.html$/.exec(filename);
+    const match = /^qd-week([1-4])\.html$/.exec(filename);
 
     return match ? Number(match[1]) : null;
   }
@@ -28,7 +28,7 @@
       `<a href="qd.html"${activeWeek === null ? ' class="active"' : ""}>Home</a>`,
     );
 
-    for (let week = 1; week <= 10; week += 1) {
+    for (let week = 1; week <= 4; week += 1) {
       const activeClass = week === activeWeek ? ' class="active"' : "";
       links.push(
         `<a href="qd-week${week}.html"${activeClass}>W${week}</a>`,

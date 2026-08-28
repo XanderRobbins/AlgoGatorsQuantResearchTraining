@@ -13,25 +13,26 @@ try {
   }
 }
 
-test("every week link opens its dedicated page", () => {
+test("QD navigation exposes only the four-week onboarding program", () => {
   assert.equal(typeof navigation.renderQdNavigation, "function");
 
   const html = navigation.renderQdNavigation("/qd-week4.html");
+  const weekLinks = Array.from(
+    html.matchAll(/href="qd-week(\d+)\.html"/g),
+    (match) => Number(match[1]),
+  );
 
-  for (let week = 1; week <= 10; week += 1) {
-    assert.match(html, new RegExp(`href="qd-week${week}\\.html"`));
-  }
-
+  assert.deepEqual(weekLinks, [1, 2, 3, 4]);
   assert.doesNotMatch(html, /qd\.html#week-/);
 });
 
 test("the current page is the only active navigation item", () => {
   assert.equal(typeof navigation.renderQdNavigation, "function");
 
-  const weekHtml = navigation.renderQdNavigation("/qd-week7.html");
+  const weekHtml = navigation.renderQdNavigation("/qd-week4.html");
   const hubHtml = navigation.renderQdNavigation("/qd.html");
 
-  assert.match(weekHtml, /href="qd-week7\.html" class="active"/);
+  assert.match(weekHtml, /href="qd-week4\.html" class="active"/);
   assert.equal((weekHtml.match(/class="active"/g) || []).length, 1);
   assert.match(hubHtml, /href="qd\.html" class="active"/);
   assert.equal((hubHtml.match(/class="active"/g) || []).length, 1);
@@ -40,7 +41,7 @@ test("the current page is the only active navigation item", () => {
 test("every QD page mounts the shared navigation without legacy hash links", () => {
   const pageNames = [
     "qd.html",
-    ...Array.from({ length: 10 }, (_, index) => `qd-week${index + 1}.html`),
+    ...Array.from({ length: 4 }, (_, index) => `qd-week${index + 1}.html`),
   ];
 
   for (const pageName of pageNames) {
@@ -53,13 +54,40 @@ test("every QD page mounts the shared navigation without legacy hash links", () 
     );
     assert.match(
       page,
-      /<script src="qd-navigation\.js" defer><\/script>/,
-      `${pageName} must load the shared navigation module`,
+      /<script src="qd-navigation\.js\?v=[^"]+" defer><\/script>/,
+      `${pageName} must load a cache-versioned shared navigation module`,
     );
     assert.doesNotMatch(
       page,
       /qd\.html#week-/,
       `${pageName} must link directly to week pages`,
+    );
+  }
+});
+
+test("removed QD week routes no longer resolve as static pages", () => {
+  for (let week = 5; week <= 10; week += 1) {
+    assert.equal(
+      fs.existsSync(path.join(__dirname, "..", `qd-week${week}.html`)),
+      false,
+      `qd-week${week}.html must not exist`,
+    );
+  }
+});
+
+test("active QD pages never link to removed week routes", () => {
+  const pageNames = [
+    "qd.html",
+    ...Array.from({ length: 4 }, (_, index) => `qd-week${index + 1}.html`),
+  ];
+
+  for (const pageName of pageNames) {
+    const page = fs.readFileSync(path.join(__dirname, "..", pageName), "utf8");
+
+    assert.doesNotMatch(
+      page,
+      /href="qd-week(?:[5-9]|10)\.html"/,
+      `${pageName} must not link to a removed QD week`,
     );
   }
 });
