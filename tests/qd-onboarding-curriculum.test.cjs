@@ -21,17 +21,22 @@ test("Weeks 1–4 each schedule one 60-minute meeting with Xander", () => {
   }
 });
 
-test("Week 1 defines required finance lectures without course homework", () => {
-  const page = weeks.get(1);
-  const xanderCard = page.match(
-    /<article[^>]*data-onboarding-component="xander-meeting"[^>]*>/,
-  )?.[0];
+test("Weeks 1–4 define required finance lectures without course homework", () => {
+  for (const [week, page] of weeks) {
+    const xanderCard = page.match(
+      /<article[^>]*data-onboarding-component="xander-meeting"[^>]*>/,
+    )?.[0];
 
-  assert.ok(xanderCard, "Week 1 is missing the Xander lecture card");
-  assert.match(xanderCard, /data-attendance-weeks="1-4"/);
-  assert.match(xanderCard, /data-course-homework="not-required"/);
-  assert.match(xanderCard, /data-week2-assignment="data-ngin"/);
-  assert.match(xanderCard, /data-week3-assignment="trade-ngin"/);
+    assert.ok(xanderCard, `Week ${week} is missing the Xander lecture card`);
+    assert.match(xanderCard, /data-attendance-weeks="1-4"/);
+    assert.match(xanderCard, /data-course-homework="not-required"/);
+  }
+
+  const week1Card = weeks
+    .get(1)
+    .match(/<article[^>]*data-onboarding-component="xander-meeting"[^>]*>/)[0];
+  assert.match(week1Card, /data-week2-assignment="data-ngin"/);
+  assert.match(week1Card, /data-week3-assignment="trade-ngin"/);
 });
 
 test("Week 1 establishes the core development infrastructure", () => {
